@@ -1,0 +1,7 @@
+
+Instructions for adding the London skyline image:
+
+1. Download a royalty-free image of London skyline at night (similar to the reference image)
+2. Rename it to "london-skyline.jpg"
+3. Place it in the public folder of your project
+4. The image should show Tower Bridge, the Gherkin, and other iconic London buildings at night with the Thames river visible

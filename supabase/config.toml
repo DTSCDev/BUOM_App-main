@@ -1,0 +1,11 @@
+
+project_id = "ybronliyhpjprquyzsac"
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
+
+[functions.enable-rls]
+verify_jwt = false
