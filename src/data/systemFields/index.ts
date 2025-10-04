@@ -49,14 +49,10 @@ export * from './pageBasedSFMFields';
 // These are kept for backward compatibility but should not be used in new code
 // They use the old SFM code structure (SFM-001, SFM-002, etc.)
 import { dashboardFields } from './dashboardFields';
-import { affordabilityFields } from './affordabilityFields';
-import { parameterFields } from './parameterFields';
 import { apfRegistrationFields } from './apfRegistrationFields';
 
 export {
   dashboardFields as legacyDashboardFields,
-  affordabilityFields as legacyAffordabilityFields,
-  parameterFields as legacyParameterFields,
   apfRegistrationFields as legacyApfRegistrationFields
 };
 

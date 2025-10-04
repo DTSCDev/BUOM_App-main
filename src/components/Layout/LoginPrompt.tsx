@@ -31,7 +31,7 @@ const LoginPrompt = ({ className = "" }: LoginPromptProps) => {
         </div>
       ) : (
         <div className="backdrop-blur-sm rounded-md px-2 py-1 border border-gray-700 shadow-md flex items-center gap-2" style={{ backgroundColor: '#4FF546' }}>
-          <span className="text-xs font-medium" style={{ color: '#4FF546' }}>Welcome back!</span>
+          <span className="text-gray-700 text-xs font-bold">Welcome back!</span>
           <Button 
             onClick={() => navigate('/dashboard')} 
             className="bg-gray-700 hover:bg-gray-800 font-medium px-2 py-1 text-xs"

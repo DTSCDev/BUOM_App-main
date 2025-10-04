@@ -4,7 +4,7 @@
 
 **APPROVED SFM CODES - ONLY THESE ARE VALID:**
 
-✅ **SFM-001 to SFM-043** (Free Calculator Tab)
+✅ **SFM-001 to SFM-045** (Free Calculator Tab)
 ✅ **SFM-101 to SFM-119** (Free Affordability Tab)
 
 **SOURCE**: `freeCalculatorFields.ts` ONLY
@@ -14,13 +14,13 @@
 - ❌ Must be replaced with SFMPAGEBASED code
 - ❌ All other SFM codes in system are scheduled for deletion
 
-**REMEMBER**: Only SFM-001 to SFM-043 and SFM-101 to SFM-119 from `freeCalculatorFields.ts` are approved. Everything else is corrupt and needs SFMPAGEBASED replacement.
+**REMEMBER**: Only SFM-001 to SFM-045 and SFM-101 to SFM-119 from `freeCalculatorFields.ts` are approved. Everything else is corrupt and needs SFMPAGEBASED replacement.
 
 ## ⚠️ CRITICAL SYSTEM ARCHITECTURE NOTE
 
 **SFM CODE VALIDATION RULES:**
 
-1. **FREE CALCULATOR CODES (SFM-001 to SFM-043 and SFM-101 to SFM-119)**: 
+1. **FREE CALCULATOR CODES (SFM-001 to SFM-045 and SFM-101 to SFM-119)**: 
    - ONLY valid within Free Calculator files
    - Source: `freeCalculatorFields.ts`
    - Independent system with dedicated code range
@@ -32,7 +32,7 @@
 
 3. **VALIDATION RULE**: 
    - Any SFM code found in Main App files that is NOT from `sfmPageBased` sources = CORRUPT/INVALID
-   - Free Calculator codes (SFM-001 to SFM-043 and SFM-101 to SFM-119) are INVALID in Main App context
+   - Free Calculator codes (SFM-001 to SFM-045 and SFM-101 to SFM-119) are INVALID in Main App context
    - Only use codes from proper page-based allocation system
 
 **REMEMBER**: Free Calculator operates independently with its own SFM code range. Main App uses completely separate page-based SFM allocation system.
@@ -44,7 +44,7 @@
 2. **SFM_PAGE_BASED_MIGRATION_GUIDE.md** - Documents the migration to page-based SFM codes
 3. **pageBasedSFMFields.ts** - Implements the page-based structure
 
-> **NOTE**: Free Calculator operates independently with its own SFM code range (SFM-001 to SFM-043 and SFM-101 to SFM-119) and does NOT use the main app's page-based SFM structure.
+> **NOTE**: Free Calculator operates independently with its own SFM code range (SFM-001 to SFM-045 and SFM-101 to SFM-119) and does NOT use the main app's page-based SFM structure.
 
 ---
 
@@ -64,11 +64,12 @@
 - **SFM-011**: Estimated Shortfall - Additional capital needed e.g. £283,055
 - **SFM-012**: Existing Plan Top-Up Monthly Cost - Additional monthly contribution needed to close funding gap e.g. £415
 
-## PENSION TIMELINE (SFM-013 to SFM-016)
+## PENSION TIMELINE (SFM-013 to SFM-016 + SFM-044)
 - **SFM-013**: Target Income Today - (50% of current annual salary) e.g. £30,000 
 - **SFM-014**: Target Income at Retirement - Target income adjusted for inflation e.g. £49,218
 - **SFM-015**: State Pension Today - Current state pension annual rate e.g. £11,973
 - **SFM-016**: State Pension at Retirement - State pension adjusted for inflation e.g. £19,643
+- **SFM-044**: Projected Income (including state pension) - (SFM-009 x 3.5%) + SFM-016 e.g. £39,311
 
 ## KEY METRICS (SFM-017 to SFM-020)
 - **SFM-017**: Current Age - (Calculated from date of birth) e.g. 42 years 0 months
@@ -76,7 +77,7 @@
 - **SFM-019**: Days Until Pension - (Days until retirement) e.g. 9,131 Days until retirement
 - **SFM-020**: Paydays Remaining - (Monthly paydays until retirement) e.g. 300 Monthly paydays until retirement
 
-## PENSION PROJECTION ANALYSIS (SFM-021 to SFM-028)
+## PENSION PROJECTION ANALYSIS (SFM-021 to SFM-028 + SFM-045)
 - **SFM-021**: Estimated Historical Contributions - (Total AE contributions from age 21 to current age) e.g. £70,040
 - **SFM-022**: Estimated Existing Pension Fund Value - (Current pension fund value) e.g. £111,134
 - **SFM-023**: Future Growth on Existing Fund Value - (Investment growth on existing pension value to retirement) e.g. +£221,239
@@ -85,11 +86,12 @@
 - **SFM-026**: Total Projected Pension Value - (Sum of all pension components) e.g. £561,951
 - **SFM-027**: Required Capital - (Capital needed for target income) e.g. £845,005
 - **SFM-028**: Capital Shortfall - (Gap between required and projected capital) e.g. £283,055
+- **SFM-045**: Equivalent Income Shortfall - (Gap between target income (SFM-014) and projected income (SFM-044)) e.g. £9,907
 
 ## TOP UP CONTRIBUTION ANALYSIS (SFM-029 to SFM-032)
 - **SFM-029**: Top Up Contributions Paid - Total contributions needed to close shortfall e.g. £160,968
 - **SFM-030**: Top Up Investment Growth - (Investment growth on top-up contributions) e.g. +£122,460
-- **SFM-031**: Top Up Result - (SFM-029 + SFM-028) e.g. £283,428
+- **SFM-031**: Top Up Result - (SFM-029 + SFM-030) e.g. £283,428
 - **SFM-032**: Effective Growth Rate - (Investment Growth / Contributions Paid) × 100 e.g. 76.1%
 
 ## ESTIMATED PENSION FUNDING SHORTFALL - PIE CHART (SFM-033 to SFM-035)

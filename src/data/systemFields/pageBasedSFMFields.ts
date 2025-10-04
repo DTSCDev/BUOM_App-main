@@ -156,7 +156,17 @@ export const calculatorsPageFields: SystemField[] = [
     correlatedTo: "Number of paydays until retirement",
     valueType: "Number"
   },
-  
+  // Existing Plan Projected Income (Main App equivalent of SFM-044)
+  {
+    sfmId: "SFM-CAL-4132",
+    description: "Existing Plan Projected Income",
+    pageName: "Retirement Calculator",
+    cardName: "Pension Timeline",
+    outputValue: "existingPlanProjectedIncome",
+    correlatedTo: "(Total Projected Pension Value × Drawdown Rate) + State Pension at Retirement",
+    valueType: "Currency"
+  },
+
   // PENSION PROJECTION ANALYSIS CARD - Right Section
   {
     sfmId: "SFM-CAL-4114",

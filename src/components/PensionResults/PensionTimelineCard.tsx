@@ -2,8 +2,9 @@
 import { PensionCalculationResults } from '@/types/pension';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Target } from 'lucide-react';
+import { Target } from 'lucide-react';
 import { formatCurrency } from '@/utils/pensionCalculations';
+import SFMCodeBadge from '@/components/SystemFields/SFMCodeBadge';
 
 interface PensionTimelineCardProps {
   results: PensionCalculationResults;
@@ -25,40 +26,37 @@ const PensionTimelineCard: React.FC<PensionTimelineCardProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Pension Timeline
-        </CardTitle>
+        <CardTitle>Pension Timeline</CardTitle>
         <p className="text-sm text-muted-foreground">
           Timeline calculations for your retirement planning
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4">
-          <div className="space-y-2 relative pb-6">
+          <div className="space-y-2">
             <h4 className="font-medium text-gray-900">Target Income Today</h4>
-            <div className="text-xl font-semibold text-blue-600">
-              {formatCurrency(results.targetIncome)}
+            <div>
+              <div className="text-xl font-semibold text-blue-600">
+                {formatCurrency(results.targetIncome)}
+              </div>
+              <SFMCodeBadge sfmId="SFM-013" />
             </div>
             <p className="text-sm text-gray-600">
               50% of current annual salary
             </p>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-              SFM-013
-            </div>
           </div>
 
-          <div className="space-y-2 relative pb-6">
+          <div className="space-y-2">
             <h4 className="font-medium text-gray-900">Target Income at Retirement</h4>
-            <div className="text-xl font-semibold text-green-600">
-              {formatCurrency(results.requiredIncomeAfterInflation)}
+            <div>
+              <div className="text-xl font-semibold text-green-600">
+                {formatCurrency(results.requiredIncomeAfterInflation)}
+              </div>
+              <SFMCodeBadge sfmId="SFM-014" />
             </div>
             <p className="text-sm text-gray-600">
               Target income adjusted for inflation
             </p>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-              SFM-014
-            </div>
           </div>
 
           <div className="border-t pt-4">
@@ -69,19 +67,19 @@ const PensionTimelineCard: React.FC<PensionTimelineCardProps> = ({
               </h4>
               
               <div className="grid gap-3">
-                <div className="flex justify-between items-center relative pb-6">
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">State Pension Today</span>
-                  <span className="font-medium">{formatCurrency(currentStatePension)}</span>
-                  <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                    SFM-015
+                  <div className="text-right">
+                    <span className="font-medium">{formatCurrency(currentStatePension)}</span>
+                    <SFMCodeBadge sfmId="SFM-015" />
                   </div>
                 </div>
                 
-                <div className="flex justify-between items-center relative pb-6">
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">State Pension at Retirement</span>
-                  <span className="font-medium">{formatCurrency(statePensionAtRetirement)}</span>
-                  <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                    SFM-016
+                  <div className="text-right">
+                    <span className="font-medium">{formatCurrency(statePensionAtRetirement)}</span>
+                    <SFMCodeBadge sfmId="SFM-016" />
                   </div>
                 </div>
               </div>
