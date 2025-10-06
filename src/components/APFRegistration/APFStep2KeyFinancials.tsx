@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isTestingAccount } from "@/utils/testing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { APFINBLSummaryCard } from "./APFStep2Cards/APFINBLSummaryCard";
@@ -22,7 +23,7 @@ interface APFStep2KeyFinancialsProps {
 }
 
 export function APFStep2KeyFinancials({ profile, dashboardData }: APFStep2KeyFinancialsProps) {
-  const [acknowledged, setAcknowledged] = useState(false);
+  const [acknowledged, setAcknowledged] = useState<boolean>(isTestingAccount() ? true : false);
   
   // Get basic data from profile - fix the calculateAge usage
   const currentAge = profile?.date_of_birth ? calculateAge(new Date(profile.date_of_birth)).years : null;
@@ -129,7 +130,7 @@ export function APFStep2KeyFinancials({ profile, dashboardData }: APFStep2KeyFin
         </CardContent>
       </Card>
 
-      {acknowledged && (
+      {(acknowledged || isTestingAccount()) && (
         <div className="space-y-6">
           <APFINBLSummaryCard 
             profile={profileForCard}

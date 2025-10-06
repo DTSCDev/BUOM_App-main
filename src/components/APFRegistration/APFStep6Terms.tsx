@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { isTestingAccount } from "@/utils/testing";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -29,10 +30,12 @@ export function APFStep6Terms({ applicationData, dashboardData, onComplete }: AP
 
   // Check if all required fields are completed
   const allFieldsCompleted = 
-    formData.nonContributoryTerms === "yes" && 
-    formData.allInclusiveTerms === "yes" && 
-    formData.acceptance === "yes" && 
-    signature.length > 0;
+    isTestingAccount() || (
+      formData.nonContributoryTerms === "yes" && 
+      formData.allInclusiveTerms === "yes" && 
+      formData.acceptance === "yes" && 
+      signature.length > 0
+    );
 
   // Handle radio button changes
   const handleRadioChange = (field: string, value: string) => {

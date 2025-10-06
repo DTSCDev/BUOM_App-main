@@ -18,17 +18,17 @@ export function calculateBUOMTableValues(sfmId: string, context: SFMCalculationC
   });
 
   switch (sfmId) {
-    // BUOM Table - Annual INBL (SFM-066-X)
-    case "SFM-066-1":
-    case "SFM-066-2":
-    case "SFM-066-3":
-    case "SFM-066-4":
-    case "SFM-066-5":
-    case "SFM-066-6":
-    case "SFM-066-7":
-    case "SFM-066-8":
-    case "SFM-066-9":
-    case "SFM-066-10": {
+    // BUOM Table - Annual INBL (SFM-166-X) - UPDATED FROM 066 TO 166
+    case "SFM-166-1":
+    case "SFM-166-2":
+    case "SFM-166-3":
+    case "SFM-166-4":
+    case "SFM-166-5":
+    case "SFM-166-6":
+    case "SFM-166-7":
+    case "SFM-166-8":
+    case "SFM-166-9":
+    case "SFM-166-10": {
       const buomInblYear = parseInt(sfmId.split('-')[2]);
       const buomInblSponsorship = sponsorships.find(s => s.year === buomInblYear);
       if (!buomInblSponsorship) {
@@ -42,17 +42,17 @@ export function calculateBUOMTableValues(sfmId: string, context: SFMCalculationC
       return annualINBL;
     }
 
-    // BUOM Table - APF Funding (SFM-069-X)
-    case "SFM-069-1":
-    case "SFM-069-2":
-    case "SFM-069-3":
-    case "SFM-069-4":
-    case "SFM-069-5":
-    case "SFM-069-6":
-    case "SFM-069-7":
-    case "SFM-069-8":
-    case "SFM-069-9":
-    case "SFM-069-10": {
+    // BUOM Table - APF Funding (SFM-169-X) - UPDATED FROM 069 TO 169
+    case "SFM-169-1":
+    case "SFM-169-2":
+    case "SFM-169-3":
+    case "SFM-169-4":
+    case "SFM-169-5":
+    case "SFM-169-6":
+    case "SFM-169-7":
+    case "SFM-169-8":
+    case "SFM-169-9":
+    case "SFM-169-10": {
       const buomApfYear = parseInt(sfmId.split('-')[2]);
       const buomApfSponsorship = sponsorships.find(s => s.year === buomApfYear);
       if (!buomApfSponsorship) {
@@ -66,17 +66,17 @@ export function calculateBUOMTableValues(sfmId: string, context: SFMCalculationC
       return apfFunding;
     }
 
-    // BUOM Table - ISA Monthly (SFM-072-X)
-    case "SFM-072-1":
-    case "SFM-072-2":
-    case "SFM-072-3":
-    case "SFM-072-4":
-    case "SFM-072-5":
-    case "SFM-072-6":
-    case "SFM-072-7":
-    case "SFM-072-8":
-    case "SFM-072-9":
-    case "SFM-072-10": {
+    // BUOM Table - ISA Monthly (SFM-172-X) - UPDATED FROM 072 TO 172
+    case "SFM-172-1":
+    case "SFM-172-2":
+    case "SFM-172-3":
+    case "SFM-172-4":
+    case "SFM-172-5":
+    case "SFM-172-6":
+    case "SFM-172-7":
+    case "SFM-172-8":
+    case "SFM-172-9":
+    case "SFM-172-10": {
       const buomIsaYear = parseInt(sfmId.split('-')[2]);
       const buomIsaSponsorship = sponsorships.find(s => s.year === buomIsaYear);
       if (!buomIsaSponsorship) {

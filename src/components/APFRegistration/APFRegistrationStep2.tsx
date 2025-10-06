@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { isTestingAccount } from "@/utils/testing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,7 @@ export function APFRegistrationStep2({ onNext, onBack, profile, dashboardData }:
   const [formData, setFormData] = useState({
     annualSalary: profile?.annual_salary || 60000,
     existingPensionValue: 157088, // Default calculated value
-    inblFundingApproved: false
+    inblFundingApproved: isTestingAccount() ? true : false
   });
 
   // Use dashboard calculations for shortfall
@@ -161,7 +162,7 @@ export function APFRegistrationStep2({ onNext, onBack, profile, dashboardData }:
             <Button type="button" variant="outline" onClick={onBack}>
               Back
             </Button>
-            <Button type="submit" disabled={!formData.inblFundingApproved}>
+            <Button type="submit" disabled={!isTestingAccount() && !formData.inblFundingApproved}>
               Continue to Affordability Check
             </Button>
           </div>

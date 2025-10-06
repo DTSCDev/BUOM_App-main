@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { isTestingAccount } from "@/utils/testing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,8 +40,8 @@ export function APFRegistrationStep1({ onNext, profile }: APFRegistrationStep1Pr
     lastName: profile?.last_name || "",
     email: profile?.email || "",
     mobile: profile?.mobile || "",
-    termsAccepted: false,
-    coolingOffAcknowledged: false
+    termsAccepted: isTestingAccount() ? true : false,
+    coolingOffAcknowledged: isTestingAccount() ? true : false
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -184,7 +185,7 @@ export function APFRegistrationStep1({ onNext, profile }: APFRegistrationStep1Pr
           <div className="flex justify-end">
             <Button 
               type="submit" 
-              disabled={!formData.termsAccepted || !formData.coolingOffAcknowledged}
+              disabled={!isTestingAccount() && (!formData.termsAccepted || !formData.coolingOffAcknowledged)}
             >
               Continue to Financial Assessment
             </Button>

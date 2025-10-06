@@ -6,16 +6,23 @@ import { APFSponsorshipBreakdown } from "@/utils/pension/buomTypes";
 import { MetricCard } from "@/components/Dashboard/MetricCard";
 import { usePayslipCalculations } from "@/hooks/usePayslipCalculations";
 import { getSFMCodeForMetric } from "@/utils/systemFields/sfmCodeGenerator";
+import { useSFMResolver } from "@/hooks/useSFMResolver";
+
+// Define a minimal Profile type to avoid `any`
+interface Profile {
+  annual_salary?: number;
+}
 
 interface APFSponsorshipYearsCardProps {
   sponsorships: APFSponsorshipBreakdown[];
   showMonthly: boolean;
-  profile: any;
+  profile: Profile;
   initialCapitalShortfall: number;
 }
 
 export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, initialCapitalShortfall }: APFSponsorshipYearsCardProps) {
   const { calculatePayslipComparison } = usePayslipCalculations();
+  const { resolveSFM, ready } = useSFMResolver();
   const monthlyDivisor = 252;
   const annualSalary = profile?.annual_salary || 60000;
   
@@ -103,41 +110,67 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
                 )}
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <MetricCard
-                    title="APF INITIAL FUNDING"
-                    value={formatCurrency(showMonthly ? sponsorship.sponsorshipAmount / monthlyDivisor : sponsorship.sponsorshipAmount)}
-                    headerBgColor="bg-yellow-600"
-                    valueTextColor="text-yellow-600"
-                    sfmCode={getSFMCodeForMetric('APF_INITIAL_FUNDING', yearNumber)}
-                  />
+                  {(() => {
+                    const sfmCode = getSFMCodeForMetric('APF_INITIAL_FUNDING', yearNumber);
+                    const resolved = ready ? resolveSFM(sfmCode) : 0;
+                    const displayValue = resolved > 0 ? resolved : sponsorship.sponsorshipAmount;
+                    return (
+                      <MetricCard
+                        title="APF INITIAL FUNDING"
+                        value={formatCurrency(showMonthly ? displayValue / monthlyDivisor : displayValue)}
+                        headerBgColor="bg-yellow-600"
+                        valueTextColor="text-yellow-600"
+                        sfmCode={sfmCode}
+                      />
+                    );
+                  })()}
                   
-                  <MetricCard
-                    title="APF MATURITY"
-                    value={formatCurrency(showMonthly ? sponsorship.maturityValue / monthlyDivisor : sponsorship.maturityValue)}
-                    headerBgColor="bg-yellow-600"
-                    valueTextColor="text-yellow-600"
-                    sfmCode={getSFMCodeForMetric('APF_MATURITY', yearNumber)}
-                  />
+                  {(() => {
+                    const sfmCode = getSFMCodeForMetric('APF_MATURITY', yearNumber);
+                    const resolved = ready ? resolveSFM(sfmCode) : 0;
+                    const displayValue = resolved > 0 ? resolved : sponsorship.maturityValue;
+                    return (
+                      <MetricCard
+                        title="APF MATURITY"
+                        value={formatCurrency(showMonthly ? displayValue / monthlyDivisor : displayValue)}
+                        headerBgColor="bg-yellow-600"
+                        valueTextColor="text-yellow-600"
+                        sfmCode={sfmCode}
+                      />
+                    );
+                  })()}
                   
-                  <MetricCard
-                    title="TOTAL INBL PRINCIPAL"
-                    value={formatCurrency(showMonthly ? inblAmount / monthlyDivisor : inblAmount)}
-                    headerBgColor="bg-green-600"
-                    valueTextColor="text-green-600"
-                    sfmCode={getSFMCodeForMetric('TOTAL_INBL_PRINCIPAL', yearNumber)}
-                  />
+                  {(() => {
+                    const sfmCode = getSFMCodeForMetric('TOTAL_INBL_PRINCIPAL', yearNumber);
+                    const resolved = ready ? resolveSFM(sfmCode) : 0;
+                    const displayValue = resolved > 0 ? resolved : inblAmount;
+                    return (
+                      <MetricCard
+                        title="TOTAL INBL PRINCIPAL"
+                        value={formatCurrency(showMonthly ? displayValue / monthlyDivisor : displayValue)}
+                        headerBgColor="bg-green-600"
+                        valueTextColor="text-green-600"
+                        sfmCode={sfmCode}
+                      />
+                    );
+                  })()}
                   
-                  <MetricCard
-                    title={
-                      isShortfallEliminated
-                        ? <span className="text-green-700 font-bold">SHORTFALL ELIMINATED!</span>
-                        : <span className="text-red-600 font-bold">{`SHORTFALL BALANCE (SFM-150-${yearNumber})`}</span>
-                    }
-                    value={isShortfallEliminated ? "£0" : formatCurrency(showMonthly ? cumulativeShortfall / monthlyDivisor : cumulativeShortfall)}
-                    headerBgColor={isShortfallEliminated ? "bg-green-600" : "bg-red-600"}
-                    valueTextColor={isShortfallEliminated ? "text-green-600" : "text-red-600"}
-                    sfmCode={`SFM-150-${yearNumber}`}
-                  />
+                  {(() => {
+                    const sfmCode = getSFMCodeForMetric('SHORTFALL_BALANCE', yearNumber);
+                    const resolved = ready ? resolveSFM(sfmCode) : 0;
+                    const displayValue = resolved > 0 ? resolved : cumulativeShortfall;
+                    const eliminated = displayValue <= 0 || isShortfallEliminated;
+                    const titleText = eliminated ? 'SHORTFALL ELIMINATED!' : 'SHORTFALL BALANCE';
+                    return (
+                      <MetricCard
+                        title={titleText}
+                        value={eliminated ? "£0" : formatCurrency(showMonthly ? displayValue / monthlyDivisor : displayValue)}
+                        headerBgColor={eliminated ? "bg-green-600" : "bg-red-600"}
+                        valueTextColor={eliminated ? "text-green-600" : "text-red-600"}
+                        sfmCode={sfmCode}
+                      />
+                    );
+                  })()}
                 </div>
                 
                 {/* Show status message */}

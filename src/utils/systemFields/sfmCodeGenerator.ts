@@ -8,46 +8,51 @@ export interface SFMCodePattern {
 export const SFM_CODE_PATTERNS: Record<string, SFMCodePattern> = {
   // APF Registration - Year-specific patterns
   'APF_INITIAL_FUNDING': {
-    baseCode: 'SFM-047',
+    baseCode: 'SFM-147',
     description: 'APF Initial Funding',
     maxYears: 10
   },
   'APF_MATURITY': {
-    baseCode: 'SFM-048',
+    baseCode: 'SFM-148',
     description: 'APF Maturity Value',
     maxYears: 10
   },
   'TOTAL_INBL_PRINCIPAL': {
-    baseCode: 'SFM-049',
+    baseCode: 'SFM-149',
     description: 'Total INBL Principal',
+    maxYears: 10
+  },
+  'SHORTFALL_BALANCE': {
+    baseCode: 'SFM-150',
+    description: 'Shortfall Balance',
     maxYears: 10
   },
   
   // Dashboard BUOM Table - Year-specific patterns
   'BUOM_INBL_ANNUAL': {
-    baseCode: 'SFM-066',
+    baseCode: 'SFM-166',
     description: 'BUOM Table Annual INBL',
     maxYears: 10
   },
   'BUOM_APF_FUNDING': {
-    baseCode: 'SFM-069',
+    baseCode: 'SFM-169',
     description: 'BUOM Table APF Funding',
     maxYears: 10
   },
   'BUOM_ISA_MONTHLY': {
-    baseCode: 'SFM-072',
+    baseCode: 'SFM-172',
     description: 'BUOM Table ISA Monthly',
     maxYears: 10
   },
   
   // NPG and NRSR Fee patterns - NEW
   'NPG_AMOUNT': {
-    baseCode: 'SFM-055',
+    baseCode: 'SFM-155',
     description: 'NPG Amount',
     maxYears: 10
   },
   'NRSR_FEE': {
-    baseCode: 'SFM-056',
+    baseCode: 'SFM-156',
     description: 'NRSR Fee',
     maxYears: 10
   }

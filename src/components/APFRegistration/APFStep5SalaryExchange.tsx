@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isTestingAccount } from "@/utils/testing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APFStep5MonthlyScheduleTable } from "./APFStep5Components/APFStep5MonthlyScheduleTable";
 import { APFStep5ConfirmationSection } from "./APFStep5Components/APFStep5ConfirmationSection";
@@ -39,8 +40,8 @@ export function APFStep5SalaryExchange({ profile, applicationData, onComplete }:
   const [formData, setFormData] = useState({
     monthlyScheduleAccepted: true, // Auto-accept since checkbox removed
     salaryExchangeUnderstood: true, // Auto-accept since checkbox removed
-    netPayGuaranteeAccepted: false,
-    payslipChangesAcknowledged: false
+    netPayGuaranteeAccepted: isTestingAccount() ? true : false,
+    payslipChangesAcknowledged: isTestingAccount() ? true : false
   });
 
   const { calculatePayslipComparison } = usePayslipCalculations();
@@ -65,7 +66,7 @@ export function APFStep5SalaryExchange({ profile, applicationData, onComplete }:
     payslipComparison
   });
 
-  const canProceed = formData.netPayGuaranteeAccepted && formData.payslipChangesAcknowledged;
+  const canProceed = isTestingAccount() || (formData.netPayGuaranteeAccepted && formData.payslipChangesAcknowledged);
 
   const handleSubmit = () => {
     if (canProceed) {
