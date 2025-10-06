@@ -83,7 +83,7 @@ function calculateTotalFutureAEContributions(
     totalFutureContributions += yearlyContribution;
   }
   
-  console.log(`🔧 AE CONTRIBUTIONS CALCULATION:`);
+  console.log(`🔧 AE CONTRIBUTION CALCULATION:`);
   console.log(`  Employee rate: ${employeeRate * 100}%`);
   console.log(`  Employer rate: ${employerRate * 100}%`);
   console.log(`  Total rate: ${totalContributionRate * 100}%`);
