@@ -44,5 +44,5 @@
  *   `@/data/systemFields` continue to work without ambiguity.
  */
 
-export * from './systemfields/index';
-export { systemFields } from './systemfields/index';
+export * from './systemFields/index';
+export { systemFields } from './systemFields/index';
