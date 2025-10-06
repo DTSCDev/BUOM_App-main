@@ -8,6 +8,7 @@ import { ApfSalarySummary } from "./apfSalarySummary";
 import { ApfIncomeSummary } from "./apfIncomeSummary";
 import { ApfISAPlanSummary } from "./apfISAPlanSummary";
 import { myBUOMCalculator } from "@/utils/myBUOMCalculator";
+import { getPensionParameters } from "@/utils/pensionParameters";
 import { useProfile } from "@/hooks/useProfile";
 import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 import { calculateAge } from "@/utils/pensionCalculations";
@@ -33,24 +34,23 @@ export function ApfRetirementPlanSummary() {
   // Get calculation inputs from profile
   const currentAge = calculateAge(new Date(profile.date_of_birth)).years;
   
-  // Get parameter values from localStorage (same as APFDashboard)
-  const getParameterValues = () => {
+  // Prefer central pension parameters, fallback to localStorage
+  const params = getPensionParameters();
+  const parameterValues = (() => {
     try {
       const savedParams = localStorage.getItem('retirement-calculator-parameters');
       if (savedParams) {
-        const parsedParams = JSON.parse(savedParams);
+        const parsed = JSON.parse(savedParams);
         return {
-          retirementAge: parsedParams.selectedRetirementAge || 67,
-          pensionIncomeTarget: parsedParams.pensionIncomeTarget || 67
+          retirementAge: parsed.selectedRetirementAge ?? params.retirementAge,
+          pensionIncomeTarget: parsed.pensionIncomeTarget ?? (params.pensionIncomeTarget * 100)
         };
       }
     } catch (error) {
-      console.error('Error loading parameters:', error);
+      console.warn('Error loading retirement-calculator-parameters', error);
     }
-    return { retirementAge: 67, pensionIncomeTarget: 67 };
-  };
-
-  const parameterValues = getParameterValues();
+    return { retirementAge: params.retirementAge, pensionIncomeTarget: params.pensionIncomeTarget * 100 };
+  })();
   
   // Calculate existing pension value from assets
   const existingPensionValue = assets?.filter(asset => 
@@ -70,9 +70,12 @@ export function ApfRetirementPlanSummary() {
     retirementAge: parameterValues.retirementAge,
     currentSalary: profile.annual_salary,
     existingPensionValue,
-    targetIncomePercentage: parameterValues.pensionIncomeTarget,
+    // Convert percent to fraction if needed
+    targetIncomePercentage: (typeof parameterValues.pensionIncomeTarget === 'number') 
+      ? (parameterValues.pensionIncomeTarget > 1 ? parameterValues.pensionIncomeTarget / 100 : parameterValues.pensionIncomeTarget)
+      : params.pensionIncomeTarget,
     apfSponsorshipYears: 5,
-    isaContributionCapacity: Math.max(20000 - currentISAValue, 0),
+    currentISAValue: currentISAValue,
   });
 
   const formatValue = (value: number) => {
@@ -105,6 +108,7 @@ export function ApfRetirementPlanSummary() {
         <ApfSalarySummary
           currentSalary={calculations.annualSalary}
           futureSalary={calculations.annualSalaryInflated}
+          paydaysRemaining={calculations.paydaysRemaining}
           formatValue={formatValue}
         />
 

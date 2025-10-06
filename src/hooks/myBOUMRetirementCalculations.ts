@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useNetAssetValue } from '@/hooks/useNetAssetValue';
 import { calculateUnifiedPensionMetrics } from '@/utils/pension/unifiedCalculationEngine';
+import { compoundingCalculator } from '@/utils/pension/compoundingUtils';
+import { calculateDynamicAEContributions } from '@/utils/pension/aeContributionCalculations';
 import { calculateAge } from '@/utils/pensionCalculations';
 import { SFMResolver } from '@/utils/systemFields/sfmResolver';
 
@@ -33,7 +35,7 @@ export function useMyBOUMRetirementCalculations(): MyBOUMRetirementCalculations 
 
   return useMemo(() => {
     // Return loading state if data is not ready
-    if (!profile?.date_of_birth || !profile?.annual_salary || isLoadingAssets) {
+    if (!profile?.date_of_birth || isLoadingAssets) {
       return {
         existingPlanValueTodayAtRetirement: 0,
         existingPlanFutureContributions: 0,
@@ -73,14 +75,22 @@ export function useMyBOUMRetirementCalculations(): MyBOUMRetirementCalculations 
       asset.name?.toLowerCase().includes('pension')
     ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
 
+    // Sanitize annual salary and Profile object to match expected types
+    const annualSalarySafe = typeof profile.annual_salary === 'number' ? profile.annual_salary : 0;
+    const sanitizedProfile = {
+      annual_salary: annualSalarySafe,
+      pension_contribution_employee: profile?.pension_contribution_employee ?? undefined,
+      pension_contribution_employer: profile?.pension_contribution_employer ?? undefined,
+    } as const;
+
     // Use unified calculation engine for dynamic calculations
     const unifiedResults = calculateUnifiedPensionMetrics(
       currentAge,
-      profile.annual_salary,
+      annualSalarySafe,
       existingPensionValue,
       false, // isEnhancedMember
       assets || [],
-      profile
+      sanitizedProfile
     );
 
     // Calculate chart values using unified results and SFM parameters
@@ -88,10 +98,12 @@ export function useMyBOUMRetirementCalculations(): MyBOUMRetirementCalculations 
     const netGrowthRate = growthRate - providerCharges;
     
     // SFM-CAL-4126: Existing Fund Value at Retirement (existing pension grown to retirement)
-    const existingPlanValueTodayAtRetirement = existingPensionValue * Math.pow(1 + netGrowthRate, yearsToRetirement);
+    const existingPlanValueTodayAtRetirement = compoundingCalculator.compoundMonthly(existingPensionValue, Math.max(0, yearsToRetirement * 12));
     
     // SFM-CAL-4127: Existing Plan Future Contributions (AE contributions value at retirement)
-    const existingPlanFutureContributions = unifiedResults.totalFutureAEContributions * Math.pow(1 + netGrowthRate, yearsToRetirement / 2); // Average growth period
+    // Use dynamic AE contributions with monthly escalation and growth to retirement
+    const dynamicAE = calculateDynamicAEContributions(annualSalarySafe, Math.max(0, yearsToRetirement));
+    const existingPlanFutureContributions = dynamicAE.totalFutureValue;
     
     // SFM-CAL-4121: Shortfall at Retirement
     const shortfall = unifiedResults.currentCapitalShortfall;

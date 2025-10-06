@@ -22,12 +22,11 @@ import { MetricCard } from "./MetricCard";
 interface ApfSalarySummaryProps {
   currentSalary: number;
   futureSalary: number;
+  paydaysRemaining: number;
   formatValue: (value: number) => string;
 }
 
-export function ApfSalarySummary({ currentSalary, futureSalary, formatValue }: ApfSalarySummaryProps) {
-  // Calculate pay days remaining (example calculation)
-  const payDaysRemaining = 260; // Typical working days per year
+export function ApfSalarySummary({ currentSalary, futureSalary, paydaysRemaining, formatValue }: ApfSalarySummaryProps) {
 
   return (
     <div className="space-y-3">
@@ -49,7 +48,7 @@ export function ApfSalarySummary({ currentSalary, futureSalary, formatValue }: A
         />
         <MetricCard
           title="PAY DAYS REMAINING"
-          value={payDaysRemaining.toString()}
+          value={paydaysRemaining.toString()}
           headerBgColor="bg-gray-600"
           valueTextColor="text-gray-600"
           sfmCode="SFM-APF-1003"

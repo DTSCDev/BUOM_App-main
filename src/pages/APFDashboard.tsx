@@ -8,6 +8,7 @@ import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 import { calculateRetirementProjection } from "@/utils/retirementCalculations";
 import { calculateAge } from "@/utils/pensionCalculations";
 import { myBUOMCalculator } from "@/utils/myBUOMCalculator";
+import { getPensionParameters } from "@/utils/pensionParameters";
 import { Button } from "@/components/ui/button";
 
 export default function APFDashboard() {
@@ -54,6 +55,7 @@ export default function APFDashboard() {
     return { retirementAge: 67, pensionIncomeTarget: 67 };
   };
 
+  const params = getPensionParameters();
   const parameterValues = getParameterValues();
   
   // Define retirement age - read from profile first, then Parameter Settings
@@ -66,14 +68,22 @@ const retirementAge = parameterValues.retirementAge;
   ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
   
   // Use myBUOMCalculator for APF Dashboard calculations
+  const currentISAValue = assets?.filter(asset => 
+    asset.category?.name?.toLowerCase().includes('isa') ||
+    asset.name?.toLowerCase().includes('isa')
+  ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+
   const apfCalculationInputs = {
     currentAge,
     retirementAge: parameterValues.retirementAge,
     currentSalary: profile.annual_salary, // Remove the fallback - we've already validated it exists
     existingPensionValue,
-    targetIncomePercentage: parameterValues.pensionIncomeTarget, // SFM-CAL-4406 from Parameter Settings
+    // Convert percent from localStorage to fraction; fallback to params
+    targetIncomePercentage: (parameterValues.pensionIncomeTarget > 1)
+      ? parameterValues.pensionIncomeTarget / 100
+      : (typeof parameterValues.pensionIncomeTarget === 'number' ? parameterValues.pensionIncomeTarget : params.pensionIncomeTarget),
     apfSponsorshipYears: 5, // Default APF sponsorship period
-    isaContributionCapacity: 20000, // Current ISA allowance
+    currentISAValue,
   };
   
   const apfResults = myBUOMCalculator.calculateAPFDashboard(apfCalculationInputs); // Remove the conditional check since we've validated the data

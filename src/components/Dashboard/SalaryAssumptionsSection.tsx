@@ -21,12 +21,11 @@ const SFMCodeDisplay: React.FC<{ sfmCode: string }> = ({ sfmCode }) => {
 interface SalaryAssumptionsSectionProps {
   currentSalary: number;
   futureSalary: number;
+  paydaysRemaining: number;
   formatValue: (value: number) => string;
 }
 
-export function SalaryAssumptionsSection({ currentSalary, futureSalary, formatValue }: SalaryAssumptionsSectionProps) {
-  // Calculate pay days remaining (example calculation)
-  const payDaysRemaining = 260; // Typical working days per year
+export function SalaryAssumptionsSection({ currentSalary, futureSalary, paydaysRemaining, formatValue }: SalaryAssumptionsSectionProps) {
 
   return (
     <div className="space-y-3">
@@ -48,7 +47,7 @@ export function SalaryAssumptionsSection({ currentSalary, futureSalary, formatVa
         />
         <MetricCard
           title="PAY DAYS REMAINING"
-          value={payDaysRemaining.toString()}
+          value={paydaysRemaining.toString()}
           headerBgColor="bg-gray-600"
           valueTextColor="text-gray-600"
           sfmCode="SFM-APF-1003"

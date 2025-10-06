@@ -75,6 +75,7 @@ import { Switch } from '@/components/ui/switch';
 import { formatCurrency, calculateAge } from '@/utils/pensionCalculations';
 import { getPensionParameters } from '@/utils/pensionParameters';
 import { calculateTotalAEContributions } from '@/utils/pension/aeContributionCalculations';
+import { calculateExistingPensionValue as estimateExistingPensionValue } from '@/utils/pension/existingPensionCalculations';
 // Removed Free components to keep page-based SFM usage consistent
 
 /*
@@ -170,11 +171,21 @@ const RetirementCalculatorEmployee = () => {
     ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear()
     : null;
 
-  // Calculate existing pension value from NAV assets
-  const existingPensionValue = assets?.filter(asset => 
+  // Calculate existing pension value from NAV assets with fallback to estimated value
+  let existingPensionValue = assets?.filter(asset => 
     asset.category?.name?.toLowerCase().includes('pension') ||
     asset.name?.toLowerCase().includes('pension')
   ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+
+  // Fallback: if no NAV pension assets found, estimate existing fund value from salary history
+  if (existingPensionValue === 0 && profile?.annual_salary && age !== null) {
+    try {
+      const { fundValue } = estimateExistingPensionValue(profile.annual_salary!, age!);
+      existingPensionValue = fundValue || 0;
+    } catch (e) {
+      console.warn('Existing pension fallback estimation failed:', e);
+    }
+  }
 
   // Use page-based calculations and NAV; avoid Free parameter utilities
 

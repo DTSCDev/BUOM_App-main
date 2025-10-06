@@ -1,5 +1,7 @@
 import { systemFields } from "@/data/systemFields";
 import { SystemField } from "@/data/systemFields/types";
+import { getPensionParameters } from "@/utils/pensionParameters";
+import { compoundingCalculator } from "@/utils/pension/compoundingUtils";
 
 /**
  * myBUOMCalculator - Main calculation engine using systemFields as source of truth
@@ -12,11 +14,13 @@ export interface BUOMCalculationInputs {
   retirementAge: number;
   currentSalary: number;
   existingPensionValue: number;
+  // Fraction e.g. 0.5 for 50%
   targetIncomePercentage: number;
   
   // APF specific inputs
   apfSponsorshipYears: number;
-  isaContributionCapacity: number;
+  // Current ISA savings value from NAV
+  currentISAValue: number;
 }
 
 export interface BUOMCalculationResults {
@@ -48,11 +52,10 @@ export interface BUOMCalculationResults {
 class MyBUOMCalculator {
   private static instance: MyBUOMCalculator;
   
-  // System parameters from systemFields
-  private readonly INFLATION_RATE = 0.025; // 2.5% annual inflation
-  private readonly GROWTH_RATE = 0.045; // 4.5% net growth rate
-  private readonly DRAWDOWN_RATE = 0.04; // 4% drawdown rate
-  private readonly WORKING_DAYS_PER_YEAR = 260;
+  // Dynamic Parameters
+  private get params() {
+    return getPensionParameters();
+  }
   
   private constructor() {}
   
@@ -101,21 +104,22 @@ class MyBUOMCalculator {
     const annualSalaryInflated = this.calculateInflatedValue(
       inputs.currentSalary, 
       yearsToRetirement, 
-      this.INFLATION_RATE
+      this.params.salaryInflation
     );
     
     // APF-1003: Paydays Remaining
-    const paydaysRemaining = yearsToRetirement * this.WORKING_DAYS_PER_YEAR;
+    // Monthly paydays remaining aligned with SFM-CAL-4113
+    const paydaysRemaining = monthsToRetirement;
     
     // APF-1004: Target Income at Retirement
-    const targetIncomeAtRetirement = (annualSalaryInflated * inputs.targetIncomePercentage) / 100;
+    const targetIncomeAtRetirement = annualSalaryInflated * inputs.targetIncomePercentage;
     
     // APF-1005: Existing Plan Income at Retirement
     const existingPlanIncomeAtRetirement = this.calculatePensionIncome(
       inputs.existingPensionValue,
       yearsToRetirement,
-      this.GROWTH_RATE,
-      this.DRAWDOWN_RATE
+      this.params.growthRateAccumulation,
+      this.params.drawdownRate
     );
     
     // APF-1006: APF Target Income (shortfall)
@@ -127,15 +131,15 @@ class MyBUOMCalculator {
       : 0;
     
     // APF-1007: ISA Target Monthly (to fund APF shortfall)
-    const requiredAPFValue = this.calculateRequiredPensionValue(apfTargetIncome, this.DRAWDOWN_RATE);
+    const requiredAPFValue = this.calculateRequiredPensionValue(apfTargetIncome, this.params.drawdownRate);
     const isaTargetMonthly = this.calculateMonthlyContribution(
       requiredAPFValue,
       yearsToRetirement,
-      this.GROWTH_RATE
+      this.params.growthRateAccumulation
     );
     
     // APF-1008: ISA Value Today (current ISA savings)
-    const isaValueToday = inputs.isaContributionCapacity * 12; // Assume annual capacity as current value
+    const isaValueToday = inputs.currentISAValue;
     
     // APF-1009: ISA Savings Target Today (total needed)
     const isaSavingsTargetToday = requiredAPFValue;
@@ -145,7 +149,7 @@ class MyBUOMCalculator {
       ? Math.min(100, (isaValueToday / isaSavingsTargetToday) * 100)
       : 0;
     
-    return {
+    const result: BUOMCalculationResults = {
       annualSalary,
       annualSalaryInflated,
       paydaysRemaining,
@@ -159,24 +163,41 @@ class MyBUOMCalculator {
       repaymentProgressPercentage,
       yearsToRetirement,
       monthsToRetirement,
-      inflationRate: this.INFLATION_RATE,
-      growthRate: this.GROWTH_RATE,
-      drawdownRate: this.DRAWDOWN_RATE
+      inflationRate: this.params.salaryInflation,
+      growthRate: this.params.growthRateAccumulation,
+      drawdownRate: this.params.drawdownRate
     };
+
+    // Lightweight debug to help verify wiring in preview
+    try {
+      console.debug('APF Dashboard Calculations', {
+        inputs,
+        params: this.params,
+        result
+      });
+    } catch (error) {
+      // Ignore logging errors in non-browser environments
+      console.warn('APF Dashboard calculation debug logging failed', error);
+    }
+
+    return result;
   }
   
   /**
    * Calculate inflated value using compound inflation
    */
   private calculateInflatedValue(currentValue: number, years: number, inflationRate: number): number {
+    // Annual inflation compounding (salary/pension inflation)
     return currentValue * Math.pow(1 + inflationRate, years);
   }
   
   /**
    * Calculate pension income from a given pension value
    */
-  private calculatePensionIncome(pensionValue: number, yearsToGrow: number, growthRate: number, drawdownRate: number): number {
-    const futureValue = pensionValue * Math.pow(1 + growthRate, yearsToGrow);
+  private calculatePensionIncome(pensionValue: number, yearsToGrow: number, _growthRate: number, drawdownRate: number): number {
+    // Use net MONTHLY compounding (growth minus provider charges)
+    const months = Math.max(0, yearsToGrow * 12);
+    const futureValue = compoundingCalculator.applyMonthlyCompounding(pensionValue, months, false);
     return futureValue * drawdownRate;
   }
   
@@ -190,15 +211,15 @@ class MyBUOMCalculator {
   /**
    * Calculate monthly contribution needed to reach target value
    */
-  private calculateMonthlyContribution(targetValue: number, years: number, growthRate: number): number {
+  private calculateMonthlyContribution(targetValue: number, years: number, _growthRate: number): number {
     const months = years * 12;
-    const monthlyRate = growthRate / 12;
+    const monthlyRate = compoundingCalculator.getNetMonthlyGrowthRate();
     
-    if (monthlyRate === 0) {
-      return targetValue / months;
+    if (monthlyRate === 0 || months === 0) {
+      return months > 0 ? targetValue / months : 0;
     }
     
-    // PMT formula for monthly contributions
+    // PMT formula using net monthly growth rate (fees deducted)
     const futureValueFactor = Math.pow(1 + monthlyRate, months) - 1;
     return (targetValue * monthlyRate) / futureValueFactor;
   }
