@@ -72,7 +72,7 @@ import { TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
 import SFMCodeBadge from '@/components/SystemFields/SFMCodeBadge';
 import { useNetAssetValue } from '@/hooks/useNetAssetValue';
 import { Switch } from '@/components/ui/switch';
-import { formatCurrency, calculateAge } from '@/utils/pensionCalculations';
+import { formatCurrency, calculateAge, calculateDaysUntilPension, calculateRemainingPayDays } from '@/utils/pensionCalculations';
 import { getPensionParameters } from '@/utils/pensionParameters';
 import { calculateTotalAEContributions } from '@/utils/pension/aeContributionCalculations';
 import { calculateExistingPensionValue as estimateExistingPensionValue } from '@/utils/pension/existingPensionCalculations';
@@ -237,6 +237,13 @@ const RetirementCalculatorEmployee = () => {
   const params = getPensionParameters();
   const currentAge = age || 0;
   const yearsToRetirement = Math.max(0, (retirementAge ?? params.retirementAge) - currentAge);
+  // Use monthly-based functions for display metrics, aligned with Free Calculator
+  const daysUntilPensionDisplay = profile?.date_of_birth
+    ? calculateDaysUntilPension(new Date(profile.date_of_birth), retirementAge ?? params.retirementAge)
+    : null;
+  const paydaysRemainingDisplay = daysUntilPensionDisplay !== null
+    ? calculateRemainingPayDays(daysUntilPensionDisplay)
+    : null;
   const requiredIncomeAtRetirement = (profile?.annual_salary || 0) * params.pensionIncomeTarget;
   const projectedIncomeAtRetirement = (calculations.currentProjection || 0) * params.drawdownRate;
   const incomeShortfall = Math.max(0, requiredIncomeAtRetirement - projectedIncomeAtRetirement);
@@ -528,14 +535,14 @@ const RetirementCalculatorEmployee = () => {
                           <div className="flex items-baseline justify-between">
                             <span>Days Until Pension</span>
                             <div className="text-right">
-                              <span className="font-semibold text-gray-900">{age ? Math.round((retirementAge - age) * 365.25).toLocaleString() : 'N/A'}</span>
+                            <span className="font-semibold text-gray-900">{daysUntilPensionDisplay !== null ? Math.round(daysUntilPensionDisplay).toLocaleString() : 'N/A'}</span>
                               <SFMCodeBadge sfmId="SFM-CAL-4112" />
                             </div>
                           </div>
                           <div className="flex items-baseline justify-between">
                             <span>Paydays Remaining</span>
                             <div className="text-right">
-                              <span className="font-semibold text-gray-900">{age ? ((retirementAge - age) * 12).toLocaleString() : 'N/A'}</span>
+                              <span className="font-semibold text-gray-900">{paydaysRemainingDisplay !== null ? Math.round(paydaysRemainingDisplay).toLocaleString() : 'N/A'}</span>
                               <SFMCodeBadge sfmId="SFM-CAL-4113" />
                             </div>
                           </div>

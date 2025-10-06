@@ -2,10 +2,10 @@ import { useMemo } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useNetAssetValue } from '@/hooks/useNetAssetValue';
 import { calculateUnifiedPensionMetrics } from '@/utils/pension/unifiedCalculationEngine';
-import { compoundingCalculator } from '@/utils/pension/compoundingUtils';
+import { getPensionParameters } from '@/utils/pensionParameters';
 import { calculateDynamicAEContributions } from '@/utils/pension/aeContributionCalculations';
-import { calculateAge } from '@/utils/pensionCalculations';
-import { SFMResolver } from '@/utils/systemFields/sfmResolver';
+import { calculateAge, calculateDaysUntilPension, calculateRemainingPayDays } from '@/utils/pensionCalculations';
+// SFMResolver is not used here; PRF-2041 is the source of truth for retirement age
 
 export interface MyBOUMRetirementCalculations {
   // Chart data for PensionShortfallPieChart (SFM-CAL-4126, 4127, 4121)
@@ -52,19 +52,20 @@ export function useMyBOUMRetirementCalculations(): MyBOUMRetirementCalculations 
       };
     }
 
-    // Create SFM resolver with real user data for dynamic parameter loading
-    const profileRecord = profile as unknown as Record<string, unknown>;
-    const assetsRecord = (assets || []).map(asset => asset as unknown as Record<string, unknown>);
-    const resolver = new SFMResolver(profileRecord, assetsRecord);
+    // Prefer PRF (Profile) value for retirement age, fallback to parameter settings
+    const baseParams = getPensionParameters();
+    const savedParamsRaw = typeof localStorage !== 'undefined' ? localStorage.getItem('retirement-calculator-parameters') : null;
+    const savedParams = (() => {
+      try { return savedParamsRaw ? JSON.parse(savedParamsRaw) : null; } catch { return null; }
+    })();
 
-    // Load parameter values using SFM resolver (CAL-44XX series for Main App)
-    const retirementAge = resolver.resolveSFM('SFM-CAL-4405'); // Retirement Age
-    const pensionIncomeTarget = resolver.resolveSFM('SFM-CAL-4406') / 100; // Pension Income Target (convert % to decimal)
-    const growthRate = resolver.resolveSFM('SFM-CAL-4401') / 100; // Annual Growth Rate
-    const inflationRate = resolver.resolveSFM('SFM-CAL-4402') / 100; // Annual Inflation Rate
-    const drawdownRate = resolver.resolveSFM('SFM-CAL-4404') / 100; // Drawdown Rate
-    const providerCharges = resolver.resolveSFM('SFM-CAL-4403') / 100; // Provider Charges
-    const buomDiscountRate = resolver.resolveSFM('SFM-CAL-4462') / 100; // BUOM Discount Rate
+    const retirementAge = (profile.retirement_age ?? savedParams?.selectedRetirementAge ?? baseParams.retirementAge) as number;
+    const pensionIncomeTarget = (savedParams?.pensionIncomeTarget ?? (baseParams.pensionIncomeTarget * 100)) / 100; // % to decimal
+    const growthRate = (savedParams?.growthRate ?? (baseParams.growthRateAccumulation * 100)) / 100; // % to decimal
+    const inflationRate = (savedParams?.inflationRate ?? (baseParams.pensionIncomeInflation * 100)) / 100; // % to decimal
+    const drawdownRate = (savedParams?.drawdownRate ?? (baseParams.drawdownRate * 100)) / 100; // % to decimal
+    const providerCharges = (savedParams?.providerCharges ?? (baseParams.providerCharges * 100)) / 100; // % to decimal
+    const buomDiscountRate = (savedParams?.buomDiscountRate ?? (baseParams.buomDiscountRate * 100)) / 100; // % to decimal
     
     // Calculate current age
     const currentAge = calculateAge(new Date(profile.date_of_birth)).years;
@@ -94,11 +95,14 @@ export function useMyBOUMRetirementCalculations(): MyBOUMRetirementCalculations 
     );
 
     // Calculate chart values using unified results and SFM parameters
-    const yearsToRetirement = retirementAge - currentAge;
+    // Calculate precise months until retirement (Free Calculator style)
+    const daysUntilPension = calculateDaysUntilPension(new Date(profile.date_of_birth), retirementAge);
+    const monthsToRetirement = calculateRemainingPayDays(daysUntilPension);
+    const yearsToRetirement = Math.max(0, monthsToRetirement / 12);
     const netGrowthRate = growthRate - providerCharges;
     
     // SFM-CAL-4126: Existing Fund Value at Retirement (existing pension grown to retirement)
-    const existingPlanValueTodayAtRetirement = compoundingCalculator.compoundMonthly(existingPensionValue, Math.max(0, yearsToRetirement * 12));
+    const existingPlanValueTodayAtRetirement = existingPensionValue * Math.pow(1 + (netGrowthRate / 12), Math.max(0, monthsToRetirement));
     
     // SFM-CAL-4127: Existing Plan Future Contributions (AE contributions value at retirement)
     // Use dynamic AE contributions with monthly escalation and growth to retirement
@@ -109,8 +113,6 @@ export function useMyBOUMRetirementCalculations(): MyBOUMRetirementCalculations 
     const shortfall = unifiedResults.currentCapitalShortfall;
     
     // Calculate monthly funding costs
-    const monthsToRetirement = yearsToRetirement * 12;
-    
     // SFM-CAL-4128: Monthly funding cost for existing plan
     const monthlyFundingCost = monthsToRetirement > 0 ? 
       shortfall / (monthsToRetirement * Math.pow(1 + netGrowthRate / 12, monthsToRetirement / 2)) : 0;

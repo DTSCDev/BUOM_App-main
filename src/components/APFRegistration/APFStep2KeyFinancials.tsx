@@ -98,7 +98,6 @@ export function APFStep2KeyFinancials({ profile, onComplete }: APFStep2KeyFinanc
     requiredCapital: 0,
     projectedExistingPlan: 0,
     totalFutureAEContributions: 0,
-    statePensionLumpSum: 0,
     totalProjectedAssets: 0,
     capitalShortfallToday: 0,
     existingPlanIncome: 0,
