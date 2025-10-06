@@ -48,6 +48,14 @@ export function SalaryDisplayContent({ profile }: SalaryDisplayContentProps) {
             <p className="text-base font-mono">{profile?.paye_tax_code || "Not specified"}</p>
           </div>
 
+          <div>
+            <div className="flex items-center justify-between">
+              <h5 className="font-medium text-sm text-muted-foreground mb-1">P11D (Benefits in Kind)</h5>
+              <SFMCodeDisplay sfmCode="SFM-PRF-2030" variant="profile" />
+            </div>
+            <p className="text-base font-mono">{profile?.p11d ?? "Not specified"}</p>
+          </div>
+
           {profile?.is_director && (
             <div>
               <h5 className="font-medium text-sm text-muted-foreground mb-1">NIC Calculation</h5>
@@ -73,7 +81,10 @@ export function SalaryDisplayContent({ profile }: SalaryDisplayContentProps) {
           </div>
           
           <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Employer Address</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Employer Address</h4>
+              <SFMCodeDisplay sfmCode="SFM-PRF-2023-ADDR" variant="profile" />
+            </div>
             <p className="text-base">{profile?.employer_address || "Not specified"}</p>
           </div>
         </>
@@ -82,17 +93,26 @@ export function SalaryDisplayContent({ profile }: SalaryDisplayContentProps) {
       {(profile?.employment_type === 'self_employed' || profile?.employment_type === 'business_owner') && (
         <>
           <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Trading Name</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Trading Name</h4>
+              <SFMCodeDisplay sfmCode="SFM-PRF-2026" variant="profile" />
+            </div>
             <p className="text-base">{profile?.trading_name || "Not specified"}</p>
           </div>
           
           <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Company Number</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Company Number</h4>
+              <SFMCodeDisplay sfmCode="SFM-PRF-2027" variant="profile" />
+            </div>
             <p className="text-base">{profile?.company_number || "Not specified"}</p>
           </div>
           
           <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-2">Business Address</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">Business Address</h4>
+              <SFMCodeDisplay sfmCode="SFM-PRF-2028" variant="profile" />
+            </div>
             <p className="text-base">{profile?.business_address || "Not specified"}</p>
           </div>
         </>
@@ -100,7 +120,10 @@ export function SalaryDisplayContent({ profile }: SalaryDisplayContentProps) {
       
       {profile?.works_from_home && (
         <div>
-          <h4 className="font-medium text-sm text-muted-foreground mb-2">Works from home</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-sm text-muted-foreground mb-2">Works from home</h4>
+            <SFMCodeDisplay sfmCode="SFM-PRF-2029" variant="profile" />
+          </div>
           <p className="text-base">Yes</p>
         </div>
       )}

@@ -47,7 +47,7 @@ export function LegacyPlanningForm({ isOpen, onClose, onSubmit, item }: LegacyPl
     }
   }, [item, isOpen]);
 
-  const handleChange = (field: keyof LegacyPlanningInput, value: string) => {
+  const handleChange = <K extends keyof LegacyPlanningInput>(field: K, value: LegacyPlanningInput[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -73,7 +73,7 @@ export function LegacyPlanningForm({ isOpen, onClose, onSubmit, item }: LegacyPl
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="planning_type">Planning Type</Label>
-            <Select value={formData.planning_type} onValueChange={(value) => handleChange('planning_type', value)}>
+            <Select value={formData.planning_type} onValueChange={(value) => handleChange('planning_type', value as LegacyPlanningInput['planning_type'])}>
               <SelectTrigger>
                 <SelectValue placeholder="Select planning type" />
               </SelectTrigger>

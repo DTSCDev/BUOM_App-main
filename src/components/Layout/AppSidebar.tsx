@@ -258,14 +258,14 @@ export function AppSidebar() {
                             >
                               <Link to={child.href || '#'} className="flex items-center w-full">
                                 <child.icon className="text-[#030227] mr-2 h-4 w-4" />
-                                <span className={`text-[#030227] ${childActive ? "font-bold" : "font-normal"}`}>
+                                <span className={`flex-1 text-left text-[#030227] ${childActive ? "font-bold" : "font-normal"}`}>
                                   {child.title}
                                 </span>
                                 {child.isPremium && (
-                                  <span className="ml-2 text-xs bg-yellow-500 text-black px-1.5 py-0.5 rounded">PRO</span>
+                                  <span className="ml-auto text-xs bg-[#4FF456] text-gray-700 font-bold px-1.5 py-0.5 rounded">PRO</span>
                                 )}
                                 {child.isAdminOnly && (
-                                  <span className="ml-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded">ADMIN</span>
+                                  <span className="ml-auto text-xs bg-red-500 text-white font-bold px-1.5 py-0.5 rounded">ADMIN</span>
                                 )}
                               </Link>
                             </SidebarMenuButton>
@@ -293,15 +293,15 @@ export function AppSidebar() {
                     `}
                   >
                     <Link to={item.href || '#'} className="flex items-center w-full">
-                      <item.icon className="text-[#030227]" />
-                      <span className={`text-[#030227] ${active ? "font-bold" : "font-normal"}`}>
+                      <item.icon className="text-[#030227] mr-2" />
+                      <span className={`flex-1 text-left text-[#030227] ${active ? "font-bold" : "font-normal"}`}>
                         {item.title}
                       </span>
                       {item.isPremium && (
-                        <span className="ml-2 text-xs bg-yellow-500 text-black px-1.5 py-0.5 rounded">PRO</span>
+                        <span className="ml-auto text-xs bg-[#4FF456] text-gray-700 font-bold px-1.5 py-0.5 rounded">PRO</span>
                       )}
                       {item.isAdminOnly && (
-                        <span className="ml-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded">ADMIN</span>
+                        <span className="ml-auto text-xs bg-red-500 text-white font-bold px-1.5 py-0.5 rounded">ADMIN</span>
                       )}
                     </Link>
                   </SidebarMenuButton>

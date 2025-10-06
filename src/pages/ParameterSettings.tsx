@@ -10,7 +10,7 @@ import { ArrowLeft, Settings, CheckCircle } from 'lucide-react';
 // SFM Code mapping for parameters
 const parameterSFMCodes: Record<string, string> = {
   // Core Dynamic Parameters (SFM-CAL-4401 to SFM-CAL-4409) - CORRECTED TO MATCH SYSTEM FIELDS
-  growthRate: 'SFM-CAL-4401',                    // Annual Growth Rate
+  growthRateAccumulation: 'SFM-CAL-4401',        // Growth Rate (Accumulation Phase - Gross)
   inflationRate: 'SFM-CAL-4402',                 // Annual Inflation Rate  
   providerCharges: 'SFM-CAL-4403',               // Provider Charges
   drawdownRate: 'SFM-CAL-4404',                  // Drawdown Rate
@@ -261,6 +261,13 @@ const ParameterSettings = () => {
       ? formatRetirementAge(value)
       : formatValue(value);
 
+    const minLabel = paramName === 'selectedRetirementAge'
+      ? `${min} years`
+      : (isPercentage ? `${min}%` : `£${min.toLocaleString()}`);
+    const maxLabel = paramName === 'selectedRetirementAge'
+      ? `${max} years`
+      : (isPercentage ? `${max}%` : `£${max.toLocaleString()}`);
+
     return (
       <div className="space-y-2">
         <div className="flex justify-between">
@@ -290,8 +297,8 @@ const ParameterSettings = () => {
             className="w-full"
           />
           <div className="flex justify-between text-xs text-muted-foreground mt-1">
-            <span>{isPercentage ? `${min}%` : `£${min.toLocaleString()}`}</span>
-            <span>{isPercentage ? `${max}%` : `£${max.toLocaleString()}`}</span>
+            <span>{minLabel}</span>
+            <span>{maxLabel}</span>
           </div>
         </div>
       </div>
@@ -355,17 +362,6 @@ const ParameterSettings = () => {
                 'growthRateAccumulation',
                 true,
                 'Net rate after fees: 4.5% (5% - 0.5%)'
-              )}
-              {renderParameter(
-                'growthRateDrawdown',
-                'Growth Rate (Drawdown Phase - Gross)',
-                customParams.growthRateDrawdown,
-                0,
-                10,
-                0.1,
-                'growthRateDrawdown',
-                true,
-                'Net rate after fees: 3.5% (4% - 0.5%) - Static fund during drawdown'
               )}
               {renderParameter(
                 'inflationRate',
@@ -443,6 +439,17 @@ const ParameterSettings = () => {
                 'advisorFee',
                 true,
                 'Annual advisor fee percentage'
+              )}
+              {renderParameter(
+                'growthRateDrawdown',
+                'Growth Rate (Drawdown Phase - Gross)',
+                customParams.growthRateDrawdown,
+                0,
+                10,
+                0.1,
+                'growthRateDrawdown',
+                true,
+                'Net rate after fees: 3.5% (4% - 0.5%) - Static fund during drawdown'
               )}
             </CardContent>
           </Card>

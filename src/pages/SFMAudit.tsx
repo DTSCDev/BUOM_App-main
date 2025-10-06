@@ -53,30 +53,33 @@ type SortDirection = 'asc' | 'desc';
 // Generate dynamic audit items from systemFields.ts
 function generateDynamicAuditItems(): AuditItem[] {
   return systemFields.map(field => {
-    // Categorize SFM codes
-    let category = 'Uncategorized';
-    const numericPart = parseInt(field.sfmId.replace('SFM-', ''));
-    
-    if ((numericPart >= 1 && numericPart <= 43) || (numericPart >= 101 && numericPart <= 119)) {
-      category = 'Free Calculator';
-    } else if (field.sfmId.includes('APF') || field.sfmId.includes('1')) {
-      category = 'APF';
-    } else if (field.sfmId.includes('PRF') || field.sfmId.includes('2')) {
-      category = 'Profile';
-    } else if (field.sfmId.includes('NAV') || field.sfmId.includes('3')) {
-      category = 'Net Asset Value';
-    } else if (field.sfmId.includes('CAL') || field.sfmId.includes('4')) {
-      category = 'Calculator';
-    } else if (field.sfmId.includes('PAY') || field.sfmId.includes('5')) {
-      category = 'Payments';
-    } else if (field.sfmId.includes('REP') || field.sfmId.includes('6')) {
-      category = 'Reports';
-    } else if (field.sfmId.includes('STA') || field.sfmId.includes('7')) {
-      category = 'Statements';
-    } else if (field.sfmId.includes('BEN') || field.sfmId.includes('8')) {
-      category = 'Benefits';
-    } else if (field.sfmId.includes('HUB') || field.sfmId.includes('9')) {
-      category = 'BUOM Hub';
+    // Prefer explicit page-based categorization
+    let category = field.pageName || 'Uncategorized';
+
+    // Fallback: derive from SFM code when pageName is missing
+    if (!field.pageName) {
+      const code = field.sfmId || '';
+      const numericMatch = code.match(/^SFM-(\d+)/);
+      if (numericMatch) {
+        const n = parseInt(numericMatch[1], 10);
+        if (n >= 1 && n <= 128) category = 'Free Calculator';
+      } else if (code.startsWith('SFM-APF-')) {
+        category = 'APF';
+      } else if (code.startsWith('SFM-PRF-')) {
+        category = 'Profile';
+      } else if (code.startsWith('SFM-NAV-')) {
+        category = 'Net Asset Value';
+      } else if (code.startsWith('SFM-CAL-')) {
+        category = 'Calculator';
+      } else if (code.startsWith('SFM-PAY-')) {
+        category = 'Payments';
+      } else if (code.startsWith('SFM-REP-')) {
+        category = 'Reports';
+      } else if (code.startsWith('SFM-STA-')) {
+        category = 'Statements';
+      } else if (code.startsWith('SFM-BEN-')) {
+        category = 'BUOM Hub';
+      }
     }
 
     return {
@@ -474,22 +477,23 @@ export default function SFMAudit() {
     }
   }, []);
 
-  // Format as currency or percent depending on fieldType or SFM code
+  // Format system value based on field type
   const formatSystemValue = useCallback((item: AuditItem) => {
     const value = Number(item.systemValue);
-    if (!Number.isFinite(value)) {
-      return '';
-    }
-    // SFM-022 and any other % fields
-    if (item.sfmCode === 'SFM-022' || item.sfmCode === 'SFM-004' || item.fieldType === '%') {
-      // Show as percent, not £
+    if (!Number.isFinite(value)) return '';
+
+    const type = (item.fieldType || '').toLowerCase();
+
+    // Percent
+    if (type === '%' || type === 'percent') {
       return `${value.toFixed(2)}%`;
     }
-    // Default: currency
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP'
-    }).format(value);
+    // Currency
+    if (type === 'currency' || item.sfmCode === 'SFM-022' || item.sfmCode === 'SFM-004') {
+      return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(value);
+    }
+    // Number (default)
+    return value.toLocaleString('en-GB', { maximumFractionDigits: 2 });
   }, []);
 
   return (

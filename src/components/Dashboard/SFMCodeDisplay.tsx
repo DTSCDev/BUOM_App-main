@@ -19,6 +19,15 @@ export const SFMCodeDisplay: React.FC<SFMCodeDisplayProps> = ({
     dashboard: "text-[8px] text-white opacity-60 font-mono border border-gray-400 px-1 py-0.5 rounded mt-1"
   };
   
+  // For profile variant, show only the code (PRF-XXXX) without any description or page/card
+  if (variant === "profile") {
+    return (
+      <div className={variantStyles[variant]}>
+        <div>{sfmCode.replace('SFM-', '')}</div>
+      </div>
+    );
+  }
+
   return (
     <div className={variantStyles[variant]}>
       <div>{sfmCode.replace('SFM-', '')}</div>

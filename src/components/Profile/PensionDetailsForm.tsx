@@ -3,6 +3,7 @@ import { DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/compon
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Edit } from "lucide-react";
 
 interface PensionDetailsFormProps {
   formData: {
@@ -19,7 +20,7 @@ export function PensionDetailsForm({ formData, onSubmit, onChange, onCancel }: P
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>Edit Pension Details</DialogTitle>
+        <DialogTitle className="flex items-center gap-2"><Edit className="h-4 w-4" /> Edit Pension Details</DialogTitle>
       </DialogHeader>
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
@@ -64,10 +65,10 @@ export function PensionDetailsForm({ formData, onSubmit, onChange, onCancel }: P
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" className="bg-white text-gray-700 border border-gray-700" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" className="bg-[#4FF456] text-gray-700 font-bold hover:bg-[#44e94f]">Save</Button>
         </DialogFooter>
       </form>
     </DialogContent>

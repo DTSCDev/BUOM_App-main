@@ -1,6 +1,6 @@
-# SFM Page-Based Code Migration Guide
+# SFM Page-Based Code Migration Guide for MAIN APP Files
 
-## New SFM Code Structure
+## New SFM Code Structure for MAIN APP Files
 
 Each page now has its own SFM flow with dedicated code ranges:
 

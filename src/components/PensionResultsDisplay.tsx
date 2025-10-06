@@ -11,7 +11,7 @@ import { hasActiveSubscription } from '@/utils/pensionParameters/subscription';
 import PensionCharts from './PensionCharts/PensionCharts';
 import FreePensionFundingOptionsCard from './PensionResults/FreePensionFundingOptionsCard';
 import FreePensionTimeline from './PensionResults/FreePensionTimeline';
-import FreePensionProjectionAnalysis from './PensionResults/FreePensionProjectionAnalysis';
+import PensionProjectionAnalysis from './PensionResults/PensionProjectionAnalysis';
 
 interface PensionResultsDisplayProps {
   results: PensionCalculationResults | null;
@@ -165,17 +165,12 @@ const PensionResultsDisplay = ({ results, onChangeTab }: PensionResultsDisplayPr
             }}
           />
 
-          <FreePensionProjectionAnalysis
-            results={{
-              dateOfBirth: new Date(new Date().getFullYear() - results.currentAge, 0, 1).toISOString().split('T')[0],
-              annualSalary: results.annualSalary,
-              existingPensionValue: results.existingPensionValue,
-              finalSalaryIncome: results.finalSalaryIncome || 0,
-              otherIncome: results.otherIncome || 0
-            }}
+          <PensionProjectionAnalysis
+            results={results}
+            existingPlanValueTodayAtRetirement={pensionBreakdown.existingFund.valueAtRetirement}
             existingPlanFutureContributions={pensionBreakdown.flatAE.valueAtRetirement}
-            totalTopUpContributions={0}
-            pensionShortfallTarget={shortfall}
+            requiredCapitalAfterOtherIncome={requiredCapitalAfterOtherIncome}
+            totalStandardCost={totalStandardCost}
           />
         </div>
       ) : (

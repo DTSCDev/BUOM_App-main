@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { systemFields as allSystemFields } from "@/data/systemFields";
 import SystemFieldsHeader from "@/components/SystemFields/SystemFieldsHeader";
 import SystemFieldsTable from "@/components/SystemFields/SystemFieldsTable";
 import SystemFieldsLegend from "@/components/SystemFields/SystemFieldsLegend";
@@ -38,55 +39,22 @@ export default function SystemFields() {
   const hasAccess = true;
 
   useEffect(() => {
-    const loadSystemFields = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Try to import the system fields dynamically to catch any import errors
-        const { systemFields: fields } = await import("@/data/systemFields");
-        
-        if (!fields || !Array.isArray(fields)) {
-          throw new Error("System fields data is invalid or missing");
-        }
-        
-        console.log(`Successfully loaded ${fields.length} system fields`);
-        setSystemFields(fields);
-        setFilteredFields(fields);
-      } catch (err) {
-        console.error("Failed to load system fields:", err);
-        setError(`Failed to load system fields: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        
-        // Fallback to a basic set of fields to prevent total crash
-        const fallbackFields: SystemField[] = [
-          {
-            sfmId: "SFM-001",
-            description: "Date of Birth Input",
-            pageName: "Calculator Tab",
-            cardName: "Form Inputs",
-            outputValue: "dateOfBirth",
-            correlatedTo: "Age calculations, years to retirement",
-            valueType: "Input"
-          },
-          {
-            sfmId: "SFM-002",
-            description: "Annual Salary Input",
-            pageName: "Calculator Tab",
-            cardName: "Form Inputs",
-            outputValue: "annualSalary",
-            correlatedTo: "Target income calculations, AE contributions",
-            valueType: "Input"
-          }
-        ];
-        
-        setSystemFields(fallbackFields);
-        setFilteredFields(fallbackFields);
-      } finally {
-        setLoading(false);
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (!allSystemFields || !Array.isArray(allSystemFields)) {
+        throw new Error("System fields data is invalid or missing");
       }
-    };
-
-    loadSystemFields();
+      
+      setSystemFields(allSystemFields);
+      setFilteredFields(allSystemFields);
+    } catch (err) {
+      console.error("Failed to load system fields:", err);
+      setError(`Failed to load system fields: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const handleFilterChange = (filtered: SystemField[], filters: FilterOptions) => {
@@ -153,9 +121,8 @@ export default function SystemFields() {
         </div>
       )}
       
-      {/* SFM Calculation Engine Debug Table */}
+      {/* Main System Fields views */}
       <SFMDebugTable />
-      
       <SystemFieldsLegend />
       <SystemFieldsTable fields={filteredFields} />
     </div>

@@ -36,11 +36,11 @@ export const retirementCalculatorFields: SystemField[] = [
   },
   {
     sfmId: "SFM-CAL-4104",
-    description: "Required Capital",
+    description: "Capital Target Required",
     pageName: "Retirement Calculator",
     cardName: "Pension Overview Summary",
     outputValue: "requiredCapital",
-    correlatedTo: "Capital needed for target retirement income (assuming full State Pension)",
+    correlatedTo: "Assumes full State Pension is payable",
     valueType: "Currency"
   },
   {

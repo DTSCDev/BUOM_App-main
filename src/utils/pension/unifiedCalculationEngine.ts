@@ -1,6 +1,7 @@
 
 // Stub implementation to preserve APF Registration functionality
 import { getPensionParameters } from '@/utils/pensionParameters';
+import { Asset, Profile } from '@/utils/systemFields/types';
 
 export interface UnifiedCalculationResult {
   currentCapitalShortfall: number;
@@ -27,7 +28,7 @@ export interface UnifiedCalculationResult {
 }
 
 // Helper function to identify ISA assets
-function calculateISAValueToday(assets: any[]): number {
+function calculateISAValueToday(assets: Asset[]): number {
   if (!assets || assets.length === 0) return 0;
   
   const isaAssets = assets.filter(asset => {
@@ -60,7 +61,7 @@ function calculateISAValueToday(assets: any[]): number {
 function calculateTotalFutureAEContributions(
   annualSalary: number, 
   currentAge: number, 
-  profile: any
+  profile: Profile
 ): number {
   const yearsToRetirement = Math.max(0, 67 - currentAge);
   
@@ -99,8 +100,8 @@ export function calculateUnifiedPensionMetrics(
   annualSalary: number,
   existingPensionValue: number,
   isEnhancedMember: boolean = false,
-  assets: any[] = [],
-  profile: any = {}
+  assets: Asset[] = [],
+  profile: Profile = {} as Profile
 ): UnifiedCalculationResult {
   const params = getPensionParameters();
   

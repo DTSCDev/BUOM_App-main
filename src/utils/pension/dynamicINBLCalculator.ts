@@ -1,5 +1,6 @@
 
-import { usePayslipCalculations } from '@/hooks/usePayslipCalculations';
+import { calculateUKTax } from '@/utils/pension/taxCalculations';
+import type { PayslipDetails, PayslipComparison } from '@/hooks/usePayslipCalculations';
 import { APFSponsorshipBreakdown } from './buomTypes';
 
 export interface DynamicINBLData {
@@ -18,7 +19,41 @@ export const calculateDynamicINBLData = (
   annualSalary: number,
   sponsorships: APFSponsorshipBreakdown[]
 ): DynamicINBLData => {
-  const { calculatePayslipComparison } = usePayslipCalculations();
+  const calculatePayslipComparison = (
+    annualSalaryInput: number,
+    apfContribution: number
+  ): PayslipComparison => {
+    const monthlySalary = annualSalaryInput / 12;
+    const monthlyAPFContribution = apfContribution / 12;
+
+    const beforeAPF = calculateUKTax(monthlySalary);
+
+    const grossPayAfterAPF = monthlySalary - monthlyAPFContribution;
+    const afterAPFBase = calculateUKTax(grossPayAfterAPF);
+
+    const afterAPF: PayslipDetails = {
+      ...afterAPFBase,
+      pensionContribution: 0,
+      employerContribution: 0,
+      totalContribution: 0,
+      grossPayAfterPension: grossPayAfterAPF
+    };
+
+    const netPayDifference = beforeAPF.netPay - afterAPF.netPay;
+    const npgAmount = netPayDifference;
+    const nrsrFee = npgAmount * 0.25;
+    const totalINBLPrincipal = npgAmount + nrsrFee;
+
+    return {
+      before: beforeAPF,
+      after: afterAPF,
+      inblLoanAmount: npgAmount,
+      netPayDifference,
+      npgAmount,
+      nrsrFee,
+      totalINBLPrincipal
+    };
+  };
   
   console.log(`=== DYNAMIC INBL CALCULATION (${sponsorships.length} sponsorships) ===`);
   

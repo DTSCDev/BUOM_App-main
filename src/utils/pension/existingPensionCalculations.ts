@@ -1,6 +1,7 @@
 
 import { compoundingCalculator } from './compoundingUtils';
 import { getAutoEnrollmentRates } from './salaryCalculations';
+import { calculateDynamicAEContributions } from './aeContributionCalculations';
 
 // Calculate existing pension fund value and contributions based on CORRECT backwards methodology
 export const calculateExistingPensionValue = (annualSalary: number, currentAge: number): { fundValue: number; totalContributions: number } => {
@@ -73,7 +74,6 @@ export const calculateProjectedPensionPot = (
   const existingPensionAtRetirement = compoundingCalculator.compoundMonthly(correctedExistingValue, monthsUntilPension);
   
   // Equation 2: DYNAMIC AE contributions based on actual salary
-  const { calculateDynamicAEContributions } = require('./aeContributionCalculations');
   const { totalFutureValue: dynamicAEValue } = calculateDynamicAEContributions(annualSalary, yearsUntilPension);
   
   console.log(`=== PROJECTED PENSION POT (AGE: ${currentAge}) ===`);

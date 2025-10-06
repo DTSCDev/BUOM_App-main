@@ -13,6 +13,24 @@ export const profilePageFields: SystemField[] = [
     valueType: "Text"
   },
   {
+    sfmId: "SFM-PRF-2001-FN",
+    description: "Profile First Name",
+    pageName: "Profile",
+    cardName: "Personal Information",
+    outputValue: "firstName",
+    correlatedTo: "User's first name",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2001-LN",
+    description: "Profile Last Name",
+    pageName: "Profile",
+    cardName: "Personal Information",
+    outputValue: "lastName",
+    correlatedTo: "User's last name",
+    valueType: "Text"
+  },
+  {
     sfmId: "SFM-PRF-2002",
     description: "Profile Email Address",
     pageName: "Profile",
@@ -41,12 +59,21 @@ export const profilePageFields: SystemField[] = [
   },
   {
     sfmId: "SFM-PRF-2005",
-    description: "Profile Retirement Age",
+    description: "Profile Mobile Number",
     pageName: "Profile",
     cardName: "Personal Information",
-    outputValue: "retirementAge",
-    correlatedTo: "Target retirement age (default 67)",
-    valueType: "Number"
+    outputValue: "mobileNumber",
+    correlatedTo: "Mobile contact number",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2007",
+    description: "Profile Relationship Status",
+    pageName: "Profile",
+    cardName: "Personal Information",
+    outputValue: "relationshipStatus",
+    correlatedTo: "Relationship status (Single, Married, Divorced, Co-habiting, Private)",
+    valueType: "Text"
   },
   {
     sfmId: "SFM-PRF-2006",
@@ -87,6 +114,15 @@ export const profilePageFields: SystemField[] = [
     valueType: "Text"
   },
   {
+    sfmId: "SFM-PRF-2023-ADDR",
+    description: "Profile Employer Address",
+    pageName: "Profile",
+    cardName: "Employment Information",
+    outputValue: "employerAddress",
+    correlatedTo: "Current employer address",
+    valueType: "Text"
+  },
+  {
     sfmId: "SFM-PRF-2024",
     description: "Profile Job Title",
     pageName: "Profile",
@@ -94,6 +130,42 @@ export const profilePageFields: SystemField[] = [
     outputValue: "jobTitle",
     correlatedTo: "Current job title",
     valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2026",
+    description: "Profile Trading Name",
+    pageName: "Profile",
+    cardName: "Employment Information",
+    outputValue: "tradingName",
+    correlatedTo: "Trading name for self-employed or business owner",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2027",
+    description: "Profile Company Number",
+    pageName: "Profile",
+    cardName: "Employment Information",
+    outputValue: "companyNumber",
+    correlatedTo: "Registered company number",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2028",
+    description: "Profile Business Address",
+    pageName: "Profile",
+    cardName: "Employment Information",
+    outputValue: "businessAddress",
+    correlatedTo: "Registered business address",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2029",
+    description: "Profile Works From Home",
+    pageName: "Profile",
+    cardName: "Employment Information",
+    outputValue: "worksFromHome",
+    correlatedTo: "Whether the user works from home",
+    valueType: "Boolean"
   },
   {
     sfmId: "SFM-PRF-2025",
@@ -104,16 +176,25 @@ export const profilePageFields: SystemField[] = [
     correlatedTo: "Current HMRC tax code for PAYE calculations",
     valueType: "Text"
   },
+  {
+    sfmId: "SFM-PRF-2030",
+    description: "Profile P11D Benefit In Kind",
+    pageName: "Profile",
+    cardName: "Employment Information",
+    outputValue: "p11d",
+    correlatedTo: "P11D benefits-in-kind total for tax year",
+    valueType: "Currency"
+  },
 
   // Pension Information (SFM-PRF-2041 to SFM-PRF-2060)
   {
     sfmId: "SFM-PRF-2041",
-    description: "Profile Existing Pension Value",
+    description: "Profile Retirement Age",
     pageName: "Profile",
     cardName: "Pension Information",
-    outputValue: "existingPensionValue",
-    correlatedTo: "Current pension fund value",
-    valueType: "Currency"
+    outputValue: "retirementAge",
+    correlatedTo: "Retirement age (sync CAL-4405 Age)",
+    valueType: "Number"
   },
   {
     sfmId: "SFM-PRF-2042-EeP",
@@ -211,24 +292,60 @@ export const profilePageFields: SystemField[] = [
   // Contact Information (SFM-PRF-2081 to SFM-PRF-2100)
   {
     sfmId: "SFM-PRF-2081",
-    description: "Profile Phone Number",
+    description: "Profile House Name",
     pageName: "Profile",
     cardName: "Contact Information",
-    outputValue: "phoneNumber",
-    correlatedTo: "Contact phone number",
+    outputValue: "houseName",
+    correlatedTo: "House name or building name",
     valueType: "Text"
   },
   {
     sfmId: "SFM-PRF-2082",
-    description: "Profile Address",
+    description: "Profile Address Line 1",
     pageName: "Profile",
     cardName: "Contact Information",
-    outputValue: "address",
-    correlatedTo: "Home address",
+    outputValue: "addressLine1",
+    correlatedTo: "Home address line 1",
     valueType: "Text"
   },
   {
     sfmId: "SFM-PRF-2083",
+    description: "Profile Address Line 2",
+    pageName: "Profile",
+    cardName: "Contact Information",
+    outputValue: "addressLine2",
+    correlatedTo: "Home address line 2",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2084",
+    description: "Profile Town/City",
+    pageName: "Profile",
+    cardName: "Contact Information",
+    outputValue: "city",
+    correlatedTo: "Town or City",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2085",
+    description: "Profile Postcode",
+    pageName: "Profile",
+    cardName: "Contact Information",
+    outputValue: "postcode",
+    correlatedTo: "Postcode",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2086",
+    description: "Profile Country",
+    pageName: "Profile",
+    cardName: "Contact Information",
+    outputValue: "country",
+    correlatedTo: "Country",
+    valueType: "Text"
+  },
+  {
+    sfmId: "SFM-PRF-2087",
     description: "Profile Preferred Contact Method",
     pageName: "Profile",
     cardName: "Contact Information",

@@ -5,10 +5,10 @@ export const apfPageFields: SystemField[] = [
   // APF Dashboard Main Cards (SFM-APF-1001 to SFM-APF-1009)
   {
     sfmId: "SFM-APF-1001",
-    description: "APF Dashboard Total Assets",
+    description: "Annual Salary (Base Reference)",
     pageName: "APF Dashboard",
     cardName: "Main Cards",
-    outputValue: "totalAssets",
+    outputValue: "annualSalary",
     correlatedTo: "SFM-PRF-2021 - Profile Annual Salary",
     valueType: "Currency"
   },
@@ -23,39 +23,39 @@ export const apfPageFields: SystemField[] = [
   },
   {
     sfmId: "SFM-APF-1003",
-    description: "APF Dashboard Total Liabilities",
+    description: "Paydays Remaining",
     pageName: "APF Dashboard",
     cardName: "Main Cards",
-    outputValue: "totalLiabilities",
-    correlatedTo: "SFM-PRF-2006 - Total Liabilities Input",
-    valueType: "Currency"
+    outputValue: "paydaysRemaining",
+    correlatedTo: "SFM-CAL-4113 - Paydays Remaining",
+    valueType: "Time Period"
   },
   {
     sfmId: "SFM-APF-1004",
-    description: "Annual Salary (Base Reference)",
+    description: "Target Income at Retirement",
     pageName: "APF Dashboard",
     cardName: "APF Summary Card",
-    outputValue: "annualSalary",
-    correlatedTo: "SFM-PRF-2021 - Annual Salary Input",
-    valueType: "Input"
+    outputValue: "targetIncomeAtRetirement",
+    correlatedTo: "SFM-CAL-4107 - Target Income at Retirement",
+    valueType: "Retirement"
   },
   {
     sfmId: "SFM-APF-1005",
-    description: "Annual Salary with Inflation",
+    description: "Projected Pension Income at Retirement",
     pageName: "APF Dashboard",
     cardName: "APF Summary Card",
-    outputValue: "annualSalaryInflated",
-    correlatedTo: "SFM-PRF-2021 × Inflation - Annual salary adjusted for inflation",
-    valueType: "Inflated Amount"
+    outputValue: "projectedPensionIncome",
+    correlatedTo: "(SFM-CAL-4119 × SFM-CAL-4404) + SFM-CAL-4109 - (Total Projected Pension Value × Drawdown Rate) + State Pension at Retirement",
+    valueType: "Retirement"
   },
   {
     sfmId: "SFM-APF-1006",
-    description: "Paydays Remaining",
+    description: "Income Shortfall at Retirement",
     pageName: "APF Dashboard",
     cardName: "APF Summary Card",
-    outputValue: "paydaysRemaining",
-    correlatedTo: "SFM-PRF-2006 - Monthly paydays until retirement",
-    valueType: "Time Period"
+    outputValue: "incomeShortfall",
+    correlatedTo: "SFM-CAL-4107 − SFM-APF-1005 - Target Income − Projected Income (ensure non-negative)",
+    valueType: "Retirement"
   },
   {
     sfmId: "SFM-APF-1007",

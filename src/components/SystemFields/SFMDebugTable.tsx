@@ -5,13 +5,16 @@ import { useProfile } from "@/hooks/useProfile";
 import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 import { SFMResolver } from "@/utils/systemFields/sfmResolver";
 
-// Get the 62 specific SFM codes for FREE CALCULATOR from systemFields
+// Get the specific SFM codes for FREE CALCULATOR ecosystem from systemFields
 const getFreeCalculatorSFMCodes = () => {
   return systemFields
     .filter(field => {
       const numericPart = parseInt(field.sfmId.replace('SFM-', ''));
-      // SFM-001 to SFM-043 (Free Calculator Tab) and SFM-101 to SFM-119 (Affordability Tab)
-      return (numericPart >= 1 && numericPart <= 43) || (numericPart >= 101 && numericPart <= 119);
+      // Free Calculator Tab: SFM-001 to SFM-045
+      // Affordability Tab: SFM-101 to SFM-119
+      // Funding Eligibility Form: SFM-120 to SFM-128
+      return (numericPart >= 1 && numericPart <= 45)
+        || (numericPart >= 101 && numericPart <= 128);
     })
     .map(field => field.sfmId)
     .sort((a, b) => {
@@ -115,14 +118,19 @@ export function SFMDebugTable() {
         <div className="text-blue-800">
           <strong>📊 FREE CALCULATOR SFM Codes:</strong> Showing {freeCalculatorSFMs.length} codes from systemFields.ts
           <div className="text-sm mt-1">
-            • SFM-001 to SFM-043: Free Calculator Tab ({freeCalculatorSFMs.filter(code => {
+            • SFM-001 to SFM-045: Free Calculator Tab ({freeCalculatorSFMs.filter(code => {
               const num = parseInt(code.replace('SFM-', ''));
-              return num >= 1 && num <= 43;
+              return num >= 1 && num <= 45;
             }).length} codes)
             <br />
             • SFM-101 to SFM-119: Affordability Tab ({freeCalculatorSFMs.filter(code => {
               const num = parseInt(code.replace('SFM-', ''));
               return num >= 101 && num <= 119;
+            }).length} codes)
+            <br />
+            • SFM-120 to SFM-128: Funding Eligibility Form ({freeCalculatorSFMs.filter(code => {
+              const num = parseInt(code.replace('SFM-', ''));
+              return num >= 120 && num <= 128;
             }).length} codes)
           </div>
         </div>

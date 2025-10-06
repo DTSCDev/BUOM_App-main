@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ProfileData } from "@/hooks/useProfile";
 import { SalaryEmploymentFields } from "./SalaryEmploymentFields";
+import { Edit } from "lucide-react";
 
 interface SalaryDetailsFormProps {
   formData: {
@@ -42,7 +43,7 @@ export function SalaryDetailsForm({
   return (
     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Edit Salary Details</DialogTitle>
+        <DialogTitle className="flex items-center gap-2"><Edit className="h-4 w-4" /> Edit Salary Details</DialogTitle>
       </DialogHeader>
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
@@ -172,11 +173,11 @@ export function SalaryDetailsForm({
         </div>
         
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" className="bg-white text-gray-700 border border-gray-700" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">
-            Save Changes
+          <Button type="submit" className="bg-[#4FF456] text-gray-700 font-bold hover:bg-[#44e94f]">
+            Save
           </Button>
         </div>
       </form>

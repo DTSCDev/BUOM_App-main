@@ -53,12 +53,16 @@ const PensionCharts: React.FC<PensionChartsProps> = ({
     
     return fixedChartData;
   }, [annualSalary, existingPensionValue, yearsToRetirement]);
+
+  // Derive BUOM comparison costs (50% monthly discount; total = 12 × monthly)
+  const buomMonthlyCost = useMemo(() => Math.round(monthlyFundingCost * 0.5), [monthlyFundingCost]);
+  const totalBUOMCost = useMemo(() => buomMonthlyCost * 12, [buomMonthlyCost]);
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-      <Card>
+      <Card className="border" style={{ borderColor: '#4FF456' }}>
         <CardHeader className="pb-3">
-          <CardTitle>Estimated Pension Funding Shortfall</CardTitle>
+          <CardTitle style={{ color: '#4FF456' }}>Estimated Pension Funding Shortfall</CardTitle>
         </CardHeader>
         <CardContent>
           <PensionShortfallPieChart
@@ -70,14 +74,16 @@ const PensionCharts: React.FC<PensionChartsProps> = ({
         </CardContent>
       </Card>
       
-      <Card>
+      <Card className="border" style={{ borderColor: '#4FF456' }}>
         <CardHeader className="pb-3">
-          <CardTitle>Cost Comparison to Fund Shortfall</CardTitle>
+          <CardTitle style={{ color: '#4FF456' }}>Cost Comparison to Fund Shortfall</CardTitle>
         </CardHeader>
         <CardContent>
           <CostComparisonChart
             monthlyFundingCost={monthlyFundingCost}
+            buomMonthlyCost={buomMonthlyCost}
             totalStandardCost={totalStandardCost}
+            totalBUOMCost={totalBUOMCost}
             onChangeTab={onChangeTab}
           />
         </CardContent>

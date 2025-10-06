@@ -45,15 +45,4 @@ export {
 // Export page-based utilities
 export * from './pageBasedSFMFields';
 
-// LEGACY EXPORTS - DEPRECATED
-// These are kept for backward compatibility but should not be used in new code
-// They use the old SFM code structure (SFM-001, SFM-002, etc.)
-import { dashboardFields } from './dashboardFields';
-import { apfRegistrationFields } from './apfRegistrationFields';
-
-export {
-  dashboardFields as legacyDashboardFields,
-  apfRegistrationFields as legacyApfRegistrationFields
-};
-
-export * from './types';
+// Legacy exports removed to enforce page-based SFM codes only.

@@ -66,11 +66,11 @@ export const calculatorsPageFields: SystemField[] = [
   },
   {
     sfmId: "SFM-CAL-4104",
-    description: "Required Capital",
+    description: "Capital Target Required",
     pageName: "Retirement Calculator",
     cardName: "Pension Overview Summary",
     outputValue: "requiredCapital",
-    correlatedTo: "Capital needed for target retirement income (assuming full State Pension)",
+    correlatedTo: "Assumes full State Pension is payable",
     valueType: "Currency"
   },
   {
@@ -238,6 +238,15 @@ export const calculatorsPageFields: SystemField[] = [
     cardName: "Pension Projection Analysis",
     outputValue: "capitalShortfall",
     correlatedTo: "Shortfall between projected and required capital",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-CAL-4133",
+    description: "Equivalent Income Shortfall",
+    pageName: "Retirement Calculator",
+    cardName: "Pension Projection Analysis",
+    outputValue: "equivalentIncomeShortfall",
+    correlatedTo: "SFM-CAL-4121 × 3.5% - Annual income equivalent of capital shortfall",
     valueType: "Currency"
   },
   {

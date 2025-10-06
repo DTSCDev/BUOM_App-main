@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Edit } from "lucide-react";
+import { Eye } from "lucide-react";
 import { ProfileData } from "@/hooks/useProfile";
 import { PensionDetailsForm } from "./PensionDetailsForm";
 import { ActionWarning } from "@/components/ui/action-warning";
@@ -94,15 +94,15 @@ export function PensionDetailsCard({ profile, onUpdate }: PensionDetailsCardProp
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between bg-[#4FF456] text-gray-700 font-bold rounded-t-lg">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-lg font-semibold text-[#030227]">Pension Details</CardTitle>
+          <CardTitle className="text-lg">Pension Details</CardTitle>
           <ActionWarning message="Add Pension Info" show={isIncomplete} />
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="ghost">
-              <Edit className="h-4 w-4 mr-2" /> Edit
+            <Button size="sm" variant="ghost" className="text-gray-700">
+              <Eye className="h-4 w-4 mr-2" /> View
             </Button>
           </DialogTrigger>
           {isOpen && (
@@ -115,56 +115,8 @@ export function PensionDetailsCard({ profile, onUpdate }: PensionDetailsCardProp
           )}
         </Dialog>
       </CardHeader>
-      <CardContent className="py-6">
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Pension Provider</h4>
-              <SFMCodeDisplay sfmCode="SFM-PRF-2044" variant="profile" />
-            </div>
-            <p className="text-base font-medium">{profile?.pension_provider || "Not specified"}</p>
-          </div>
-          
-          <div>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Total Monthly Contribution (Parameter Settings)</h4>
-              <SFMCodeDisplay sfmCode="SFM-PRF-2041" variant="profile" />
-            </div>
-            <p className="text-xl font-bold">{formatCurrency(totalMonthlyContribution)}</p>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Employee: {employeeRate}% (CAL-4411)</span>
-                <SFMCodeDisplay sfmCode="SFM-PRF-2042-EeP" variant="profile" />
-              </div>
-              <span className="text-sm font-medium">{formatCurrency(employeeContribution)}</span>
-            </div>
-            
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary" 
-                style={{ width: `${employeeRate / (employeeRate + employerRate) * 100}%` }}
-              ></div>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Employer: {employerRate}% (CAL-4412)</span>
-                <SFMCodeDisplay sfmCode="SFM-PRF-2042-ErP" variant="profile" />
-              </div>
-              <span className="text-sm font-medium">{formatCurrency(employerContribution)}</span>
-            </div>
-            
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-secondary" 
-                style={{ width: `${employerRate / (employeeRate + employerRate) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
+      <CardContent className="py-3">
+        <p className="text-gray-700">View and manage your pension provider and contributions.</p>
       </CardContent>
     </Card>
   );

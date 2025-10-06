@@ -1,9 +1,9 @@
 
 import { calculateUnifiedBUOMValues } from '@/utils/pension/unifiedBuomCalculations';
-import { SFMCalculationContext } from '../types';
+import { SFMCalculationContext, Asset } from '../types';
 
 // Helper function to calculate ISA value from assets
-function calculateISAValueFromAssets(assets: any[]): number {
+function calculateISAValueFromAssets(assets: Asset[]): number {
   if (!assets || assets.length === 0) return 0;
   
   const isaAssets = assets.filter(asset => {
@@ -41,7 +41,7 @@ export function calculateISAValues(sfmId: string, context: SFMCalculationContext
   const { currentAge, existingPensionValue, profile, assets } = context;
   
   switch (sfmId) {
-    case "SFM-030A": // ISA Payday Savings Target (Monthly) - FIXED: Use capital shortfall-based calculation
+    case "SFM-030A": { // ISA Payday Savings Target (Monthly) - FIXED: Use capital shortfall-based calculation
       // Get capital shortfall (SFM-007)
       const capitalShortfall = resolveSFM('SFM-007') || 0;
       
@@ -54,19 +54,22 @@ export function calculateISAValues(sfmId: string, context: SFMCalculationContext
       console.log(`🔧 SFM-030A: Enhanced ISA rate: £${enhancedRate} per £100k`);
       console.log(`🔧 SFM-030A: ISA Monthly Target: £${isaMonthly030A.toLocaleString()}`);
       return isaMonthly030A;
+    }
 
-    case "SFM-031": // ISA Savings Value Today - FIXED: Use actual asset data
+    case "SFM-031": { // ISA Savings Value Today - FIXED: Use actual asset data
       const isaValueToday = calculateISAValueFromAssets(assets);
       console.log(`🔧 SFM-031: ISA Value Today (from assets): £${isaValueToday.toLocaleString()}`);
       return isaValueToday;
+    }
 
-    case "SFM-032": // ISA Savings Target Today (Annual) - FIXED: Use SFM-030A × 12
+    case "SFM-032": { // ISA Savings Target Today (Annual) - FIXED: Use SFM-030A × 12
       const monthlyTarget = resolveSFM('SFM-030A');
       const isaTargetAnnual032 = monthlyTarget * 12;
       console.log(`🔧 SFM-032: ISA Target Annual (£${monthlyTarget} × 12): £${isaTargetAnnual032.toLocaleString()}`);
       return isaTargetAnnual032;
+    }
 
-    case "SFM-033": // ISA Progress Percentage - FIXED: Calculate based on actual progress
+    case "SFM-033": { // ISA Progress Percentage - FIXED: Calculate based on actual progress
       const currentISAValue = resolveSFM('SFM-031'); // Current ISA value
       const annualISATarget = resolveSFM('SFM-032'); // Annual ISA target
       
@@ -75,6 +78,7 @@ export function calculateISAValues(sfmId: string, context: SFMCalculationContext
       
       console.log(`🔧 SFM-033: ISA Progress = £${currentISAValue.toLocaleString()} / £${annualISATarget.toLocaleString()} = ${progressPercentage.toFixed(1)}%`);
       return Math.round(progressPercentage);
+    }
 
     default:
       console.warn(`🚨 UNKNOWN ISA SFM ID: ${sfmId}`);

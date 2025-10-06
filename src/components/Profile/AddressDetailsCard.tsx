@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Edit } from "lucide-react";
+import { Eye } from "lucide-react";
 import { ProfileData } from "@/hooks/useProfile";
 import { AddressDetailsForm } from "./AddressDetailsForm";
 import { ActionWarning } from "@/components/ui/action-warning";
@@ -17,6 +17,7 @@ interface AddressDetailsCardProps {
 export function AddressDetailsCard({ profile, onUpdate }: AddressDetailsCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
+    house_name: "",
     address_line1: "",
     address_line2: "",
     city: "",
@@ -28,6 +29,7 @@ export function AddressDetailsCard({ profile, onUpdate }: AddressDetailsCardProp
   useEffect(() => {
     if (profile) {
       setFormData({
+        house_name: profile.house_name || "",
         address_line1: profile.address_line1 || "",
         address_line2: profile.address_line2 || "",
         city: profile.city || "",
@@ -61,6 +63,7 @@ export function AddressDetailsCard({ profile, onUpdate }: AddressDetailsCardProp
     // Reset form data to current profile data
     if (profile) {
       setFormData({
+        house_name: profile.house_name || "",
         address_line1: profile.address_line1 || "",
         address_line2: profile.address_line2 || "",
         city: profile.city || "",
@@ -87,15 +90,15 @@ export function AddressDetailsCard({ profile, onUpdate }: AddressDetailsCardProp
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between bg-[#4FF456] text-gray-700 font-bold rounded-t-lg">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-lg font-semibold text-[#030227]">Address Details</CardTitle>
+          <CardTitle className="text-lg">Address Details</CardTitle>
           <ActionWarning message="Add Address" show={isIncomplete} />
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="ghost">
-              <Edit className="h-4 w-4 mr-2" /> Edit
+            <Button size="sm" variant="ghost" className="text-gray-700">
+              <Eye className="h-4 w-4 mr-2" /> View
             </Button>
           </DialogTrigger>
           {isOpen && (
@@ -108,36 +111,8 @@ export function AddressDetailsCard({ profile, onUpdate }: AddressDetailsCardProp
           )}
         </Dialog>
       </CardHeader>
-      <CardContent className="py-6">
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Current Address</h4>
-              <SFMCodeDisplay sfmCode="SFM-PRF-2082" variant="profile" />
-            </div>
-            <p className="text-base">{formatAddress()}</p>
-          </div>
-          
-          {profile?.postcode && (
-            <div className="mt-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm text-muted-foreground mb-2">Postcode</h4>
-                <SFMCodeDisplay sfmCode="SFM-PRF-2082" variant="profile" />
-              </div>
-              <p className="text-base font-medium">{profile.postcode}</p>
-            </div>
-          )}
-          
-          {profile?.country && (
-            <div className="mt-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm text-muted-foreground mb-2">Country</h4>
-                <SFMCodeDisplay sfmCode="SFM-PRF-2082" variant="profile" />
-              </div>
-              <p className="text-base font-medium">{profile.country}</p>
-            </div>
-          )}
-        </div>
+      <CardContent className="py-3">
+        <p className="text-gray-700">View and edit your address and contact details.</p>
       </CardContent>
     </Card>
   );

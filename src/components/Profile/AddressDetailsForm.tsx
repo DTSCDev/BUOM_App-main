@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Edit } from "lucide-react";
 
 interface AddressDetailsFormProps {
   formData: {
+    house_name: string;
     address_line1: string;
     address_line2: string;
     city: string;
@@ -21,9 +23,18 @@ export function AddressDetailsForm({ formData, onSubmit, onChange, onCancel }: A
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>Edit Address Details</DialogTitle>
+        <DialogTitle className="flex items-center gap-2"><Edit className="h-4 w-4" /> Edit Address Details</DialogTitle>
       </DialogHeader>
       <form onSubmit={onSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="house_name">House Name</Label>
+          <Input
+            id="house_name"
+            name="house_name"
+            value={formData.house_name}
+            onChange={onChange}
+          />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="address_line1">Address Line 1</Label>
           <Input
@@ -78,10 +89,10 @@ export function AddressDetailsForm({ formData, onSubmit, onChange, onCancel }: A
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" className="bg-white text-gray-700 border border-gray-700" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" className="bg-[#4FF456] text-gray-700 font-bold hover:bg-[#44e94f]">Save</Button>
         </DialogFooter>
       </form>
     </DialogContent>

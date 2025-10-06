@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Edit } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
 import { ProfileData } from "@/hooks/useProfile";
 import { PersonalDetailsForm } from "./PersonalDetailsForm";
 import { ActionWarning } from "@/components/ui/action-warning";
@@ -18,6 +18,7 @@ export function PersonalDetailsCard({ profile, onUpdate }: PersonalDetailsCardPr
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
+    middle_name: "",
     last_name: "",
     date_of_birth: "",
     national_insurance_number: "",
@@ -29,6 +30,7 @@ export function PersonalDetailsCard({ profile, onUpdate }: PersonalDetailsCardPr
     if (profile) {
       setFormData({
         first_name: profile.first_name || "",
+        middle_name: profile.middle_name || "",
         last_name: profile.last_name || "",
         date_of_birth: profile.date_of_birth || "",
         national_insurance_number: profile.national_insurance_number || "",
@@ -62,6 +64,7 @@ export function PersonalDetailsCard({ profile, onUpdate }: PersonalDetailsCardPr
     if (profile) {
       setFormData({
         first_name: profile.first_name || "",
+        middle_name: profile.middle_name || "",
         last_name: profile.last_name || "",
         date_of_birth: profile.date_of_birth || "",
         national_insurance_number: profile.national_insurance_number || "",
@@ -69,6 +72,18 @@ export function PersonalDetailsCard({ profile, onUpdate }: PersonalDetailsCardPr
       });
     }
     setIsOpen(false);
+  };
+
+  const computeAge = (dob?: string | null) => {
+    if (!dob) return null;
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
   };
 
   // Check if key personal information is missing
@@ -79,15 +94,15 @@ export function PersonalDetailsCard({ profile, onUpdate }: PersonalDetailsCardPr
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between bg-[#4FF456] text-gray-700 font-bold rounded-t-lg">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-lg font-semibold">Personal Details</CardTitle>
+          <CardTitle className="text-lg">Personal Details</CardTitle>
           <ActionWarning message="Complete Profile" show={isIncomplete} />
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="ghost">
-              <Edit className="h-4 w-4 mr-2" /> Edit
+            <Button size="sm" variant="ghost" className="text-gray-700">
+              <Eye className="h-4 w-4 mr-2" /> View
             </Button>
           </DialogTrigger>
           {isOpen && (
@@ -100,48 +115,8 @@ export function PersonalDetailsCard({ profile, onUpdate }: PersonalDetailsCardPr
           )}
         </Dialog>
       </CardHeader>
-      <CardContent className="py-6">
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">First Name</h4>
-              <SFMCodeDisplay sfmCode="SFM-PRF-2001" variant="profile" />
-            </div>
-            <p className="text-base">{profile?.first_name || "Not specified"}</p>
-          </div>
-          
-          <div>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Last Name</h4>
-              <SFMCodeDisplay sfmCode="SFM-PRF-2001" variant="profile" />
-            </div>
-            <p className="text-base">{profile?.last_name || "Not specified"}</p>
-          </div>
-          
-          <div>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Date of Birth</h4>
-              <SFMCodeDisplay sfmCode="SFM-PRF-2003" variant="profile" />
-            </div>
-            <p className="text-base">{profile?.date_of_birth ? formatDateString(profile.date_of_birth) : "Not specified"}</p>
-          </div>
-          
-          <div>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">National Insurance Number</h4>
-              <SFMCodeDisplay sfmCode="SFM-PRF-2006" variant="profile" />
-            </div>
-            <p className="text-base">{profile?.national_insurance_number || "Not specified"}</p>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">Mobile Number</h4>
-              <SFMCodeDisplay sfmCode="SFM-PRF-2081" variant="profile" />
-            </div>
-            <p className="text-base">{profile?.mobile || "Not specified"}</p>
-          </div>
-        </div>
+      <CardContent className="py-3">
+        <p className="text-gray-700">View and edit your personal information.</p>
       </CardContent>
     </Card>
   );

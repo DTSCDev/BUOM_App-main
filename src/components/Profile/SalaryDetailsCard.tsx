@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { Eye } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ProfileData } from "@/hooks/useProfile";
 import { ActionWarning } from "@/components/ui/action-warning";
@@ -66,15 +66,15 @@ export function SalaryDetailsCard({ profile, onUpdate }: SalaryDetailsCardProps)
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between bg-[#4FF456] text-gray-700 font-bold rounded-t-lg">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-lg font-semibold">Salary Details</CardTitle>
+          <CardTitle className="text-lg">Salary Details</CardTitle>
           <ActionWarning message="Complete Salary Details" show={isIncomplete} />
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="ghost">
-              <Edit className="h-4 w-4 mr-2" /> Edit
+            <Button size="sm" variant="ghost" className="text-gray-700">
+              <Eye className="h-4 w-4 mr-2" /> View
             </Button>
           </DialogTrigger>
           <SalaryDetailsForm
@@ -87,8 +87,8 @@ export function SalaryDetailsCard({ profile, onUpdate }: SalaryDetailsCardProps)
           />
         </Dialog>
       </CardHeader>
-      <CardContent className="py-6">
-        <SalaryDisplayContent profile={profile} />
+      <CardContent className="py-3">
+        <p className="text-gray-700">View and edit your salary and employment details.</p>
       </CardContent>
     </Card>
   );

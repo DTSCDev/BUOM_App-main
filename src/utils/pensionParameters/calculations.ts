@@ -1,5 +1,5 @@
 
-import { DEFAULT_PENSION_PARAMETERS } from './constants';
+import { getPensionParameters } from './index';
 import { AssetProjectionParameters } from './types';
 import { hasActiveSubscription } from './subscription';
 
@@ -21,21 +21,22 @@ export const getAssetProjectionParameters = (assetId: string): AssetProjectionPa
 export const calculateWeightedPortfolioReturn = (assets: any[]): number => {
   const isPremium = hasActiveSubscription();
   if (!isPremium || !assets.length) {
-    return DEFAULT_PENSION_PARAMETERS.growthRateAccumulation;
+    return getPensionParameters().growthRateAccumulation;
   }
   
   let totalValue = 0;
   let weightedReturn = 0;
   
+  const params = getPensionParameters();
   assets.forEach(asset => {
     const assetParams = getAssetProjectionParameters(asset.id);
-    const assetGrowthRate = assetParams?.customGrowthRate || DEFAULT_PENSION_PARAMETERS.growthRateAccumulation;
-    const assetFees = assetParams?.customProviderCharges || DEFAULT_PENSION_PARAMETERS.providerCharges;
+    const assetGrowthRate = assetParams?.customGrowthRate || params.growthRateAccumulation;
+    const assetFees = assetParams?.customProviderCharges || params.providerCharges;
     const netReturn = assetGrowthRate - assetFees;
     
     totalValue += asset.value;
     weightedReturn += asset.value * netReturn;
   });
   
-  return totalValue > 0 ? weightedReturn / totalValue : DEFAULT_PENSION_PARAMETERS.growthRateAccumulation;
+  return totalValue > 0 ? weightedReturn / totalValue : params.growthRateAccumulation;
 };

@@ -146,13 +146,58 @@ export class DataMigrationService {
         return true; // Not an error, just no data
       }
       
-      // Store the mapped data in the members table
-      // This integrates with the actual Profile page storage mechanism
+      // Translate PRF codes to actual members table columns
+      const dbUpdates: Record<string, unknown> = {};
+
+      // Personal Information
+      if (profileData['SFM-PRF-2003']) {
+        dbUpdates.date_of_birth = profileData['SFM-PRF-2003'];
+      }
+      if (profileData['SFM-PRF-2041'] !== undefined) {
+        dbUpdates.retirement_age = profileData['SFM-PRF-2041'];
+      }
+
+      // Employment Information
+      if (profileData['SFM-PRF-2021'] !== undefined) {
+        dbUpdates.annual_salary = profileData['SFM-PRF-2021'];
+      }
+
+      // Contact Information
+      if (profileData['SFM-PRF-2005']) {
+        dbUpdates.mobile = profileData['SFM-PRF-2005'];
+      }
+
+      // Address fields (Contact Information)
+      if (profileData['SFM-PRF-2081']) {
+        dbUpdates.house_name = profileData['SFM-PRF-2081'];
+      }
+      if (profileData['SFM-PRF-2082']) {
+        dbUpdates.address_line1 = profileData['SFM-PRF-2082'];
+      }
+      if (profileData['SFM-PRF-2083']) {
+        dbUpdates.address_line2 = profileData['SFM-PRF-2083'];
+      }
+      if (profileData['SFM-PRF-2084']) {
+        dbUpdates.city = profileData['SFM-PRF-2084'];
+      }
+      if (profileData['SFM-PRF-2085']) {
+        dbUpdates.postcode = profileData['SFM-PRF-2085'];
+      }
+      if (profileData['SFM-PRF-2086']) {
+        dbUpdates.country = profileData['SFM-PRF-2086'];
+      }
+
+      // If no valid mapped fields, skip update gracefully
+      if (Object.keys(dbUpdates).length === 0) {
+        console.log('Profile mapping contained no updatable DB fields. Skipping.');
+        return true;
+      }
+
+      // Store the translated updates in the members table
       const { error } = await supabase
         .from('members')
         .update({
-          // Update relevant profile fields from the mapped data
-          ...profileData,
+          ...dbUpdates,
           updated_at: new Date().toISOString()
         })
         .eq('membership_id', membershipNumber);

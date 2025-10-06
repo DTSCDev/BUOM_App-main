@@ -1,26 +1,46 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, FileSpreadsheet, User, Calendar } from 'lucide-react';
 import { generateSFMAuditCSV, generateAuditSummary } from '@/utils/sfmAuditCSV';
 import { useAuth } from '@/hooks/useAuth';
 import { systemFields } from '@/data/systemFields';
+import { useProfile } from '@/hooks/useProfile';
+import { useNetAssetValue } from '@/hooks/useNetAssetValue';
+import { SFMResolver } from '@/utils/systemFields/sfmResolver';
 
 export function SFMAuditDownload() {
   const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
+  const { profile } = useProfile();
+  const { assets } = useNetAssetValue();
+
+  // Create SFM resolver with real user data when available
+  const resolver = useMemo(() => {
+    if (!profile || !assets) return null;
+    const profileRecord = profile as unknown as Record<string, unknown>;
+    const assetsRecord = assets.map(asset => asset as unknown as Record<string, unknown>);
+    return new SFMResolver(profileRecord, assetsRecord);
+  }, [profile, assets]);
+
+  const isReady = !!resolver;
 
   // Use systemFields directly instead of useSFMResolver
-  const getSFMValue = (sfmCode: string): number => {
-    const field = systemFields.find(f => f.sfmId === sfmCode);
-    return field?.value || 0;
+  const resolveSFM = (sfmCode: string): number => {
+    if (!resolver) return 0;
+    try {
+      return resolver.resolveSFM(sfmCode);
+    } catch (e) {
+      console.error(`Error resolving ${sfmCode}:`, e);
+      return 0;
+    }
   };
 
   const handleDownload = async () => {
     try {
       setIsGenerating(true);
       const userEmail = user?.email || 'sensay176@gmail.com';
-      await generateSFMAuditCSV(getSFMValue, userEmail);
+      await generateSFMAuditCSV(resolveSFM, userEmail);
     } catch (error) {
       console.error('Error generating audit CSV:', error);
     } finally {
@@ -35,7 +55,7 @@ export function SFMAuditDownload() {
     cardHeader: field.cardName,
     subHeader: field.pageName,
     valueOutput: field.outputValue,
-    calculatedValue: isReady ? resolveSFM(field.sfmId) : 0,
+    calculatedValue: resolveSFM(field.sfmId),
     pageName: field.pageName,
     valueType: field.valueType,
     correlatedTo: field.correlatedTo
@@ -117,19 +137,23 @@ export function SFMAuditDownload() {
               <span className="ml-1 font-medium">{summary.byPage['BUOM Hub'] || 0}</span>
             </div>
             <div>
-              <span className="text-gray-600">Free Calculator (SFM-001 to SFM-042):</span>
-              <span className="ml-1 font-medium">{systemFields.filter(f => { const n = parseInt(f.sfmId.replace('SFM-', '')); return n >= 1 && n <= 42; }).length}</span>
+              <span className="text-gray-600">Free Calculator (SFM-001 to SFM-045):</span>
+              <span className="ml-1 font-medium">{systemFields.filter(f => { const n = parseInt(f.sfmId.replace('SFM-', '')); return n >= 1 && n <= 45; }).length}</span>
             </div>
             <div>
               <span className="text-gray-600">Free Affordability (SFM-101 to SFM-119):</span>
               <span className="ml-1 font-medium">{systemFields.filter(f => { const n = parseInt(f.sfmId.replace('SFM-', '')); return n >= 101 && n <= 119; }).length}</span>
+            </div>
+            <div>
+              <span className="text-gray-600">Funding Eligibility (SFM-120 to SFM-128):</span>
+              <span className="ml-1 font-medium">{systemFields.filter(f => { const n = parseInt(f.sfmId.replace('SFM-', '')); return n >= 120 && n <= 128; }).length}</span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            <p>CSV includes: New SFM Codes (SFM-XXX-XXXX-X format), Free Calculator (SFM-001 to SFM-042), Free Affordability (SFM-101 to SFM-119), Description, Card Header, Sub Header, Value Output</p>
+            <p>CSV includes: New SFM Codes (SFM-XXX-XXXX-X format), Free Calculator (SFM-001 to SFM-045), Free Affordability (SFM-101 to SFM-119), Funding Eligibility (SFM-120 to SFM-128), Description, Card Header, Sub Header, Value Output</p>
             <p className="text-xs text-gray-500">Now using the new page-based SFM code structure</p>
           </div>
           <Button 

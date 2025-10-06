@@ -21,7 +21,7 @@ export function calculateINBLValues(sfmId: string, context: SFMCalculationContex
     case "SFM-051-7":
     case "SFM-051-8":
     case "SFM-051-9":
-    case "SFM-051-10":
+    case "SFM-051-10": {
       const npgYear = parseInt(sfmId.split('-')[2]);
       const npgSponsorship = sponsorships.find(s => s.year === npgYear);
       if (!npgSponsorship) return 0;
@@ -30,6 +30,7 @@ export function calculateINBLValues(sfmId: string, context: SFMCalculationContex
       const npgAmount = npgSponsorship.sponsorshipAmount * 0.8;
       console.log(`${sfmId}: NPG amount for year ${npgYear}: £${npgAmount.toLocaleString()}`);
       return npgAmount;
+    }
 
     // NRSR Fee - Years 1-10 (SFM-052-X)
     case "SFM-052-1":
@@ -41,7 +42,7 @@ export function calculateINBLValues(sfmId: string, context: SFMCalculationContex
     case "SFM-052-7":
     case "SFM-052-8":
     case "SFM-052-9":
-    case "SFM-052-10":
+    case "SFM-052-10": {
       const nrsrYear = parseInt(sfmId.split('-')[2]);
       const nrsrSponsorship = sponsorships.find(s => s.year === nrsrYear);
       if (!nrsrSponsorship) return 0;
@@ -50,6 +51,7 @@ export function calculateINBLValues(sfmId: string, context: SFMCalculationContex
       const nrsrAmount = nrsrSponsorship.sponsorshipAmount * 0.2;
       console.log(`${sfmId}: NRSR fee for year ${nrsrYear}: £${nrsrAmount.toLocaleString()}`);
       return nrsrAmount;
+    }
 
     // Total INBL Principal - Years 1-10 (SFM-053-X)
     case "SFM-053-1":
@@ -61,7 +63,7 @@ export function calculateINBLValues(sfmId: string, context: SFMCalculationContex
     case "SFM-053-7":
     case "SFM-053-8":
     case "SFM-053-9":
-    case "SFM-053-10":
+    case "SFM-053-10": {
       const inblYear = parseInt(sfmId.split('-')[2]);
       const inblSponsorship = sponsorships.find(s => s.year === inblYear);
       if (!inblSponsorship) return 0;
@@ -70,6 +72,7 @@ export function calculateINBLValues(sfmId: string, context: SFMCalculationContex
       const inblPrincipal = inblSponsorship.sponsorshipAmount;
       console.log(`${sfmId}: INBL principal for year ${inblYear}: £${inblPrincipal.toLocaleString()}`);
       return inblPrincipal;
+    }
 
     default:
       return 0;

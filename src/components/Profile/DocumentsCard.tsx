@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, Eye, Edit } from "lucide-react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ActionWarning } from "@/components/ui/action-warning";
 import { useDocuments } from "@/hooks/useDocuments";
 
@@ -13,6 +14,7 @@ interface DocumentsCardProps {
 export function DocumentsCard({ userId }: DocumentsCardProps) {
   const { documents, isLoading, uploadDocument } = useDocuments(userId || "");
   const [isUploading, setIsUploading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const requiredDocuments = [
     { type: "payslip", label: "Recent Payslip", required: true },
@@ -37,7 +39,7 @@ export function DocumentsCard({ userId }: DocumentsCardProps) {
   };
 
   const getDocumentStatus = (docType: string) => {
-    return documents?.some(doc => (doc as any).document_type === docType);
+    return documents?.some((doc) => doc.type === docType);
   };
 
   const requiredDocsUploaded = requiredDocuments
@@ -48,12 +50,35 @@ export function DocumentsCard({ userId }: DocumentsCardProps) {
   const isIncomplete = !requiredDocsUploaded;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="md:col-span-2">
+      <CardHeader className="flex flex-row items-center justify-between bg-[#4FF456] text-gray-700 font-bold rounded-t-lg">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-lg font-semibold text-[#030227]">Documents</CardTitle>
+          <CardTitle className="text-lg">Documents</CardTitle>
           <ActionWarning message="Upload Documents" show={isIncomplete} />
         </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="ghost" className="text-gray-700">
+              <Eye className="h-4 w-4 mr-2" /> View
+            </Button>
+          </DialogTrigger>
+          {isOpen && (
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2"><Edit className="h-4 w-4" /> View Documents</DialogTitle>
+              </DialogHeader>
+              <p className="text-gray-700">Manage and upload your documents.</p>
+              <DialogFooter className="mt-4">
+                <Button variant="outline" className="bg-white text-gray-700 border border-gray-700" onClick={() => setIsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button className="bg-[#4FF456] text-gray-700 font-bold" onClick={() => setIsOpen(false)}>
+                  Save
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          )}
+        </Dialog>
       </CardHeader>
       <CardContent className="py-6">
         <div className="space-y-4">
@@ -100,7 +125,6 @@ export function DocumentsCard({ userId }: DocumentsCardProps) {
               </div>
             );
           })}
-          
           {!requiredDocsUploaded && (
             <div className="p-3 bg-amber-50 rounded-lg">
               <p className="text-sm text-amber-800">

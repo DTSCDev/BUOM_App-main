@@ -57,7 +57,7 @@ export const SFM_CODE_RANGES: Record<string, SFMCodeRange> = {
   
   // APF Pages & Sub Pages: SFM-APF-1XXX-X series (1000-1999)
   'APF_PAGES': {
-    prefix: 'SFM-APF-1',
+    prefix: 'SFM-APF-',
     description: 'APF Pages & Sub Pages',
     startCode: 1000,
     endCode: 1999,
@@ -69,7 +69,7 @@ export const SFM_CODE_RANGES: Record<string, SFMCodeRange> = {
   
   // Profile Page: SFM-PRF-2XXX-X series (2000-2999)
   'PROFILE_PAGE': {
-    prefix: 'SFM-PRF-2',
+    prefix: 'SFM-PRF-',
     description: 'Profile Page',
     startCode: 2000,
     endCode: 2999,
@@ -81,7 +81,7 @@ export const SFM_CODE_RANGES: Record<string, SFMCodeRange> = {
   
   // Net Asset Value: SFM-NAV-3XXX-X series (3000-3999)
   'NET_ASSET_VALUE': {
-    prefix: 'SFM-NAV-3',
+    prefix: 'SFM-NAV-',
     description: 'Net Asset Value',
     startCode: 3000,
     endCode: 3999,
@@ -93,7 +93,7 @@ export const SFM_CODE_RANGES: Record<string, SFMCodeRange> = {
   
   // Calculators Page: SFM-CAL-4XXX-X series (4000-4999)
   'CALCULATORS_PAGE': {
-    prefix: 'SFM-CAL-4',
+    prefix: 'SFM-CAL-',
     description: 'Calculators Page',
     startCode: 4000,
     endCode: 4999,
@@ -105,7 +105,7 @@ export const SFM_CODE_RANGES: Record<string, SFMCodeRange> = {
   
   // Payments Page: SFM-PAY-5XXX-X series (5000-5999)
   'PAYMENTS_PAGE': {
-    prefix: 'SFM-PAY-5',
+    prefix: 'SFM-PAY-',
     description: 'Payments Page',
     startCode: 5000,
     endCode: 5999,
@@ -117,7 +117,7 @@ export const SFM_CODE_RANGES: Record<string, SFMCodeRange> = {
   
   // Reports Page: SFM-REP-6XXX-X series (6000-6999)
   'REPORTS_PAGE': {
-    prefix: 'SFM-REP-6',
+    prefix: 'SFM-REP-',
     description: 'Reports Page',
     startCode: 6000,
     endCode: 6999,
@@ -129,7 +129,7 @@ export const SFM_CODE_RANGES: Record<string, SFMCodeRange> = {
   
   // Statements Page: SFM-STA-7XXX-X series (7000-7999)
   'STATEMENTS_PAGE': {
-    prefix: 'SFM-STA-7',
+    prefix: 'SFM-STA-',
     description: 'Statements Page',
     startCode: 7000,
     endCode: 7999,
@@ -141,7 +141,7 @@ export const SFM_CODE_RANGES: Record<string, SFMCodeRange> = {
   
   // FREE Benefits Page: SFM-BEN-8XXX-X series (8000-8999)
   'BENEFITS_PAGE': {
-    prefix: 'SFM-BEN-8',
+    prefix: 'SFM-BEN-',
     description: 'FREE Benefits Page',
     startCode: 8000,
     endCode: 8999,
@@ -187,15 +187,17 @@ class SFMAllocationRegistry {
    * Generate SFM code based on prefix and number
    */
   private generateSFMCode(prefix: string, codeNumber: number): string {
-    // Handle different prefix formats
-    if (prefix.includes('APF') || prefix.includes('PRF') || prefix.includes('NAV') || 
-        prefix.includes('CAL') || prefix.includes('PAY') || prefix.includes('REP') || 
-        prefix.includes('STA') || prefix.includes('BEN')) {
-      return `${prefix}${codeNumber.toString().padStart(3, '0')}`;
-    } else {
-      // Free calculator format: SFM-0XX
-      return `${prefix}${codeNumber.toString().padStart(2, '0')}`;
+    // Pad width based on range type
+    if (prefix.startsWith('SFM-')) {
+      if (prefix === 'SFM-0') {
+        // Free calculator format: SFM-0XX
+        return `${prefix}${codeNumber.toString().padStart(3, '0')}`;
+      }
+      // Page-based formats: SFM-XXX-####
+      return `${prefix}${codeNumber.toString().padStart(4, '0')}`;
     }
+    // Fallback
+    return `${prefix}${codeNumber}`;
   }
 
   /**
@@ -500,7 +502,8 @@ export const SFMAllocationUtils = {
       }
     };
 
-    sfmAllocationRegistry.allocateCode(sfmCode, allocation.allocatedTo);
+    // allocatedTo is set above; assert non-null for type-safe call
+    sfmAllocationRegistry.allocateCode(sfmCode, allocation.allocatedTo!);
     return sfmCode;
   },
 

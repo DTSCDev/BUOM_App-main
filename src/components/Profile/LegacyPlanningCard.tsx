@@ -2,12 +2,12 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { useLegacyPlanning, LegacyPlanningItem } from "@/hooks/useLegacyPlanning";
+import { Eye } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useLegacyPlanning, LegacyPlanningItem, LegacyPlanningInput } from "@/hooks/useLegacyPlanning";
 import { LegacyPlanningForm } from "./LegacyPlanningForm";
 import { ProfileData } from "@/hooks/useProfile";
-import { LegacyItemsList } from "./LegacyPlanning/LegacyItemsList";
-import { EmptyLegacyState } from "./LegacyPlanning/EmptyLegacyState";
+// Removed unused list and empty state imports
 import { LegacyLoadingState } from "./LegacyPlanning/LegacyLoadingState";
 
 interface LegacyPlanningCardProps {
@@ -15,7 +15,7 @@ interface LegacyPlanningCardProps {
   onUpdate: (updates: Partial<ProfileData>) => Promise<boolean>;
 }
 
-export function LegacyPlanningCard({ profile, onUpdate }: LegacyPlanningCardProps) {
+export function LegacyPlanningCard({ profile: _profile, onUpdate: _onUpdate }: LegacyPlanningCardProps) {
   const { legacyItems, isLoading, addLegacyItem, updateLegacyItem, deleteLegacyItem } = useLegacyPlanning();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LegacyPlanningItem | null>(null);
@@ -30,7 +30,7 @@ export function LegacyPlanningCard({ profile, onUpdate }: LegacyPlanningCardProp
     setIsFormOpen(true);
   };
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: LegacyPlanningInput) => {
     if (editingItem) {
       return await updateLegacyItem(editingItem.id, data);
     } else {
@@ -53,30 +53,28 @@ export function LegacyPlanningCard({ profile, onUpdate }: LegacyPlanningCardProp
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between bg-[#4FF456] text-gray-700 font-bold rounded-t-lg">
           <div>
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              Legacy Planning
-              {hasWillNotArranged && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">
-                  Action Required
-                </span>
-              )}
-            </CardTitle>
+            <CardTitle className="text-lg font-semibold">Legacy Planning</CardTitle>
           </div>
-          <Button size="sm" variant="outline" onClick={handleAddItem}>
-            <Plus className="h-4 w-4 mr-2" /> Add Item
-          </Button>
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="ghost" className="text-gray-700">
+                <Eye className="h-4 w-4 mr-2" /> View
+              </Button>
+            </DialogTrigger>
+          </Dialog>
         </CardHeader>
-        <CardContent>
-          {legacyItems.length === 0 ? (
-            <EmptyLegacyState />
+        <CardContent className="py-3">
+          {hasWillNotArranged ? (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">
+                Action Required
+              </span>
+              <span className="text-sm text-gray-700">Add Will & Executor details</span>
+            </div>
           ) : (
-            <LegacyItemsList
-              items={legacyItems}
-              onEdit={handleEditItem}
-              onDelete={handleDeleteItem}
-            />
+            <p className="text-gray-700">View and manage your legacy planning items.</p>
           )}
         </CardContent>
       </Card>

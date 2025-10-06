@@ -175,11 +175,9 @@ const App = () => (
               </RequireAuth>
             } />
             <Route path="/system-fields" element={
-              <RequireAuth>
-                <AppLayout>
-                  <SystemFields />
-                </AppLayout>
-              </RequireAuth>
+              <ConditionalLayout>
+                <SystemFields />
+              </ConditionalLayout>
             } />
             <Route path="/sfm-audit" element={
               <RequireAuth>

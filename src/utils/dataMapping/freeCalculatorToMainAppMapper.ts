@@ -34,12 +34,16 @@ export interface ProfilePageData {
   'SFM-PRF-2001'?: string;  // Full Name (firstName + lastName)
   'SFM-PRF-2002'?: string;  // Email Address
   'SFM-PRF-2003'?: string;  // Date of Birth
-  'SFM-PRF-2005'?: number;  // Retirement Age
+  'SFM-PRF-2005'?: string;  // Mobile Number
   'SFM-PRF-2021'?: number;  // Annual Salary
-  'SFM-PRF-2041'?: number;  // Existing Pension Value
+  'SFM-PRF-2041'?: number;  // Retirement Age
   'SFM-PRF-2043-GP'?: number;  // Gross Employer + Employee Pension Contribution Currency (£)
-  'SFM-PRF-2081'?: string;  // Phone Number (mobile)
-  'SFM-PRF-2082'?: string;  // Address (composed from address fields)
+  'SFM-PRF-2081'?: string;  // House Name
+  'SFM-PRF-2082'?: string;  // Address Line 1
+  'SFM-PRF-2083'?: string;  // Address Line 2
+  'SFM-PRF-2084'?: string;  // Town/City
+  'SFM-PRF-2085'?: string;  // Post Code
+  'SFM-PRF-2086'?: string;  // Country
 }
 
 // Main App Net Asset Value Data (SFM-NAV-XXXX)
@@ -76,7 +80,7 @@ export function mapFreeCalculatorToProfile(
   }
 
   if (freeCalcData.retirementAge) {
-    profileData['SFM-PRF-2005'] = freeCalcData.retirementAge; // SFM-005 → SFM-PRF-2005
+    profileData['SFM-PRF-2041'] = freeCalcData.retirementAge; // SFM-005 → SFM-PRF-2041
   }
 
   // Map employment information
@@ -97,22 +101,24 @@ export function mapFreeCalculatorToProfile(
 
   // Map contact information
   if (eligibilityData.mobile) {
-    profileData['SFM-PRF-2081'] = eligibilityData.mobile;
+    profileData['SFM-PRF-2005'] = eligibilityData.mobile;
   }
 
-  // Compose address string from provided fields
-  const addressParts = [
-    eligibilityData.addressLine1,
-    eligibilityData.addressLine2 || '',
-    eligibilityData.city,
-    eligibilityData.postCode,
-    eligibilityData.country
-  ]
-    .map(part => (part || '').trim())
-    .filter(Boolean);
-
-  if (addressParts.length > 0) {
-    profileData['SFM-PRF-2082'] = addressParts.join(', ');
+  // Map address fields individually to PRF 2081–2086
+  if (eligibilityData.addressLine1) {
+    profileData['SFM-PRF-2082'] = eligibilityData.addressLine1;
+  }
+  if (eligibilityData.addressLine2) {
+    profileData['SFM-PRF-2083'] = eligibilityData.addressLine2;
+  }
+  if (eligibilityData.city) {
+    profileData['SFM-PRF-2084'] = eligibilityData.city;
+  }
+  if (eligibilityData.postCode) {
+    profileData['SFM-PRF-2085'] = eligibilityData.postCode;
+  }
+  if (eligibilityData.country) {
+    profileData['SFM-PRF-2086'] = eligibilityData.country;
   }
 
   return profileData;

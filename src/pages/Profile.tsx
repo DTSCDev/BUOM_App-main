@@ -28,7 +28,7 @@ export default function Profile() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-6 text-[#030227]">My Details</h1>
+        <h1 className="text-2xl font-bold mb-6 text-[#4FF456]">My Details</h1>
         <div className="grid gap-6 md:grid-cols-2">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="w-full h-48 animate-pulse">
@@ -44,7 +44,7 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6 text-[#030227]">My Details</h1>
+      <h1 className="text-2xl font-bold mb-6 text-[#4FF456]">My Details</h1>
       
       <div className="grid gap-6 md:grid-cols-2">
         <PersonalDetailsCard profile={profile} onUpdate={updateProfile} />

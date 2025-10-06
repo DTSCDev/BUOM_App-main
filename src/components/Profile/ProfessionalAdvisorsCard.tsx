@@ -2,13 +2,12 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Eye } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useProfessionalAdvisors } from "@/hooks/useProfessionalAdvisors";
+import type { ProfessionalAdvisorInput } from "@/hooks/useProfessionalAdvisors";
 import { ActionWarning } from "@/components/ui/action-warning";
 import { ProfessionalAdvisorForm } from "./ProfessionalAdvisorForm";
-import { AdvisorsList } from "./ProfessionalAdvisors/AdvisorsList";
-import { EmptyAdvisorsState } from "./ProfessionalAdvisors/EmptyAdvisorsState";
 import { AdvisorsLoadingState } from "./ProfessionalAdvisors/AdvisorsLoadingState";
 
 export function ProfessionalAdvisorsCard() {
@@ -22,17 +21,12 @@ export function ProfessionalAdvisorsCard() {
     sendInvitation
   } = useProfessionalAdvisors();
 
-  const handleFormSubmit = async (advisorData: any) => {
+  const handleFormSubmit = async (advisorData: ProfessionalAdvisorInput) => {
     const success = await addAdvisor(advisorData);
     if (success) {
       setIsFormOpen(false);
     }
     return success;
-  };
-
-  const handleEdit = (advisor: any) => {
-    // Implementation for editing advisor
-    console.log('Edit advisor:', advisor);
   };
 
   const handleDelete = (advisorId: string) => {
@@ -55,17 +49,18 @@ export function ProfessionalAdvisorsCard() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between bg-[#4FF456] text-gray-700 font-bold rounded-t-lg">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-lg font-semibold text-[#030227]">Professional Advisors</CardTitle>
+          <CardTitle className="text-lg">Professional Advisors</CardTitle>
           <ActionWarning message="Add Advisor" show={isIncomplete} />
         </div>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="ghost">
-              <Plus className="h-4 w-4 mr-2" /> Add Advisor
+              <Eye className="h-4 w-4 mr-2" /> View
             </Button>
           </DialogTrigger>
+          {/* Show advisors management inside modal using existing form component */}
           <ProfessionalAdvisorForm
             isOpen={isFormOpen}
             onClose={() => setIsFormOpen(false)}
@@ -73,17 +68,8 @@ export function ProfessionalAdvisorsCard() {
           />
         </Dialog>
       </CardHeader>
-      <CardContent className="py-6">
-        {advisors && advisors.length > 0 ? (
-          <AdvisorsList
-            advisors={advisors}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onInvite={handleInvite}
-          />
-        ) : (
-          <EmptyAdvisorsState />
-        )}
+      <CardContent className="py-3">
+        <p className="text-gray-700">View and manage your professional advisors.</p>
       </CardContent>
     </Card>
   );

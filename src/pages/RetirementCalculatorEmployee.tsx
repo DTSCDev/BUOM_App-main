@@ -65,12 +65,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useProfile } from '@/hooks/useProfile';
-import { PensionShortfallPieChart } from '@/components/PensionCharts/PensionShortfallPieChart';
-import { CostComparisonChart } from '@/components/PensionCharts/CostComparisonChart';
-import { APFPeriodCard } from '@/components/APFPeriodCard';
+import { PensionCharts } from '@/components/PensionCharts';
 import { useMyBOUMRetirementCalculations } from '@/hooks/myBOUMRetirementCalculations';
 import { calculateAffordability } from '@/utils/pension/taxCalculations';
-import { TrendingUp, Calendar, AlertTriangle } from 'lucide-react';
+import { TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
+import SFMCodeBadge from '@/components/SystemFields/SFMCodeBadge';
+import { useNetAssetValue } from '@/hooks/useNetAssetValue';
+import { Switch } from '@/components/ui/switch';
+import { formatCurrency, calculateAge } from '@/utils/pensionCalculations';
+import { getPensionParameters } from '@/utils/pensionParameters';
+import { calculateTotalAEContributions } from '@/utils/pension/aeContributionCalculations';
+// Removed Free components to keep page-based SFM usage consistent
 
 /*
  * RETIREMENT CALCULATOR EMPLOYEE PAGE
@@ -137,6 +142,8 @@ import { TrendingUp, Calendar, AlertTriangle } from 'lucide-react';
 
 const RetirementCalculatorEmployee = () => {
   const { profile } = useProfile();
+  const [isCapitalView, setIsCapitalView] = useState(true);
+  const { assets } = useNetAssetValue();
   const [activeTab, setActiveTab] = useState('calculator');
   const [retirementAge, setRetirementAge] = useState(67); // Default retirement age
 
@@ -162,6 +169,14 @@ const RetirementCalculatorEmployee = () => {
   const age = profile?.date_of_birth 
     ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear()
     : null;
+
+  // Calculate existing pension value from NAV assets
+  const existingPensionValue = assets?.filter(asset => 
+    asset.category?.name?.toLowerCase().includes('pension') ||
+    asset.name?.toLowerCase().includes('pension')
+  ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+
+  // Use page-based calculations and NAV; avoid Free parameter utilities
 
   // Calculate pension contributions if profile data is available
   const pensionCalcs = profile?.annual_salary ? (() => {
@@ -207,6 +222,41 @@ const RetirementCalculatorEmployee = () => {
     }).format(amount);
   };
 
+  // Income-mode values derived from Parameters and existing calculations
+  const params = getPensionParameters();
+  const currentAge = age || 0;
+  const yearsToRetirement = Math.max(0, (retirementAge ?? params.retirementAge) - currentAge);
+  const requiredIncomeAtRetirement = (profile?.annual_salary || 0) * params.pensionIncomeTarget;
+  const projectedIncomeAtRetirement = (calculations.currentProjection || 0) * params.drawdownRate;
+  const incomeShortfall = Math.max(0, requiredIncomeAtRetirement - projectedIncomeAtRetirement);
+  const incomeProgress = requiredIncomeAtRetirement > 0
+    ? (projectedIncomeAtRetirement / requiredIncomeAtRetirement) * 100
+    : 0;
+
+  // Pension Timeline derived values for display panels
+  const targetIncomeToday = (profile?.annual_salary || 0) * params.pensionIncomeTarget;
+  const targetIncomeAtRetirement = targetIncomeToday * Math.pow(1 + params.pensionIncomeInflation, yearsToRetirement);
+  const statePensionToday = params.statePensionWeekly * 52;
+  const statePensionAtRetirement = statePensionToday * Math.pow(1 + params.pensionIncomeInflation, yearsToRetirement);
+  const existingPlanProjectedIncome = ((calculations.currentProjection || 0) * params.drawdownRate) + statePensionAtRetirement;
+
+  // Page-based Projection Analysis derivations (SFM-CAL-4114 to 4125, 4133)
+  const currentAgeYears = profile?.date_of_birth ? calculateAge(new Date(profile.date_of_birth)).years : (age ?? 0);
+  const yearsUntilPension = Math.max(0, (retirementAge ?? params.retirementAge) - (currentAgeYears || 0));
+  const aeTotals = calculateTotalAEContributions(profile?.annual_salary || 0, currentAgeYears || 0, yearsUntilPension);
+  const historicalContributions = aeTotals.historicalContributions || 0; // SFM-CAL-4114
+  const growthFromExisting = Math.max(0, (calculations.existingPlanValueTodayAtRetirement || 0) - (existingPensionValue || 0)); // SFM-CAL-4116
+  const futureAEContributions = aeTotals.futureContributions || 0; // SFM-CAL-4117
+  const futureAEGrowth = Math.max(0, (calculations.existingPlanFutureContributions || 0) - futureAEContributions); // SFM-CAL-4118
+  const totalProjectedValue = (calculations.existingPlanValueTodayAtRetirement || 0) + (calculations.existingPlanFutureContributions || 0); // SFM-CAL-4119
+  const requiredCapital = calculations.requiredCapital || 0; // SFM-CAL-4120
+  const capitalShortfall = calculations.capitalShortfall || 0; // SFM-CAL-4121
+  const equivalentIncomeShortfall = Math.round((capitalShortfall || 0) * params.drawdownRate); // SFM-CAL-4133
+  const topUpContributionsPaid = Math.max(0, calculations.totalStandardCost || 0); // SFM-CAL-4122
+  const topUpInvestmentGrowth = Math.max(0, capitalShortfall - topUpContributionsPaid); // SFM-CAL-4123
+  const topUpTotalFundValue = topUpContributionsPaid + topUpInvestmentGrowth; // SFM-CAL-4124
+  const effectiveGrowthRate = topUpContributionsPaid > 0 ? ((topUpInvestmentGrowth / topUpContributionsPaid) * 100) : 0; // SFM-CAL-4125
+
   // Use dynamic calculations instead of mock data
   const showAffordabilityWarning = calculations.monthlyFundingCost > 0;
   const isOnTrack = calculations.fundingProgress >= 100;
@@ -248,210 +298,234 @@ const RetirementCalculatorEmployee = () => {
             
             <TabsContent value="calculator" className="mt-6">
               <div className="space-y-6">
-                {/* Main Funding Options Card - Using Dynamic Calculations */}
-                <Card className="border-2" style={{ borderColor: '#4FF456', backgroundColor: '#4FF45659' }}>
+                {/* Cashflow Modeller (Voyants-style) - Placeholder */}
+                <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                      <TrendingUp className="h-6 w-6 text-blue-600" />
-                      Pension Funding Options
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Dynamic calculations using page-based SFM codes
+                    <CardTitle style={{ color: '#4FF456' }}>Cashflow Modeller (Voyants-style)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">
+                      A dynamic cashflow modeller will appear here to visualise income,
+                      expenses, and pension drawdown over time.
                     </p>
+                  </CardContent>
+                </Card>
+                {/* Pension Funding Analysis - replicate Free layout and style with page-based SFM codes */}
+                <Card className="border-2 border-green-200 bg-green-50/30 rounded-lg">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle style={{ color: '#4FF456' }}>Pension Funding Analysis</CardTitle>
+                      {/* Right-aligned Income/Capital toggle (UI state only) */}
+                      <div className="flex items-center gap-3">
+                        <span className={!isCapitalView ? 'font-medium' : 'text-gray-400'} style={!isCapitalView ? { color: '#4FF456' } : {}}>Income Values</span>
+                        <Switch checked={isCapitalView} onCheckedChange={setIsCapitalView} />
+                        <span className={isCapitalView ? 'font-medium' : 'text-gray-400'} style={isCapitalView ? { color: '#4FF456' } : {}}>Capital Values</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Free calculator funding analysis</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Affordability Warning Alert */}
-                    {showAffordabilityWarning && (
-                      <Alert className="border-[#4FF546]" style={{ backgroundColor: '#4FF546' }}>
-                        <AlertTriangle className="h-4 w-4 text-black" />
-                        <AlertDescription className="text-black">
-                          Your estimated Top Up of {formatCurrency(calculations.monthlyFundingCost)} may not be Affordable. 
-                          Check your eligibility for risk-free financial assistance.
+                    {/* Top alert bar mirroring Funding Analysis screenshot */}
+                    {calculations.capitalShortfall > 0 && (
+                      <Alert className="border-red-200 bg-red-50">
+                        <AlertDescription className="text-red-700">
+                          Your estimated Top Up of {formatCurrency(calculations.monthlyFundingCost)} may not be Affordable. Check your eligibility for risk-free financial assistance.
                         </AlertDescription>
                       </Alert>
                     )}
-                    
+
+                    {/* Row 1: Funding Progress + Current Projection */}
                     <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2 relative pb-6">
+                      <div className="space-y-2 relative">
                         <h3 className="font-medium text-gray-900">Funding Progress</h3>
-                        <div className={`text-3xl font-bold ${
-                          calculations.fundingProgress >= 100 ? 'text-green-600' : 
-                          calculations.fundingProgress >= 80 ? 'text-yellow-500' : 'text-red-600'
-                        }`}>
-                          {calculations.fundingProgress}%
+                        <div className={`text-3xl font-bold ${calculations.fundingProgress >= 100 ? 'text-green-600' : calculations.fundingProgress >= 80 ? 'text-yellow-500' : 'text-red-600'}`}>
+                          {Math.round(calculations.fundingProgress)}%
                         </div>
-                        <Progress 
-                          value={Math.min(calculations.fundingProgress, 100)} 
-                          className={`h-3 ${
-                            calculations.fundingProgress >= 100 ? 'progress-green' : 
-                            calculations.fundingProgress >= 80 ? 'progress-amber' : 'progress-red'
-                          }`} 
-                        />
+                        <Progress value={Math.min(calculations.fundingProgress, 100)} className={`h-3 ${calculations.fundingProgress >= 100 ? 'progress-green' : calculations.fundingProgress >= 80 ? 'progress-amber' : 'progress-red'}`} />
                         <p className="text-sm text-gray-600">
-                          {isOnTrack 
-                            ? "You're on track for your retirement target." 
-                            : isReasonablyOnTrack 
-                            ? "You're close to your retirement target." 
-                            : "You have a pension funding gap that needs attention."
-                          }
+                          {calculations.fundingProgress >= 100
+                            ? "Congratulations! You're on track for retirement."
+                            : calculations.fundingProgress >= 80
+                              ? "You're close to your retirement target."
+                              : "You have a pension funding gap that needs attention."}
                         </p>
-                        <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                          SFM-CAL-4101
+                        <div className="absolute bottom-0 right-0">
+                          <SFMCodeBadge sfmId="SFM-CAL-4101" />
                         </div>
                       </div>
 
-                      <div className="space-y-2 relative pb-6">
+                      <div className="space-y-2 relative">
                         <h3 className="font-medium text-gray-900">Current Projection</h3>
-                        <div className="text-3xl font-bold text-blue-600">
+                        <div className={`text-3xl font-bold ${calculations.fundingProgress >= 100 ? 'text-green-600' : calculations.fundingProgress >= 80 ? 'text-yellow-500' : 'text-red-600'}`}>
                           {formatCurrency(calculations.currentProjection)}
                         </div>
-                        <p className="text-sm text-gray-600">
-                          Projected pension pot at retirement
-                        </p>
-                        <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                          SFM-CAL-4103
+                        <p className="text-sm text-gray-600">Projected pension pot at retirement</p>
+                        <div className="absolute bottom-0 right-0">
+                          <SFMCodeBadge sfmId="SFM-CAL-4103" />
                         </div>
                       </div>
                     </div>
 
+                    {/* Row 2: Required Capital + Estimated Shortfall */}
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2 relative pb-6">
-                        <h3 className="font-medium text-gray-900">Required Capital assuming full State Pension</h3>
+                        <h3 className="font-medium text-gray-900">Capital Target Required</h3>
                         <div className="text-3xl font-bold text-black">
                           {formatCurrency(calculations.requiredCapital)}
                         </div>
-                        <p className="text-sm text-gray-600">
-                          Capital needed for target retirement income
-                        </p>
-                        <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                          SFM-CAL-4104
+                        <p className="text-sm text-gray-600">Assumes full State Pension is payable</p>
+                        <div className="absolute bottom-0 right-0">
+                          <SFMCodeBadge sfmId="SFM-CAL-4120" />
                         </div>
                       </div>
 
                       <div className="space-y-2 relative pb-6">
                         <h3 className="font-medium text-gray-900">Estimated Shortfall</h3>
-                        <div className="text-3xl font-bold text-red-600">
-                          {formatCurrency(calculations.capitalShortfall)}
+                        <div className={`text-3xl font-bold ${calculations.capitalShortfall > 0 ? 'text-[#9333EA]' : 'text-green-600'}`}>
+                          {formatCurrency(Math.abs(calculations.capitalShortfall))}
                         </div>
                         <p className="text-sm text-gray-600">
-                          Additional capital needed
+                          {calculations.capitalShortfall > 0 ? 'Additional capital needed' : 'Excess above target'}
                         </p>
-                        <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                          SFM-CAL-4105
+                        <div className="absolute bottom-0 right-0">
+                          <SFMCodeBadge sfmId="SFM-CAL-4121" />
                         </div>
                       </div>
                     </div>
 
+                    {/* Top-Up Monthly Cost CTA - positioned beneath CAL-4120 and CAL-4121 */}
                     {calculations.capitalShortfall > 0 && (
-                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 relative pb-6">
-                        <h4 className="text-2xl font-medium text-purple-600 mb-2">Existing Plan Top-Up Monthly Cost</h4>
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 relative">
+                        <h4 className="text-2xl font-semibold text-purple-600 mb-2">Existing Plan Top-Up Monthly Cost</h4>
                         <div className="text-2xl font-bold text-purple-600 mb-2">
                           {formatCurrency(calculations.monthlyFundingCost)}
                         </div>
                         <p className="text-sm text-purple-600 mb-4">
                           Additional monthly contribution needed to close your Estimated Shortfall
                         </p>
-                        <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                          SFM-CAL-4128
-                        </div>
-                        <div className="space-y-2 mt-4">
-                          <Button onClick={() => setActiveTab("affordability")} className="w-full bg-purple-600 hover:bg-purple-700">
-                            Check Affordability
-                          </Button>
+                        <button
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-md py-3"
+                          onClick={() => setActiveTab('affordability')}
+                        >
+                          Check Affordability
+                        </button>
+                        <div className="absolute bottom-2 right-2">
+                          <SFMCodeBadge sfmId="SFM-CAL-4119" />
                         </div>
                       </div>
                     )}
                   </CardContent>
                 </Card>
 
-                {/* Pie Chart and Bar Chart - Using Dynamic Data */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Estimated Shortfall Analysis with dynamic data */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>📊 Estimated Shortfall Analysis</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <PensionShortfallPieChart
-                        existingPlanValueTodayAtRetirement={calculations.existingPlanValueTodayAtRetirement}
-                        existingPlanFutureContributions={calculations.existingPlanFutureContributions}
-                        shortfall={calculations.shortfall}
-                      />
-                      <APFPeriodCard 
-                        shortfall={calculations.shortfall}
-                        userGrowthRate={5.0}
-                        userInflationRate={2.5}
-                        userRetirementAge={retirementAge}
-                        currentAge={age || 42}
-                        maxAnnualContribution={60000}
-                      />
-                    </CardContent>
-                  </Card>
+                {/* Charts block mirroring layout using page-based components */}
+                <PensionCharts
+                  projectedPensionPot={calculations.existingPlanValueTodayAtRetirement + calculations.existingPlanFutureContributions}
+                  existingPensionValue={existingPensionValue}
+                  existingPlanValueTodayAtRetirement={calculations.existingPlanValueTodayAtRetirement}
+                  existingPlanFutureContributions={calculations.existingPlanFutureContributions}
+                  shortfall={calculations.shortfall}
+                  monthlyFundingCost={calculations.monthlyFundingCost}
+                  totalStandardCost={calculations.totalStandardCost}
+                  annualSalary={profile?.annual_salary ?? 0}
+                  yearsToRetirement={(age !== null ? retirementAge - age : 0)}
+                  onChangeTab={(tab: string) => setActiveTab(tab)}
+                />
 
-                  {/* Value for Money Comparison - Using Dynamic Data */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>💰 Value for Money Comparison</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <CostComparisonChart
-                        monthlyFundingCost={calculations.monthlyFundingCost}
-                        buomMonthlyCost={calculations.buomMonthlyCost}
-                        totalStandardCost={calculations.totalStandardCost}
-                        totalBUOMCost={calculations.totalBUOMCost}
-                        onChangeTab={(tab: string) => {
-                          console.log('Tab change requested:', tab);
-                        }}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Side-by-side layout for Timeline and Projection Analysis */}
+                {/* Side-by-side layout for Timeline and Projection Analysis - page-based SFM */}
                 <div className="grid gap-6 md:grid-cols-2">
                   {/* Pension Timeline */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5" />
-                        Pension Timeline
-                      </CardTitle>
+                      <CardTitle style={{ color: '#4FF456' }}>Pension Timeline</CardTitle>
                       <p className="text-sm text-muted-foreground">Timeline calculations for your retirement planning</p>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Key Metrics Section with consistent blue background */}
-                      <div className="rounded-lg p-4" style={{ backgroundColor: '#4FF45659' }}>
-                        <h3 className="text-lg font-semibold mb-4 text-blue-900 flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4" />
-                          Key Metrics
-                        </h3>
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center p-3 rounded-lg relative pb-6" style={{ backgroundColor: '#4FF45659' }}>
-                            <span className="text-blue-700">Current Age</span>
-                            <span className="font-medium text-blue-900">{age || 'Not set'} years 0 months</span>
-                            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                              SFM-CAL-4110
+                    <CardContent className="space-y-6">
+                      {/* Target Income & Existing Plan Projected Income - inline within parent card */}
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">Target Income Today</h3>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-2xl font-bold text-blue-600">{formatCurrency(targetIncomeToday)}</p>
+                            <SFMCodeBadge sfmId="SFM-CAL-4106" />
+                          </div>
+                          <p className="text-sm text-gray-600">50% of current annual salary</p>
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">Target Income at Retirement</h3>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-2xl font-bold text-green-600">{formatCurrency(targetIncomeAtRetirement)}</p>
+                            <SFMCodeBadge sfmId="SFM-CAL-4107" />
+                          </div>
+                          <p className="text-sm text-gray-600">Target income adjusted for inflation</p>
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">Existing Plan Projected Income</h3>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-2xl font-bold text-blue-600">{formatCurrency(existingPlanProjectedIncome)}</p>
+                            <SFMCodeBadge sfmId="SFM-CAL-4132" />
+                          </div>
+                          <p className="text-sm text-gray-600">Projected income (inc. State Pension)</p>
+                        </div>
+                      </div>
+
+                      {/* Simple divider between target income data and state pension details */}
+                      <div className="border-t" />
+
+                      {/* State Pension Details - grouped within parent card */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">State Pension Details</h3>
+                        <div className="mt-4 space-y-4">
+                          <div>
+                            <p className="text-sm text-gray-700">State Pension Today</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-2xl font-bold text-blue-600">{formatCurrency(statePensionToday)}</p>
+                              <SFMCodeBadge sfmId="SFM-CAL-4108" />
+                            </div>
+                            <p className="text-sm text-gray-600">Current state pension value</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-700">State Pension at Retirement</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-2xl font-bold text-green-600">{formatCurrency(statePensionAtRetirement)}</p>
+                              <SFMCodeBadge sfmId="SFM-CAL-4109" />
+                            </div>
+                            <p className="text-sm text-gray-600">State pension adjusted for inflation</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Key Metrics Section - single green panel, no icon, gray typography */}
+                      <div className="rounded-lg p-6 bg-[#4FF456]">
+                        <h3 className="text-lg font-semibold mb-6 text-gray-700">Key Metrics</h3>
+                        <div className="space-y-6 text-gray-700">
+                          <div className="flex items-baseline justify-between">
+                            <span>Current Age</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900">{age || 'Not set'} years 0 months</span>
+                              <SFMCodeBadge sfmId="SFM-CAL-4110" />
                             </div>
                           </div>
-                          <div className="flex justify-between items-center p-3 rounded-lg relative pb-6" style={{ backgroundColor: '#4FF45659' }}>
-                            <span className="text-blue-700">Time to Retirement</span>
-                            <span className="font-medium text-blue-900">{age ? retirementAge - age : 'N/A'} years 00 months</span>
-                            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                              SFM-CAL-4111
+                          <div className="flex items-baseline justify-between">
+                            <span>Time to Retirement</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900">{age ? retirementAge - age : 'N/A'} years 00 months</span>
+                              <SFMCodeBadge sfmId="SFM-CAL-4111" />
                             </div>
                           </div>
-                          <div className="flex justify-between items-center p-3 rounded-lg relative pb-6" style={{ backgroundColor: '#4FF45659' }}>
-                            <span className="text-blue-700">Days Until Pension</span>
-                            <span className="font-medium text-blue-900">{age ? Math.round((retirementAge - age) * 365.25).toLocaleString() : 'N/A'}</span>
-                            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                              SFM-CAL-4112
+                          <div className="flex items-baseline justify-between">
+                            <span>Days Until Pension</span>
+                            <div className="text-right">
+                              <span className="font-semibold text-gray-900">{age ? Math.round((retirementAge - age) * 365.25).toLocaleString() : 'N/A'}</span>
+                              <SFMCodeBadge sfmId="SFM-CAL-4112" />
                             </div>
                           </div>
-                          <div className="flex justify-between items-center p-3 rounded-lg relative pb-6" style={{ backgroundColor: '#4FF45659' }}>
-                            <span className="text-blue-700">Paydays Remaining</span>
-                            <span className="font-medium text-blue-900">{age ? ((retirementAge - age) * 12).toLocaleString() : 'N/A'}</span>
-                            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                              SFM-CAL-4113
+                          <div className="flex items-baseline justify-between">
+                            <span>Paydays Remaining</span>
+                            <div className="text-right">
+                              <span className="font-semibold text-gray-900">{age ? ((retirementAge - age) * 12).toLocaleString() : 'N/A'}</span>
+                              <SFMCodeBadge sfmId="SFM-CAL-4113" />
                             </div>
                           </div>
                         </div>
@@ -459,30 +533,52 @@ const RetirementCalculatorEmployee = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Pension Projection Analysis - Using Dynamic Data */}
+                  {/* Pension Projection Analysis - Page-based SFM fields */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Pension Projection Analysis</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        Detailed breakdown of your pension projections using dynamic calculations
-                      </p>
+                      <CardTitle style={{ color: '#4FF456' }}>Pension Projection Analysis</CardTitle>
+                      <p className="text-sm text-muted-foreground">Detailed breakdown of your pension projections</p>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Main Projection Breakdown */}
                       <div className="space-y-3">
                         <div className="flex justify-between relative pb-6">
-                          <span className="text-muted-foreground">Existing Fund Value at Retirement</span>
-                          <span className="font-medium">{formatCurrency(calculations.existingPlanValueTodayAtRetirement)}</span>
-                          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                            SFM-CAL-4126
+                          <span className="text-muted-foreground">Estimated Historical Contributions</span>
+                          <span className="font-medium">{formatCurrency(historicalContributions)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4114" />
                           </div>
                         </div>
-                        
+
                         <div className="flex justify-between relative pb-6">
-                          <span className="text-muted-foreground">Existing Plan Future Contributions</span>
-                          <span className="font-medium">{formatCurrency(calculations.existingPlanFutureContributions)}</span>
-                          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                            SFM-CAL-4127
+                          <span className="text-muted-foreground">Estimated Existing Pension Fund Value</span>
+                          <span className="font-medium">{formatCurrency(existingPensionValue)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4115" />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between relative pb-6">
+                          <span className="text-muted-foreground">Future Growth on Existing Fund Value</span>
+                          <span className="font-medium text-green-600">+{formatCurrency(growthFromExisting)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4116" />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between relative pb-6">
+                          <span className="text-muted-foreground">Future AE Contributions</span>
+                          <span className="font-medium">{formatCurrency(futureAEContributions)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4117" />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between relative pb-6">
+                          <span className="text-muted-foreground">Future AE Contributions Growth</span>
+                          <span className="font-medium text-green-600">+{formatCurrency(futureAEGrowth)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4118" />
                           </div>
                         </div>
                         
@@ -490,63 +586,71 @@ const RetirementCalculatorEmployee = () => {
                         
                         <div className="flex justify-between font-medium text-lg relative pb-6">
                           <span>Total Projected Pension Value</span>
-                          <span>{formatCurrency(calculations.currentProjection)}</span>
-                          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
-                            SFM-CAL-4119
+                          <span>{formatCurrency(totalProjectedValue)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4119" />
                           </div>
                         </div>
                         
                         <div className="flex justify-between relative pb-6">
                           <span className="text-muted-foreground">Required Capital</span>
-                          <span className="font-medium">{formatCurrency(calculations.requiredCapital)}</span>
-                          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                            SFM-CAL-4120
+                          <span className="font-medium">{formatCurrency(requiredCapital)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4120" />
                           </div>
                         </div>
                         
                         <div className="flex justify-between relative pb-6">
                           <span className="text-muted-foreground">Capital Shortfall</span>
-                          <span className="font-medium text-[#9333EA]">{formatCurrency(calculations.capitalShortfall)}</span>
-                          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                            SFM-CAL-4121
+                          <span className="font-medium text-[#9333EA]">{formatCurrency(capitalShortfall)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4121" />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between relative pb-6">
+                          <span className="text-muted-foreground">Equivalent Income Shortfall</span>
+                          <span className="font-medium text-[#9333EA]">{formatCurrency(equivalentIncomeShortfall)}</span>
+                          <div className="absolute bottom-0 right-0">
+                            <SFMCodeBadge sfmId="SFM-CAL-4133" />
                           </div>
                         </div>
                       </div>
 
-                      {/* Top Up Contribution Analysis Section */}
-                      <div className="p-4 rounded-lg" style={{ backgroundColor: '#4FF45659', borderColor: '#4FF456', borderWidth: '1px' }}>
-                        <h3 className="font-semibold text-blue-900 mb-3">BUOM Cost Comparison</h3>
+                      {/* Top Up Contribution Analysis */}
+                      <div className="p-4 rounded-lg" style={{ backgroundColor: '#4FF456', borderColor: '#4FF456', borderWidth: '1px' }}>
+                        <h3 className="font-semibold text-gray-700 mb-3">Top Up Contribution Analysis</h3>
                         
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between relative pb-6">
-                            <span>Standard Monthly Cost:</span>
-                            <span className="font-medium text-red-600">{formatCurrency(calculations.monthlyFundingCost)}</span>
-                            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
-                              SFM-CAL-4122
+                            <span>Top Up Contributions Paid:</span>
+                            <span className="font-medium text-gray-700">{formatCurrency(topUpContributionsPaid)}</span>
+                            <div className="absolute bottom-0 right-0">
+                              <SFMCodeBadge sfmId="SFM-CAL-4122" />
                             </div>
                           </div>
-                          
+
                           <div className="flex justify-between relative pb-6">
-                            <span>BUOM Monthly Cost:</span>
-                            <span className="font-medium text-green-600">{formatCurrency(calculations.buomMonthlyCost)}</span>
-                            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
-                              SFM-CAL-4129
+                            <span>Top Up Investment Growth:</span>
+                            <span className="font-medium text-gray-700">+{formatCurrency(topUpInvestmentGrowth)}</span>
+                            <div className="absolute bottom-0 right-0">
+                              <SFMCodeBadge sfmId="SFM-CAL-4123" />
                             </div>
                           </div>
-                          
+
                           <div className="flex justify-between relative pb-6">
-                            <span>Total Standard Cost (Annual):</span>
-                            <span className="font-medium text-red-600">{formatCurrency(calculations.totalStandardCost)}</span>
-                            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
-                              SFM-CAL-4122
+                            <span>Top Up Total Fund Value:</span>
+                            <span className="font-medium text-[#9333EA]">{formatCurrency(topUpTotalFundValue)}</span>
+                            <div className="absolute bottom-0 right-0">
+                              <SFMCodeBadge sfmId="SFM-CAL-4124" />
                             </div>
                           </div>
-                          
+
                           <div className="flex justify-between relative pb-6">
-                            <span>Total BUOM Cost (Annual):</span>
-                            <span className="font-medium text-green-600">{formatCurrency(calculations.totalBUOMCost)}</span>
-                            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
-                              SFM-CAL-4131
+                            <span>Effective Growth Rate:</span>
+                            <span className="font-medium text-gray-700">{effectiveGrowthRate.toFixed(1)}%</span>
+                            <div className="absolute bottom-0 right-0">
+                              <SFMCodeBadge sfmId="SFM-CAL-4125" />
                             </div>
                           </div>
                         </div>
@@ -595,7 +699,7 @@ const RetirementCalculatorEmployee = () => {
                         ? `Your estimated Top Up of ${formatCurrency(pensionCalcs.monthlyFundingCost)} is Affordable`
                         : `Your estimated Top Up of ${formatCurrency(pensionCalcs.monthlyFundingCost)} may not be Affordable`
                       }
-                      <div className="text-[8px] text-muted-foreground mt-1">SFM-CAL-4150</div>
+                      <SFMCodeBadge sfmId="SFM-CAL-4150" className="mt-1" />
                     </div>
                     <AlertDescription className={`space-y-4 ${
                       pensionCalcs.affordabilityPercentage < 4 
@@ -617,7 +721,7 @@ const RetirementCalculatorEmployee = () => {
                         >
                           Check Your Eligibility For Risk Free Financial Assistance
                         </Button>
-                        <div className="text-[8px] text-muted-foreground mt-1">SFM-CAL-4151</div>
+                        <SFMCodeBadge sfmId="SFM-CAL-4151" className="mt-1" />
                       </div>
                     </AlertDescription>
                   </Alert>
@@ -627,63 +731,74 @@ const RetirementCalculatorEmployee = () => {
                 {pensionCalcs && (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-xl font-bold">
+                      <CardTitle className="flex items-center gap-2 text-[#4FF456]">
+                        <DollarSign className="h-5 w-5" />
                         Pension Funding Affordability Analysis
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                        <span className="text-gray-700">Monthly Take Home Pay</span>
-                        <div className="text-right">
-                          <span className="text-xl font-semibold">{formatCurrency(pensionCalcs.monthlyTakeHomePay)}</span>
-                          <div className="text-[8px] text-muted-foreground">SFM-CAL-4152</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                        <span className="text-gray-700">Standard Monthly Funding Cost + Top Up Cost</span>
-                        <div className="text-right">
-                          <span className="text-xl font-semibold">{formatCurrency(pensionCalcs.totalFundingCost)}</span>
-                          <div className="text-sm text-gray-600">= {formatCurrency(pensionCalcs.employeeContribution)} + {formatCurrency(pensionCalcs.monthlyFundingCost)}</div>
-                          <div className="text-[8px] text-muted-foreground">SFM-CAL-4153</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                        <span className="text-gray-700">% of Take Home Pay</span>
-                        <div className="text-right">
-                          <span className="text-xl font-semibold">{pensionCalcs.affordabilityPercentage.toFixed(1)}%</span>
-                          <div className="text-[8px] text-muted-foreground">SFM-CAL-4154</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                        <span className="text-green-700">BUOM Monthly Funding Cost</span>
-                        <div className="text-right">
-                          <span className="text-xl font-semibold text-green-700">{formatCurrency(pensionCalcs.buomMonthlyCost)}</span>
-                          <div className="text-[8px] text-muted-foreground">SFM-CAL-4155</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                        <span className="text-green-700">% of Take Home Pay</span>
-                        <div className="text-right">
-                          <span className="text-xl font-semibold text-green-700">{pensionCalcs.buomAffordabilityPercentage.toFixed(1)}%</span>
-                          <div className="text-[8px] text-muted-foreground">SFM-CAL-4156</div>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-6">
-                        <p className="text-sm text-blue-800">
-                          BUOM members have access to our advanced funding platform with precise sponsorship matching based on individual shortfall calculations.
+                      {/* Informational top box */}
+                      <div className="p-4 bg-white border rounded-lg" style={{ borderColor: '#4FF456' }}>
+                        <p className="text-gray-700">
+                          BUOM members have access to our unique Advanced Pension Funding platform, which target 50% contribution cost savings.
                         </p>
                       </div>
-                      
-                      <div className="mt-4">
-                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                          Check My Funding Eligibility →
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Monthly Take Home Pay */}
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <div className="text-sm text-gray-600">Monthly Take Home Pay</div>
+                          <div className="text-2xl font-bold text-gray-900">
+                            {formatCurrency(pensionCalcs.monthlyTakeHomePay)}
+                          </div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4152" className="mt-1" />
+                        </div>
+
+                        {/* Total Funding Cost */}
+                        <div className="p-4 rounded-lg" style={{ backgroundColor: '#4FF456', borderColor: '#4FF456' }}>
+                          <div className="text-sm text-gray-700">Standard Monthly Funding Cost + Top Up</div>
+                          <div className="text-2xl font-bold text-gray-700">
+                            {formatCurrency(pensionCalcs.totalFundingCost)}
+                          </div>
+                          <div className="text-xs mt-1 text-gray-700">
+                            {formatCurrency(pensionCalcs.employeeContribution)} (AE) + {formatCurrency(pensionCalcs.monthlyFundingCost)} (Top Up)
+                          </div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4153" className="mt-1" />
+                        </div>
+
+                        {/* Affordability Percentage */}
+                        <div className="p-4 bg-orange-50 rounded-lg">
+                          <div className="text-sm text-orange-600">Affordability % of Take Home Pay</div>
+                          <div className="text-2xl font-bold text-orange-900">
+                            {pensionCalcs.affordabilityPercentage.toFixed(1)}%
+                          </div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4154" className="mt-1" />
+                        </div>
+
+                        {/* BUOM Costs */}
+                        <div className="p-4 bg-green-50 rounded-lg">
+                          <div className="text-sm text-green-600">BUOM Monthly Cost (50% Discount)</div>
+                          <div className="text-2xl font-bold text-green-900">
+                            {formatCurrency(pensionCalcs.buomMonthlyCost)}
+                          </div>
+                          <div className="text-sm text-green-700 mt-1">
+                            {pensionCalcs.buomAffordabilityPercentage.toFixed(1)}% of take home pay
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            <SFMCodeBadge sfmId="SFM-CAL-4155" />
+                            <SFMCodeBadge sfmId="SFM-CAL-4156" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CTA Button */}
+                      <div className="pt-4 border-t">
+                        <Button className="w-full text-gray-700">
+                          Check My Funding Eligibility
                         </Button>
-                        <div className="text-[8px] text-muted-foreground mt-1 text-center">SFM-CAL-4157</div>
+                        <div className="flex justify-center">
+                          <SFMCodeBadge sfmId="SFM-CAL-4157" className="mt-2" />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -693,7 +808,7 @@ const RetirementCalculatorEmployee = () => {
                 {pensionCalcs && (
                   <Card className="w-full">
                     <CardHeader>
-                      <CardTitle className="text-xl font-semibold text-gray-900">
+                      <CardTitle className="text-xl font-semibold text-[#4FF456]">
                         Estimated Existing Monthly Pay Assumption
                       </CardTitle>
                     </CardHeader>
@@ -702,7 +817,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Contribution Method:</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">Net Pay Arrangement</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4140</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4140" />
                         </div>
                       </div>
 
@@ -710,7 +825,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Auto Enrollment Basis:</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">Pensionable Pay Method (Set 2 & 3)</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4141</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4141" />
                         </div>
                       </div>
 
@@ -718,7 +833,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Pensionable Pay Percentage:</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">85% of Total Pay</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4142</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4142" />
                         </div>
                       </div>
 
@@ -726,7 +841,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Monthly Gross Pay:</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">{formatCurrency(pensionCalcs.monthlyGrossPay)}</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4143</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4143" />
                         </div>
                       </div>
 
@@ -734,7 +849,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Pensionable Earnings:</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">{formatCurrency(pensionCalcs.pensionableEarnings)}</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4144</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4144" />
                         </div>
                       </div>
 
@@ -742,7 +857,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Your Contribution ({pensionCalcs.employeeRate}%):</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">{formatCurrency(pensionCalcs.employeeContribution)}</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4145</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4145" />
                         </div>
                       </div>
 
@@ -750,7 +865,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Employer Contribution ({pensionCalcs.employerRate}%):</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">{formatCurrency(pensionCalcs.employerContribution)}</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4146</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4146" />
                         </div>
                       </div>
 
@@ -758,7 +873,7 @@ const RetirementCalculatorEmployee = () => {
                         <span>Total Monthly Contribution ({pensionCalcs.totalRate}%):</span>
                         <div className="text-right">
                           <span>{formatCurrency(pensionCalcs.totalContribution)}</span>
-                          <div className="text-xs text-gray-500">SFM-CAL-4147</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4147" />
                         </div>
                       </div>
 
@@ -766,7 +881,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Annual Pensionable Earnings:</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">{formatCurrency(pensionCalcs.pensionableEarnings * 12)}</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4148</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4148" />
                         </div>
                       </div>
 
@@ -774,7 +889,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Annual Total Contribution:</span>
                         <div className="text-right">
                           <div className="font-medium text-gray-900">{formatCurrency(pensionCalcs.totalContribution * 12)}</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4149</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4149" />
                         </div>
                       </div>
 
@@ -782,7 +897,7 @@ const RetirementCalculatorEmployee = () => {
                         <span className="text-gray-600">Estimated Monthly Net Pay (1257L):</span>
                         <div className="text-right">
                           <div className="font-medium text-green-600">{formatCurrency(pensionCalcs.estimatedNetPay1257L)}</div>
-                          <div className="text-xs text-gray-500">SFM-CAL-4158</div>
+                          <SFMCodeBadge sfmId="SFM-CAL-4158" />
                         </div>
                       </div>
 
@@ -802,7 +917,7 @@ const RetirementCalculatorEmployee = () => {
                 <Card className="w-full">
                   <CardHeader>
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-xl font-semibold text-gray-900">
+                      <CardTitle className="text-xl font-semibold text-[#4FF456]">
                         Pensions UK Retirement Living Standards
                       </CardTitle>
                       <a 
@@ -813,7 +928,7 @@ const RetirementCalculatorEmployee = () => {
                       >
                         🔗 Visit Pensions UK Website
                       </a>
-                      <div className="text-[8px] text-muted-foreground">SFM-CAL-4159</div>
+                      <SFMCodeBadge sfmId="SFM-CAL-4159" />
                     </div>
                     <p className="text-gray-600 text-sm">
                       The Pensions UK Retirement Living Standards help you understand how much money you might need in retirement. The figures below show annual income needed for different lifestyles:
