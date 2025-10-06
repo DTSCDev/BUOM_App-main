@@ -19,11 +19,33 @@ interface Member {
   email: string | null;
   annual_salary: number | null;
   date_of_birth: string | null;
+  retirement_age: number | null;
+  existing_pension_value: number | null;
+  final_salary_income?: number | null;
+  other_income?: number | null;
   membership_id: string | null;
   registration_completed: boolean | null;
   created_at: string;
   postcode: string | null;
 }
+
+// Typed shape for rows returned from Supabase 'members' select
+type MembersRow = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  annual_salary: number | null;
+  date_of_birth: string | null;
+  retirement_age: number | null;
+  existing_pension_value: number | null;
+  final_salary_income: number | null;
+  other_income: number | null;
+  membership_id: string | null;
+  registration_completed: boolean | null;
+  created_at: string;
+  postcode: string | null;
+};
 
 export function AdminMemberManagement() {
   const { logAdminAction } = useAdminAuth();
@@ -39,11 +61,43 @@ export function AdminMemberManagement() {
     try {
       const { data, error } = await supabase
         .from('members')
-        .select('*')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          annual_salary,
+          date_of_birth,
+          retirement_age,
+          existing_pension_value,
+          final_salary_income,
+          other_income,
+          membership_id,
+          registration_completed,
+          created_at,
+          postcode
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMembers(data || []);
+      const rows: MembersRow[] = ((data ?? []) as unknown) as MembersRow[];
+      const mapped: Member[] = rows.map((m: MembersRow) => ({
+        id: m.id,
+        first_name: m.first_name ?? null,
+        last_name: m.last_name ?? null,
+        email: m.email ?? null,
+        annual_salary: m.annual_salary ?? null,
+        date_of_birth: m.date_of_birth ?? null,
+        retirement_age: m.retirement_age ?? null,
+        existing_pension_value: m.existing_pension_value ?? null,
+        final_salary_income: m.final_salary_income ?? null,
+        other_income: m.other_income ?? null,
+        membership_id: m.membership_id ?? null,
+        registration_completed: m.registration_completed ?? null,
+        created_at: m.created_at,
+        postcode: m.postcode ?? null,
+      }));
+      setMembers(mapped);
     } catch (error) {
       console.error('Error loading members:', error);
     } finally {
@@ -83,22 +137,7 @@ export function AdminMemberManagement() {
     filterMembers();
   }, [members, searchTerm, statusFilter, filterMembers]);
 
-  // Resolve parameter settings from localStorage (page-based Parameter Settings)
-  const getParameterValues = () => {
-    try {
-      const savedParams = localStorage.getItem('retirement-calculator-parameters');
-      if (savedParams) {
-        const parsedParams = JSON.parse(savedParams);
-        return {
-          retirementAge: parsedParams.selectedRetirementAge ?? 0,
-          pensionIncomeTarget: parsedParams.pensionIncomeTarget ?? 0 // percentage value
-        };
-      }
-    } catch (error) {
-      console.error('AdminMemberManagement: Error loading parameters:', error);
-    }
-    return { retirementAge: 0, pensionIncomeTarget: 0 };
-  };
+  // Admin policy: All fields must come from PRF or NAV. No localStorage.
 
   const MemberCalculationsDialog = ({ member }: { member: Member }) => {
     // This would integrate with the Master Calculations Engine
@@ -187,19 +226,17 @@ export function AdminMemberManagement() {
 
   const calculateMemberInputs = (member: Member) => {
     const currentAge = calculateMemberAge(member.date_of_birth);
-    const parameterValues = getParameterValues();
     
     return {
       currentAge,
-      // Use page-based Parameter Settings (no hardcoded defaults)
-      retirementAge: parameterValues.retirementAge,
+      // Use Profile (PRF) retirement age only; no localStorage fallback
+      retirementAge: member.retirement_age ?? 0,
       currentSalary: member.annual_salary ?? 0,
-      // Admin view does not have per-member asset context here; derive externally
-      existingPensionValue: 0,
-      targetIncomePercentage: parameterValues.pensionIncomeTarget,
-      // Avoid hardcoded sponsorship years and ISA allowance in admin context
-      apfSponsorshipYears: 0,
-      isaContributionCapacity: 0
+      // Source existing pension from PRF field; NAV-based derivation can enhance later
+      existingPensionValue: member.existing_pension_value ?? 0,
+      // Optional PRF incomes
+      finalSalaryIncome: member.final_salary_income ?? 0,
+      otherIncome: member.other_income ?? 0
     };
   };
 
