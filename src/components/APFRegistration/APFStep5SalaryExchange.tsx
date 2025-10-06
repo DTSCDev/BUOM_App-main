@@ -27,10 +27,6 @@ interface APFStep5SalaryExchangeProps {
     paye_tax_code?: string;
     is_director?: boolean;
   };
-  dashboardData: {
-    capitalShortfall?: number;
-    shortfall?: number;
-  };
   applicationData: Record<string, unknown>;
   onComplete: (data: Record<string, unknown>) => void;
 }
@@ -52,7 +48,7 @@ export function APFStep5SalaryExchange({ profile, applicationData, onComplete }:
   
   // Get proper values from Step 2 sponsorship data
   const feasibleAPFFunding = firstYearSponsorship?.sponsorshipAmount || 0; // APF funding (e.g., £47,430)
-  const annualSalary = profile?.annual_salary || 60000;
+  const annualSalary = profile?.annual_salary ?? 0;
   
   // Calculate NPG using the dynamic payslip comparison - this is the correct approach
   const payslipComparison = calculatePayslipComparison(annualSalary, feasibleAPFFunding);

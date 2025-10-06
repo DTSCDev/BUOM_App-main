@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Calculator, FileText } from "lucide-react";
 import { formatCurrency } from "@/utils/formatUtils";
+import { getPensionParameters } from "@/utils/pensionParameters";
 
 interface ISAContributionScheduleProps {
   onClose?: () => void;
@@ -24,6 +25,7 @@ interface MonthlyScheduleEntry {
 
 export function ISAContributionSchedule({ onClose }: ISAContributionScheduleProps) {
   const [showFullSchedule, setShowFullSchedule] = useState(false);
+  const { repaymentMonths } = getPensionParameters();
 
   // Base monthly amounts for each tranche
   const baseTranche1 = 74.30;
@@ -36,7 +38,7 @@ export function ISAContributionSchedule({ onClose }: ISAContributionScheduleProp
     const schedule: MonthlyScheduleEntry[] = [];
     let cumulativeTotal = 0;
 
-    for (let month = 1; month <= 240; month++) {
+    for (let month = 1; month <= repaymentMonths; month++) {
       const year = Math.ceil(month / 12);
       
       // Calculate inflation multipliers for each tranche
@@ -88,7 +90,7 @@ export function ISAContributionSchedule({ onClose }: ISAContributionScheduleProp
   const finalTotal = schedule[schedule.length - 1]?.cumulativeTotal || 0;
 
   // Calculate key milestone months
-  const milestoneMonths = [1, 12, 13, 24, 25, 36, 48, 60, 120, 180, 240];
+  const milestoneMonths = [1, 12, 13, 24, 25, 36, 48, 60, 120, 180, repaymentMonths];
   const milestones = schedule.filter(entry => milestoneMonths.includes(entry.month));
 
   // Download functions
@@ -126,7 +128,7 @@ export function ISAContributionSchedule({ onClose }: ISAContributionScheduleProp
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "ISA_Contribution_Schedule_240_Months.csv";
+    link.download = `ISA_Contribution_Schedule_${repaymentMonths}_Months.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -134,13 +136,14 @@ export function ISAContributionSchedule({ onClose }: ISAContributionScheduleProp
   };
 
   const downloadDetailedReport = () => {
+    const yearsLabel = (repaymentMonths / 12).toFixed(1);
     const reportContent = `
 ISA CONTRIBUTION SCHEDULE - DETAILED MATHEMATICAL ANALYSIS
 =========================================================
 
 EXECUTIVE SUMMARY
 -----------------
-• Total Contribution Period: 240 months (20 years)
+• Total Contribution Period: ${repaymentMonths} months (${yearsLabel} years)
 • Number of Tranches: 3
 • Annual Inflation Rate: 2.00%
 • Total Contributions: £${finalTotal.toLocaleString()}
@@ -205,7 +208,7 @@ Generated: ${new Date().toLocaleString()}
           <span>ISA Contribution Schedule - Mathematical Analysis</span>
         </CardTitle>
         <p className="text-sm text-gray-600">
-          Complete 240-month breakdown showing escalating contributions totaling £{finalTotal.toLocaleString()}
+          Complete {repaymentMonths}-month breakdown showing escalating contributions totaling £{finalTotal.toLocaleString()}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -217,7 +220,7 @@ Generated: ${new Date().toLocaleString()}
             <div className="text-sm text-gray-600">Total Contributions</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">240</div>
+            <div className="text-2xl font-bold text-green-600">{repaymentMonths}</div>
             <div className="text-sm text-gray-600">Payment Months</div>
           </div>
           <div className="text-center">
@@ -253,7 +256,7 @@ Generated: ${new Date().toLocaleString()}
                       {entry.month === 1 && " (Start)"}
                       {entry.month === 13 && " (T2 Begins)"}
                       {entry.month === 25 && " (T3 Begins)"}
-                      {entry.month === 240 && " (Final)"}
+                      {entry.month === repaymentMonths && " (Final)"}
                     </td>
                     <td className="border border-gray-300 px-3 py-2 text-right">
                       {formatCurrency(entry.tranche1Amount)}
@@ -326,7 +329,7 @@ Generated: ${new Date().toLocaleString()}
             variant="outline"
             className="mb-4"
           >
-            {showFullSchedule ? "Hide" : "Show"} Complete 240-Month Schedule
+            {showFullSchedule ? "Hide" : "Show"} Complete {repaymentMonths}-Month Schedule
           </Button>
 
           {showFullSchedule && (

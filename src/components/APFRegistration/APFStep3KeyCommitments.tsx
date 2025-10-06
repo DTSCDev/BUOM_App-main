@@ -32,25 +32,11 @@ interface APFStep3KeyCommitmentsProps {
     email?: string;
     mobile?: string;
   };
-  dashboardData: {
-    capitalShortfall?: number;
-    shortfall?: number;
-    currentSalary?: number;
-    futureSalary?: number;
-    targetIncomeAtRetirement?: number;
-    existingPlanIncomeAtRetirement?: number;
-    apfTargetIncome?: number;
-    isaTargetMonthly?: number;
-    isaValueToday?: number;
-    retirementProgressPercentage?: number;
-    repaymentProgressPercentage?: number;
-    isLoading?: boolean;
-  };
   applicationData: Record<string, unknown>;
   onComplete: (data: Record<string, unknown>) => void;
 }
 
-export function APFStep3KeyCommitments({ profile, dashboardData, applicationData, onComplete }: APFStep3KeyCommitmentsProps) {
+export function APFStep3KeyCommitments({ profile, applicationData, onComplete }: APFStep3KeyCommitmentsProps) {
   const [showMonthly, setShowMonthly] = useState(false);
   const { calculatePayslipComparison } = usePayslipCalculations();
 
@@ -146,7 +132,6 @@ export function APFStep3KeyCommitments({ profile, dashboardData, applicationData
         <ISARepaymentChart
           sponsorships={sponsorships}
           showMonthly={showMonthly}
-          dashboardData={dashboardData}
           profile={profile}
         />
       </div>

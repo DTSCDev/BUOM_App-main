@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { getFreeCalculatorDataFromStorage } from "@/utils/dataMapping/freeCalculatorToMainAppMapper";
 
 export interface ProfileData {
   id: string;
@@ -76,7 +77,7 @@ export function useProfile() {
           };
 
           // Map the database data to ProfileData interface
-          const profileData: ProfileData = {
+          let profileData: ProfileData = {
           id: data.id,
           first_name: data.first_name,
           middle_name: readStringOrNull('middle_name'),
@@ -112,6 +113,21 @@ export function useProfile() {
             has_controlling_shares: data.has_controlling_shares,
             director_nic_election: data.director_nic_election as 'annual' | 'monthly' | null,
           };
+
+          // Backfill missing critical fields from Free Calculator localStorage, if available
+          try {
+            const freeCalc = getFreeCalculatorDataFromStorage();
+            if (freeCalc) {
+              if (!profileData.date_of_birth && freeCalc.dateOfBirth) {
+                profileData = { ...profileData, date_of_birth: freeCalc.dateOfBirth };
+              }
+              if ((profileData.annual_salary == null || profileData.annual_salary === 0) && typeof freeCalc.annualSalary === 'number') {
+                profileData = { ...profileData, annual_salary: freeCalc.annualSalary };
+              }
+            }
+          } catch (e) {
+            console.warn('useProfile: Failed to read free calculator fallback', e);
+          }
           setProfile(profileData);
         }
       } catch (error) {

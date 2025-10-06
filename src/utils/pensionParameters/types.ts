@@ -11,6 +11,10 @@ export interface PensionParametersConfig {
   providerCharges: number;
   advisorFee: number;
   
+  // Duration parameters (commitment lengths)
+  salaryExchangeMonths: number; // Length of initial salary exchange commitment
+  repaymentMonths: number; // Length of ISA repayment strategy (contribution window)
+  
   // Auto-Enrollment parameters
   autoEnrollmentEmployeeRate: number;
   autoEnrollmentEmployerRate: number;

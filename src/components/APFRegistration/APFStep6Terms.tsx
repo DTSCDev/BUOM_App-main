@@ -8,14 +8,10 @@ import { useNavigate } from "react-router-dom";
 
 interface APFStep6TermsProps {
   applicationData: Record<string, unknown>;
-  dashboardData: {
-    capitalShortfall?: number;
-    shortfall?: number;
-  };
   onComplete: (data: Record<string, unknown>) => void;
 }
 
-export function APFStep6Terms({ applicationData, dashboardData, onComplete }: APFStep6TermsProps) {
+export function APFStep6Terms({ applicationData, onComplete }: APFStep6TermsProps) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nonContributoryTerms: "",

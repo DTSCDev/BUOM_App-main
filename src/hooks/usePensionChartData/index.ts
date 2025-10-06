@@ -2,9 +2,11 @@
 import { useMemo } from 'react';
 import { calculateAge } from "@/utils/pensionCalculations";
 import { useProfile } from "@/hooks/useProfile";
+import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 
 export function usePensionChartData() {
   const { profile } = useProfile();
+  const { assets } = useNetAssetValue();
 
   return useMemo(() => {
     if (!profile?.date_of_birth) {
@@ -13,17 +15,15 @@ export function usePensionChartData() {
 
     const currentAge = calculateAge(new Date(profile.date_of_birth)).years;
     
-    const inputs = {
-      currentAge,
-      retirementAge: 67, // CAL-4XXX default from Parameters Settings
-      currentSalary: profile.annual_salary || 60000,
-      existingPensionValue: 109233,
-      targetIncomePercentage: 50, // CAL-4XXX default from Parameters Settings
-      apfSponsorshipYears: 4,
-      isaContributionCapacity: 20000
-    };
+    // Derive existing pension value strictly from Net Asset Value
+    const existingPensionValue = (assets || [])
+      .filter(asset => 
+        asset?.category?.name?.toLowerCase().includes('pension') ||
+        asset?.name?.toLowerCase().includes('pension')
+      )
+      .reduce((sum, asset) => sum + (asset.value || 0), 0);
 
-    // Generate chart data using your exact fallback values
+    // TODO: Generate chart data using myBUOMCalculator and page-based SFM sources
     return { chartData: [], loading: false };
-  }, [profile]);
+  }, [profile, assets]);
 }

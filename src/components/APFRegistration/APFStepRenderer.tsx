@@ -48,29 +48,17 @@ interface Profile extends ProfileData {
   dateOfBirth?: Date;
 }
 
-interface DashboardData {
-  capitalShortfall?: number;
-  shortfall?: number;
-  currentSalary?: number;
-  futureSalary?: number;
-  targetIncomeAtRetirement?: number;
-  existingPlanIncomeAtRetirement?: number;
-  apfTargetIncome?: number;
-  isaTargetMonthly?: number;
-  isaValueToday?: number;
-  retirementProgressPercentage?: number;
-  repaymentProgressPercentage?: number;
-  isLoading?: boolean;
-}
 
 interface APFStepRendererProps {
   currentStep: number;
   profile: Profile;
-  dashboardData: DashboardData;
+  applicationData: Record<string, unknown>;
+  onComplete?: (data: Record<string, unknown>) => void;
+  stage?: 1 | 2 | 3;
 }
 
-// Mock onComplete function for components that require it
-const mockOnComplete = (data: Record<string, unknown>) => {
+// Default onComplete handler
+const defaultOnComplete = (data: Record<string, unknown>) => {
   console.log('Step completed with data:', data);
 };
 
@@ -114,23 +102,26 @@ const convertProfileForSteps = (profile: Profile): StepProfile => {
 export function APFStepRenderer({ 
   currentStep, 
   profile, 
-  dashboardData
+  applicationData,
+  onComplete,
+  stage
 }: APFStepRendererProps) {
   const stepProfile = convertProfileForSteps(profile);
+  const handleComplete = onComplete || defaultOnComplete;
   
   switch (currentStep) {
     case 1:
-      return <APFStep1PersonalDetails profile={stepProfile} onComplete={mockOnComplete} />;
+      return <APFStep1PersonalDetails profile={stepProfile} onComplete={handleComplete} />;
     case 2:
-      return <APFStep2KeyFinancials profile={stepProfile} dashboardData={dashboardData} />;
+      return <APFStep2KeyFinancials profile={stepProfile} onComplete={handleComplete} />;
     case 3:
-      return <APFStep3KeyCommitments profile={stepProfile} dashboardData={dashboardData} applicationData={{}} onComplete={mockOnComplete} />;
+      return <APFStep3KeyCommitments profile={stepProfile} applicationData={applicationData} onComplete={handleComplete} />;
     case 4:
-      return <APFStep4BestUseOfMoney profile={stepProfile} dashboardData={dashboardData} onComplete={mockOnComplete} />;
+      return <APFStep4BestUseOfMoney profile={stepProfile} onComplete={handleComplete} />;
     case 5:
-      return <APFStep5SalaryExchange profile={stepProfile} dashboardData={dashboardData} applicationData={{}} onComplete={mockOnComplete} />;
+      return <APFStep5SalaryExchange profile={stepProfile} applicationData={applicationData} onComplete={handleComplete} />;
     case 6:
-      return <APFStep6Terms applicationData={{}} dashboardData={dashboardData} onComplete={mockOnComplete} />;
+      return <APFStep6Terms applicationData={applicationData} onComplete={handleComplete} />;
     default:
       return <div>Invalid step</div>;
   }

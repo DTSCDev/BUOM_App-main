@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/formatUtils";
+import { getPensionParameters } from "@/utils/pensionParameters";
 
 interface APFStep5MonthlyScheduleTableProps {
   monthlySalaryExchange: number;
@@ -20,8 +21,9 @@ export function APFStep5MonthlyScheduleTable({
   annualNetPayReduction,
   annualNetPayGuarantee
 }: APFStep5MonthlyScheduleTableProps) {
-  // Generate 12 months of data using the actual props passed to the component
-  const monthlyScheduleData = Array.from({ length: 12 }, (_, index) => ({
+  // Parameterized schedule length using Pension Parameters
+  const { salaryExchangeMonths } = getPensionParameters();
+  const monthlyScheduleData = Array.from({ length: salaryExchangeMonths }, (_, index) => ({
     month: `Month ${index + 1}`,
     salaryExchange: monthlySalaryExchange,
     netPayReduction: monthlyNetPayReduction,
@@ -64,7 +66,7 @@ export function APFStep5MonthlyScheduleTable({
               ))}
               {/* Total Row */}
               <TableRow className="border-t-2 border-gray-300 bg-gray-50">
-                <TableCell className="font-bold">Total (12 Months)</TableCell>
+                <TableCell className="font-bold">Total ({salaryExchangeMonths} Months)</TableCell>
                 <TableCell className="text-right font-bold text-red-600">
                   -{formatCurrency(annualSalaryExchange)}
                 </TableCell>

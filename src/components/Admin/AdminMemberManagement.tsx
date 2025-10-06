@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { Search, Filter, Eye, Edit, Calculator } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatUtils';
+import { calculateAge } from '@/utils/pensionCalculations';
 
 interface Member {
   id: string;
@@ -81,6 +82,23 @@ export function AdminMemberManagement() {
   useEffect(() => {
     filterMembers();
   }, [members, searchTerm, statusFilter, filterMembers]);
+
+  // Resolve parameter settings from localStorage (page-based Parameter Settings)
+  const getParameterValues = () => {
+    try {
+      const savedParams = localStorage.getItem('retirement-calculator-parameters');
+      if (savedParams) {
+        const parsedParams = JSON.parse(savedParams);
+        return {
+          retirementAge: parsedParams.selectedRetirementAge ?? 0,
+          pensionIncomeTarget: parsedParams.pensionIncomeTarget ?? 0 // percentage value
+        };
+      }
+    } catch (error) {
+      console.error('AdminMemberManagement: Error loading parameters:', error);
+    }
+    return { retirementAge: 0, pensionIncomeTarget: 0 };
+  };
 
   const MemberCalculationsDialog = ({ member }: { member: Member }) => {
     // This would integrate with the Master Calculations Engine
@@ -169,15 +187,19 @@ export function AdminMemberManagement() {
 
   const calculateMemberInputs = (member: Member) => {
     const currentAge = calculateMemberAge(member.date_of_birth);
+    const parameterValues = getParameterValues();
     
     return {
       currentAge,
-      retirementAge: 67, // CAL-4XXX default from Parameters Settings
-      currentSalary: member.annual_salary || 60000,
-      existingPensionValue: 109233,
-      targetIncomePercentage: 50, // CAL-4XXX default from Parameters Settings
-      apfSponsorshipYears: 4,
-      isaContributionCapacity: 20000
+      // Use page-based Parameter Settings (no hardcoded defaults)
+      retirementAge: parameterValues.retirementAge,
+      currentSalary: member.annual_salary ?? 0,
+      // Admin view does not have per-member asset context here; derive externally
+      existingPensionValue: 0,
+      targetIncomePercentage: parameterValues.pensionIncomeTarget,
+      // Avoid hardcoded sponsorship years and ISA allowance in admin context
+      apfSponsorshipYears: 0,
+      isaContributionCapacity: 0
     };
   };
 

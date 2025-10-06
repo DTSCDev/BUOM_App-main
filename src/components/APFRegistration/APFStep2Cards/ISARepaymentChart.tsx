@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '@/utils/formatUtils';
 import { DEFAULT_PENSION_PARAMETERS } from '@/utils/pensionParameters/constants';
+import { getPensionParameters } from '@/utils/pensionParameters';
 import { APFSponsorshipBreakdown } from '@/utils/pension/buomTypes';
 import { systemFields } from '@/data/systemFields';
 
@@ -19,21 +20,10 @@ interface Profile {
   has_controlling_shares?: boolean;
 }
 
-interface DashboardData {
-  apfTargetIncome?: number;
-  isaTargetMonthly?: number;
-  currentAge?: number;
-  retirementAge?: number;
-  existingPensionValue?: number;
-  totalAPFFunding?: number;
-  totalMaturityValue?: number;
-  shortfallAmount?: number;
-}
 
 interface ISARepaymentChartProps {
   sponsorships?: APFSponsorshipBreakdown[];
   showMonthly: boolean;
-  dashboardData?: DashboardData;
   profile?: Profile;
   className?: string;
 }
@@ -63,7 +53,8 @@ interface CustomTooltipProps {
   label?: string | number;
 }
 
-export function ISARepaymentChart({ sponsorships = [], showMonthly, dashboardData, profile, className }: ISARepaymentChartProps) {
+export function ISARepaymentChart({ sponsorships = [], showMonthly, profile, className }: ISARepaymentChartProps) {
+  const { repaymentMonths } = getPensionParameters();
   // Helper function to get SFM values - migrated from useSFMResolver to direct systemFields access
   const getSFMValue = (sfmCode: string): number => {
     const field = systemFields.find(f => f.sfmId === sfmCode);
@@ -108,10 +99,10 @@ export function ISARepaymentChart({ sponsorships = [], showMonthly, dashboardDat
         const monthsIntoTranche = monthsFromStart - (tranche.startMonth - 1);
         
         if (monthsIntoTranche > 0) {
-          // ISA contributions phase (months 1-240)
-          if (monthsIntoTranche <= 240) {
+          // ISA contributions phase (months 1-repaymentMonths)
+          if (monthsIntoTranche <= repaymentMonths) {
             const monthlyGrowthRate = growthRate / 12;
-            const contributionMonths = Math.min(monthsIntoTranche, 240);
+            const contributionMonths = Math.min(monthsIntoTranche, repaymentMonths);
             
             // Calculate ISA balance with compound growth - FIXED calculation
             let isaBalance = 0;
@@ -135,8 +126,8 @@ export function ISARepaymentChart({ sponsorships = [], showMonthly, dashboardDat
             totalINBLDebt += inblBalance;
           }
           
-          // Redemption event at month 240 (20 years)
-          if (monthsIntoTranche === 240) {
+          // Redemption event at month repaymentMonths
+          if (monthsIntoTranche === repaymentMonths) {
             redemptionEvent = {
               type: 'APF Maturity',
               amount: tranche.sponsorshipAmount * DEFAULT_PENSION_PARAMETERS.apfMaturityMultiplier,

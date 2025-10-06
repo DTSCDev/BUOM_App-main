@@ -18,14 +18,10 @@ interface APFStep4BestUseOfMoneyProps {
     email?: string;
     mobile?: string;
   };
-  dashboardData: {
-    capitalShortfall?: number;
-    shortfall?: number;
-  };
   onComplete: (data: Record<string, unknown>) => void;
 }
 
-export function APFStep4BestUseOfMoney({ profile, dashboardData, onComplete }: APFStep4BestUseOfMoneyProps) {
+export function APFStep4BestUseOfMoney({ profile, onComplete }: APFStep4BestUseOfMoneyProps) {
   const { assets, isLoading: assetsLoading } = useNetAssetValue();
   
   const calculationResult = useAPFStep4Calculations({ profile, assets: assets || [] });

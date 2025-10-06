@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useProfile, ProfileData } from "@/hooks/useProfile";
-import { useCorrectedDashboardCalculations } from "@/hooks/useCorrectedDashboardCalculations";
 import { APFRegistrationHeader } from "@/components/APFRegistration/APFRegistrationHeader";
 import { APFProgressIndicator } from "@/components/APFRegistration/APFProgressIndicator";
 import { APFStepRenderer } from "@/components/APFRegistration/APFStepRenderer";
 import { APFNavigationControls } from "@/components/APFRegistration/APFNavigationControls";
+import { isTestingAccount } from "@/utils/testing";
 
 // Use the actual ProfileData interface from the hook
 interface Profile extends ProfileData {
@@ -15,25 +15,12 @@ interface Profile extends ProfileData {
   dateOfBirth?: Date;
 }
 
-interface DashboardData {
-  capitalShortfall?: number;
-  shortfall?: number;
-  currentSalary?: number;
-  futureSalary?: number;
-  targetIncomeAtRetirement?: number;
-  existingPlanIncomeAtRetirement?: number;
-  apfTargetIncome?: number;
-  isaTargetMonthly?: number;
-  isaValueToday?: number;
-  retirementProgressPercentage?: number;
-  repaymentProgressPercentage?: number;
-  isLoading?: boolean;
-}
 
 export default function APFRegistration() {
   const [currentStep, setCurrentStep] = useState(1);
+  const [apfStage, setApfStage] = useState<1 | 2 | 3>(1);
+  const [applicationData, setApplicationData] = useState<Record<string, unknown>>({});
   const { profile, isLoading: profileLoading } = useProfile();
-  const dashboardData = useCorrectedDashboardCalculations();
 
   const handleNext = () => {
     if (currentStep < 6) {
@@ -51,6 +38,10 @@ export default function APFRegistration() {
     setCurrentStep(stepId);
   };
 
+  const handleStepComplete = (data: Record<string, unknown>) => {
+    setApplicationData(prev => ({ ...prev, ...data }));
+  };
+
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -62,7 +53,24 @@ export default function APFRegistration() {
     );
   }
 
-  if (!profile) {
+  // Prepare profile with safe fallbacks for test/dev accounts
+  let typedProfile: Profile;
+  if (profile) {
+    typedProfile = {
+      ...profile,
+      firstName: profile?.first_name || undefined,
+      lastName: profile?.last_name || undefined,
+      dateOfBirth: profile?.date_of_birth ? new Date(profile.date_of_birth) : undefined
+    } as Profile;
+  } else if (isTestingAccount()) {
+    // Minimal demo profile to render UI without hardcoded salary values
+    typedProfile = {
+      date_of_birth: "1990-06-15",
+      firstName: "Demo",
+      lastName: "User",
+      dateOfBirth: new Date("1990-06-15"),
+    } as Profile;
+  } else {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -72,14 +80,6 @@ export default function APFRegistration() {
     );
   }
 
-  // Type the profile and dashboardData properly
-  const typedProfile: Profile = {
-    ...profile,
-    firstName: profile?.first_name || undefined,
-    lastName: profile?.last_name || undefined,
-    dateOfBirth: profile?.date_of_birth ? new Date(profile.date_of_birth) : undefined
-  } as Profile;
-  const typedDashboardData: DashboardData = dashboardData || {};
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -98,7 +98,9 @@ export default function APFRegistration() {
               <APFStepRenderer
                 currentStep={currentStep}
                 profile={typedProfile}
-                dashboardData={typedDashboardData}
+                applicationData={applicationData}
+                onComplete={handleStepComplete}
+                stage={apfStage}
               />
             </div>
 

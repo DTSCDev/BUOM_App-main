@@ -7,11 +7,13 @@ import { PensionShortfallChart } from "./PensionShortfallChart";
 import { CustomContributionsCard } from "./CustomContributionsCard";
 import { formatCurrency } from "@/utils/formatUtils";
 import { useProfile } from "@/hooks/useProfile";
+import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 import { myBUOMCalculator } from "@/utils/myBUOMCalculator";
 import { calculateAge } from "@/utils/pensionCalculations";
 
 export function DashboardLayout() {
   const { profile } = useProfile();
+  const { assets } = useNetAssetValue();
   
   // Use the new myBUOMCalculator system with proper CAL-4XXX defaults from Parameters Settings
   const calculations = React.useMemo(() => {
@@ -32,18 +34,26 @@ export function DashboardLayout() {
     
     const currentAge = calculateAge(new Date(profile.date_of_birth)).years;
     
+    // Derive existing pension value strictly from assets (Net Asset Value)
+    const existingPensionValue = (assets || [])
+      .filter(asset => 
+        asset?.category?.name?.toLowerCase().includes('pension') ||
+        asset?.name?.toLowerCase().includes('pension')
+      )
+      .reduce((sum, asset) => sum + (asset.value || 0), 0);
+    
     const inputs = {
       currentAge,
       retirementAge: 67, // CAL-4XXX default from Parameters Settings
       currentSalary: profile.annual_salary || 60000,
-      existingPensionValue: 109233,
+      existingPensionValue,
       targetIncomePercentage: 50, // CAL-4XXX default from Parameters Settings
       apfSponsorshipYears: 4,
       isaContributionCapacity: 20000
     };
     
     return myBUOMCalculator.calculateAPFDashboard(inputs);
-  }, [profile]);
+  }, [profile, assets]);
   
   const formatValue = (value: number) => formatCurrency(value);
 

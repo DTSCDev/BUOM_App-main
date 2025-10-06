@@ -25,6 +25,9 @@ export const getPensionParameters = (): PensionParametersConfig => {
     growthRateDrawdown: 0.04,
     providerCharges: 0.005,
     advisorFee: 0.0,
+    // Commitment lengths
+    salaryExchangeMonths: 12,
+    repaymentMonths: 240,
     autoEnrollmentEmployeeRate: 0.05,
     autoEnrollmentEmployerRate: 0.03,
     autoEnrollmentPensionablePayRate: 0.85,

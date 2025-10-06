@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { isTestingAccount } from "@/utils/testing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { APFINBLSummaryCard } from "./APFStep2Cards/APFINBLSummaryCard";
 import { APFSponsorshipYearsCard } from "./APFStep2Cards/APFSponsorshipYearsCard";
 import { calculateActualSponsorshipsFromShortfall } from "@/utils/pension/apfSponsorshipCalculations";
 import { calculateAge } from "@/utils/pensionCalculations";
-import { UnifiedCalculationResult } from "@/utils/pension/unifiedCalculationEngine";
+import { calculateUnifiedPensionMetrics, UnifiedCalculationResult } from "@/utils/pension/unifiedCalculationEngine";
+import { useNetAssetValue } from "@/hooks/useNetAssetValue";
+import { calculateExistingPensionValue as calculateExistingPensionFromAssets } from "./APFStep4Components/calculationUtils";
+import { Asset as UnifiedAsset, Profile as UnifiedProfile } from "@/utils/systemFields/types";
 
 interface APFStep2KeyFinancialsProps {
   profile: {
@@ -16,21 +20,40 @@ interface APFStep2KeyFinancialsProps {
     lastName?: string;
     dateOfBirth?: Date;
   };
-  dashboardData: {
-    capitalShortfall?: number;
-    shortfall?: number;
-  };
+  onComplete?: (data: Record<string, unknown>) => void;
 }
 
-export function APFStep2KeyFinancials({ profile, dashboardData }: APFStep2KeyFinancialsProps) {
+export function APFStep2KeyFinancials({ profile, onComplete }: APFStep2KeyFinancialsProps) {
   const [acknowledged, setAcknowledged] = useState<boolean>(isTestingAccount() ? true : false);
+  const { assets } = useNetAssetValue();
   
   // Get basic data from profile - fix the calculateAge usage
   const currentAge = profile?.date_of_birth ? calculateAge(new Date(profile.date_of_birth)).years : null;
   const annualSalary = profile?.annual_salary || null;
   
-  // Get shortfall target from dashboardData
-  const shortfallTarget = dashboardData?.capitalShortfall || dashboardData?.shortfall || 0;
+  // Compute shortfall using unified engine (PRF + NAV)
+  const existingPensionValue = calculateExistingPensionFromAssets(assets || []);
+  // Map NAV Asset type to unified engine Asset type
+  const assetsForUnified: UnifiedAsset[] = (assets || []).map(a => ({
+    name: a.name,
+    category: { name: a.category?.name },
+    value: a.value,
+  }));
+  // Prepare profile for unified engine
+  const unifiedProfile: UnifiedProfile = {
+    annual_salary: annualSalary ?? undefined,
+  };
+  const unifiedResult: UnifiedCalculationResult | null = (currentAge && annualSalary !== null)
+    ? calculateUnifiedPensionMetrics(
+        currentAge,
+        annualSalary,
+        existingPensionValue,
+        true,
+        assetsForUnified,
+        unifiedProfile
+      )
+    : null;
+  const shortfallTarget = unifiedResult?.currentCapitalShortfall || 0;
 
   // Calculate APF sponsorships using the shortfall target
   const apfSponsorships = (currentAge && annualSalary && shortfallTarget) 
@@ -45,6 +68,7 @@ export function APFStep2KeyFinancials({ profile, dashboardData }: APFStep2KeyFin
 
   // Simple totals from sponsorships
   const totalAPFFunding = apfSponsorships.reduce((sum, s) => sum + s.sponsorshipAmount, 0);
+  const maxFundingYears = apfSponsorships.length;
 
   if (!currentAge || !annualSalary || !shortfallTarget) {
     return (
@@ -56,11 +80,11 @@ export function APFStep2KeyFinancials({ profile, dashboardData }: APFStep2KeyFin
     );
   }
 
-  // Create a proper UnifiedCalculationResult for APFINBLSummaryCard
-  const mockUnifiedResult: UnifiedCalculationResult = {
+  // Use unified engine outputs for the summary card; fall back to minimal fields when unavailable
+  const summaryUnified: UnifiedCalculationResult = unifiedResult || {
     proposedAPFFunding: totalAPFFunding,
     feasibleAPFFunding: totalAPFFunding,
-    salaryExchangeReasonForLimit: "None",
+    salaryExchangeReasonForLimit: "",
     currentCapitalShortfall: shortfallTarget,
     retirementProgressPercentage: 0,
     targetIncomeAtRetirement: 0,
@@ -126,6 +150,20 @@ export function APFStep2KeyFinancials({ profile, dashboardData }: APFStep2KeyFin
               </span>
               {acknowledged && <Check className="w-5 h-5 text-green-600" />}
             </label>
+            {acknowledged && onComplete && (
+              <div className="mt-4">
+                <Button
+                  onClick={() => onComplete({
+                    sponsorships: apfSponsorships,
+                    maxFundingYears,
+                    totalAPFFunding,
+                  })}
+                  className="w-full"
+                >
+                  Save and Continue
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -134,7 +172,7 @@ export function APFStep2KeyFinancials({ profile, dashboardData }: APFStep2KeyFin
         <div className="space-y-6">
           <APFINBLSummaryCard 
             profile={profileForCard}
-            unifiedResult={mockUnifiedResult}
+            unifiedResult={summaryUnified}
             sponsorships={apfSponsorships}
           />
           
