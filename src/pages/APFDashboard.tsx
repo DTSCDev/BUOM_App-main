@@ -6,8 +6,9 @@ import BUOMRetirementGraph from "@/components/BUOMRetirementGraph";
 import { useProfile } from "@/hooks/useProfile";
 import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 import { calculateRetirementProjection } from "@/utils/retirementCalculations";
-import { calculateAge } from "@/utils/pensionCalculations";
-import { myBUOMCalculator } from "@/utils/myBUOMCalculator";
+import { calculateAge, calculateYearsUntilPension } from "@/utils/pensionCalculations";
+import { calculateUnifiedPensionMetrics } from "@/utils/pension/unifiedCalculationEngine";
+import { Asset as UnifiedAsset, Profile as UnifiedProfile } from "@/utils/systemFields/types";
 import { getPensionParameters } from "@/utils/pensionParameters";
 import { Button } from "@/components/ui/button";
 
@@ -38,68 +39,59 @@ export default function APFDashboard() {
   // Calculate dynamic retirement data from user profile
   const currentAge = calculateAge(new Date(profile.date_of_birth)).years;
   
-  // Get retirement age from profile first, then fallback to Parameter Settings
-  const getParameterValues = () => {
-    try {
-      const savedParams = localStorage.getItem('retirement-calculator-parameters');
-      if (savedParams) {
-        const parsedParams = JSON.parse(savedParams);
-        return {
-          retirementAge: parsedParams.selectedRetirementAge || 67,
-          pensionIncomeTarget: parsedParams.pensionIncomeTarget || 67
-        };
-      }
-    } catch (error) {
-      console.error('Error loading parameters:', error);
-    }
-    return { retirementAge: 67, pensionIncomeTarget: 67 };
-  };
-
   const params = getPensionParameters();
-  const parameterValues = getParameterValues();
+  const retirementAge = (profile.retirement_age ?? params.retirementAge) as number;
   
-  // Define retirement age - read from profile first, then Parameter Settings
-const retirementAge = parameterValues.retirementAge;
+  // Calculate existing pension value from assets (guard against undefined assets)
+  const existingPensionValue = (assets || [])
+    .filter(asset => 
+      asset.category?.name?.toLowerCase().includes('pension') ||
+      asset.name?.toLowerCase().includes('pension')
+    )
+    .reduce((sum, asset) => sum + (asset.value || 0), 0);
   
-  // Calculate existing pension value from assets
-  const existingPensionValue = assets?.filter(asset => 
-    asset.category?.name?.toLowerCase().includes('pension') ||
-    asset.name?.toLowerCase().includes('pension')
-  ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+  // Use unified pension engine for APF Dashboard calculations (guard against undefined assets)
+  const currentISAValue = (assets || [])
+    .filter(asset => 
+      asset.category?.name?.toLowerCase().includes('isa') ||
+      asset.name?.toLowerCase().includes('isa')
+    )
+    .reduce((sum, asset) => sum + (asset.value || 0), 0);
   
-  // Use myBUOMCalculator for APF Dashboard calculations
-  const currentISAValue = assets?.filter(asset => 
-    asset.category?.name?.toLowerCase().includes('isa') ||
-    asset.name?.toLowerCase().includes('isa')
-  ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
-
-  const apfCalculationInputs = {
+  const unified = calculateUnifiedPensionMetrics(
     currentAge,
-    retirementAge: parameterValues.retirementAge,
-    currentSalary: profile.annual_salary, // Remove the fallback - we've already validated it exists
+    profile.annual_salary || 0,
     existingPensionValue,
-    // Convert percent from localStorage to fraction; fallback to params
-    targetIncomePercentage: (parameterValues.pensionIncomeTarget > 1)
-      ? parameterValues.pensionIncomeTarget / 100
-      : (typeof parameterValues.pensionIncomeTarget === 'number' ? parameterValues.pensionIncomeTarget : params.pensionIncomeTarget),
-    apfSponsorshipYears: 5, // Default APF sponsorship period
-    currentISAValue,
-  };
-  
-  const apfResults = myBUOMCalculator.calculateAPFDashboard(apfCalculationInputs); // Remove the conditional check since we've validated the data
+    false,
+    // Map assets to unified engine type
+    (assets || []).map(a => ({
+      name: a.name,
+      category: { name: a.category?.name },
+      value: a.value,
+    })) as UnifiedAsset[],
+    // Provide a minimally-typed unified profile
+    ({
+      annual_salary: profile.annual_salary || 0,
+    } as UnifiedProfile)
+  );
   
   // Calculate dynamic retirement projection using APF results
-  const retirementData = apfResults ? calculateRetirementProjection({
+  // CAL-4107: Target Income at Retirement (use SPA 67 inflation)
+  const yearsToSPA = calculateYearsUntilPension(new Date(profile.date_of_birth)).years;
+  const targetIncomeToday = (profile?.annual_salary || 0) * params.pensionIncomeTarget;
+  const cal4107TargetIncome = targetIncomeToday * Math.pow(1 + params.pensionIncomeInflation, Math.max(0, yearsToSPA));
+
+  const retirementData = calculateRetirementProjection({
     currentAge,
-    retirementAge: parameterValues.retirementAge,
+    retirementAge,
     currentSalary: profile?.annual_salary || 0,
     currentPensionValue: existingPensionValue,
     monthlyContribution: (profile?.annual_salary || 0) * (profile?.pension_contribution_employee || 5) / 100 / 12,
     employerContribution: (profile?.annual_salary || 0) * (profile?.pension_contribution_employer || 3) / 100 / 12,
-    annualGrowthRate: apfResults.growthRate,
-    inflationRate: apfResults.inflationRate,
-    targetRetirementIncome: apfResults.targetIncomeAtRetirement // Uses SFM-CAL-4406 via myBUOMCalculator
-  }) : [];
+    annualGrowthRate: params.growthRateAccumulation,
+    inflationRate: params.pensionIncomeInflation,
+    targetRetirementIncome: cal4107TargetIncome
+  });
   
   return (
     <div className="space-y-6">

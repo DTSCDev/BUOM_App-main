@@ -7,18 +7,22 @@ import { ImportantNoticeDialog } from "./ImportantNoticeDialog";
 import { ApfSalarySummary } from "./apfSalarySummary";
 import { ApfIncomeSummary } from "./apfIncomeSummary";
 import { ApfISAPlanSummary } from "./apfISAPlanSummary";
-import { myBUOMCalculator } from "@/utils/myBUOMCalculator";
+import { calculateUnifiedPensionMetrics } from "@/utils/pension/unifiedCalculationEngine";
+import { Asset as UnifiedAsset, Profile as UnifiedProfile } from "@/utils/systemFields/types";
 import { getPensionParameters } from "@/utils/pensionParameters";
 import { useProfile } from "@/hooks/useProfile";
 import { useNetAssetValue } from "@/hooks/useNetAssetValue";
-import { calculateAge } from "@/utils/pensionCalculations";
+import { calculateAge, calculateYearsUntilPension } from "@/utils/pensionCalculations";
+import { useRetirementCalculatorHub } from "@/hooks/useRetirementCalculatorHub";
 
 export function ApfRetirementPlanSummary() {
   const [isAnnualView, setIsAnnualView] = useState(true);
   const { profile } = useProfile();
   const { assets } = useNetAssetValue();
+  // Ensure hooks are always called in consistent order
+  const hub = useRetirementCalculatorHub();
 
-  // Early return if profile is not loaded
+  // Early return if profile is not loaded (hooks already called above)
   if (!profile || !profile.date_of_birth || !profile.annual_salary) {
     return (
       <Card className="h-full">
@@ -34,49 +38,85 @@ export function ApfRetirementPlanSummary() {
   // Get calculation inputs from profile
   const currentAge = calculateAge(new Date(profile.date_of_birth)).years;
   
-  // Prefer central pension parameters, fallback to localStorage
+  // Use central pension parameters
   const params = getPensionParameters();
-  const parameterValues = (() => {
-    try {
-      const savedParams = localStorage.getItem('retirement-calculator-parameters');
-      if (savedParams) {
-        const parsed = JSON.parse(savedParams);
-        return {
-          retirementAge: parsed.selectedRetirementAge ?? params.retirementAge,
-          pensionIncomeTarget: parsed.pensionIncomeTarget ?? (params.pensionIncomeTarget * 100)
-        };
-      }
-    } catch (error) {
-      console.warn('Error loading retirement-calculator-parameters', error);
-    }
-    return { retirementAge: params.retirementAge, pensionIncomeTarget: params.pensionIncomeTarget * 100 };
-  })();
+  const spa = calculateYearsUntilPension(new Date(profile.date_of_birth));
+  const yearsToSPA = Math.max(0, spa.years);
+  const monthsToSPA = Math.max(0, (spa.years * 12) + spa.months);
   
-  // Calculate existing pension value from assets
-  const existingPensionValue = assets?.filter(asset => 
-    asset.category?.name?.toLowerCase().includes('pension') ||
-    asset.name?.toLowerCase().includes('pension')
-  ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+  // Calculate existing pension value from assets (guard against undefined assets)
+  const existingPensionValue = (assets || [])
+    .filter(asset => 
+      asset.category?.name?.toLowerCase().includes('pension') ||
+      asset.name?.toLowerCase().includes('pension')
+    )
+    .reduce((sum, asset) => sum + (asset.value || 0), 0);
 
-  // Use current ISA value from assets instead of hardcoded capacity
-  const currentISAValue = assets?.filter(asset => 
-    asset.category?.name?.toLowerCase().includes('isa') ||
-    asset.name?.toLowerCase().includes('isa')
-  ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+  // Use current ISA value from assets instead of hardcoded capacity (guard against undefined assets)
+  const currentISAValue = (assets || [])
+    .filter(asset => 
+      asset.category?.name?.toLowerCase().includes('isa') ||
+      asset.name?.toLowerCase().includes('isa')
+    )
+    .reduce((sum, asset) => sum + (asset.value || 0), 0);
 
-  // Calculate using myBUOMCalculator with real Net Asset Value data
-  const calculations = myBUOMCalculator.calculateAPFDashboard({
+  // Map NAV assets to unified engine asset type and prepare typed profile
+  const assetsForUnified: UnifiedAsset[] = (assets || []).map(a => ({
+    name: a.name,
+    category: { name: a.category?.name },
+    value: a.value,
+  }));
+
+  const unifiedProfile: UnifiedProfile = {
+    annual_salary: profile.annual_salary || 0,
+  };
+
+  // Calculate using unified pension engine with real Net Asset Value data
+  const unified = calculateUnifiedPensionMetrics(
     currentAge,
-    retirementAge: parameterValues.retirementAge,
-    currentSalary: profile.annual_salary,
+    profile.annual_salary || 0,
     existingPensionValue,
-    // Convert percent to fraction if needed
-    targetIncomePercentage: (typeof parameterValues.pensionIncomeTarget === 'number') 
-      ? (parameterValues.pensionIncomeTarget > 1 ? parameterValues.pensionIncomeTarget / 100 : parameterValues.pensionIncomeTarget)
-      : params.pensionIncomeTarget,
-    apfSponsorshipYears: 5,
-    currentISAValue: currentISAValue,
-  });
+    false,
+    assetsForUnified,
+    unifiedProfile
+  );
+
+  // APF-1001 = PRF-2021; APF-1002 = PRF-2021 + inflation to SPA (67)
+  const annualSalaryInflated = (profile.annual_salary || 0) * Math.pow(1 + params.salaryInflation, yearsToSPA);
+
+  // CAL-4107: Target Income at Retirement
+  const targetIncomeToday = (profile.annual_salary || 0) * params.pensionIncomeTarget;
+  const targetIncomeAtRetirement = targetIncomeToday * Math.pow(1 + params.pensionIncomeInflation, yearsToSPA);
+
+  const totalProjectedValue = (hub.cal4126_existingFundValueAtRetirement || 0) + (hub.cal4127_existingPlanFutureContributions || 0);
+
+  // CAL-4109: State Pension at Retirement
+  const statePensionToday = params.statePensionWeekly * 52;
+  const statePensionAtRetirement = statePensionToday * Math.pow(1 + params.pensionIncomeInflation, yearsToSPA);
+
+  // CAL-4132: Existing Plan Projected Income via hub
+  const existingPlanIncomeAtRetirement = hub.cal4132_existingPlanProjectedIncome;
+
+  // APF-1006: Shortfall vs target
+  const apfTargetIncome = Math.max(0, targetIncomeAtRetirement - existingPlanIncomeAtRetirement);
+
+  // ISA target capital from income shortfall
+  const isaSavingsTargetToday = apfTargetIncome / params.drawdownRate;
+
+  const calculations = {
+    annualSalary: profile.annual_salary || 0, // APF-1001
+    annualSalaryInflated, // APF-1002
+    paydaysRemaining: hub.cal4113_paydaysRemaining, // APF-1003 (CAL-4113)
+    targetIncomeAtRetirement: hub.cal4107_targetIncomeAtRetirement, // APF-1004 (CAL-4107)
+    existingPlanIncomeAtRetirement, // APF-1005 (CAL-4132)
+    apfTargetIncome, // APF-1006
+    retirementProgressPercentage: Math.min(100, targetIncomeAtRetirement > 0 ? (existingPlanIncomeAtRetirement / targetIncomeAtRetirement) * 100 : 0),
+    // Keep ISA figures from unified for now to avoid broader ripple effects
+    isaTargetMonthly: unified.isaTargetMonthly,
+    isaValueToday: currentISAValue,
+    isaSavingsTargetToday,
+    repaymentProgressPercentage: Math.min(100, unified.repaymentProgressPercentage || 0),
+  };
 
   const formatValue = (value: number) => {
     const displayValue = isAnnualView ? value : value / 12;

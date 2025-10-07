@@ -144,11 +144,10 @@ const ParameterSettings = () => {
   };
 
   const handleSave = () => {
-    // Save parameters to localStorage for the retirement calculator
-    localStorage.setItem('retirement-calculator-parameters', JSON.stringify(customParams));
+    // No localStorage: parameters update session state only
     toast({
-      title: "Parameters saved",
-      description: "Your retirement calculator parameters have been saved.",
+      title: "Parameters updated",
+      description: "Parameters applied for this session (no browser storage).",
     });
   };
 
@@ -216,17 +215,9 @@ const ParameterSettings = () => {
     });
   };
 
-  // Load saved parameters on component mount
+  // No localStorage: initial parameters come from defaults only
   useEffect(() => {
-    try {
-      const savedParams = localStorage.getItem('retirement-calculator-parameters');
-      if (savedParams) {
-        const parsedParams = JSON.parse(savedParams);
-        setCustomParams(parsedParams);
-      }
-    } catch (error) {
-      console.error('Error loading saved parameters:', error);
-    }
+    // Intentionally empty: parameters are not loaded from browser storage
   }, []);
 
   const renderParameter = (

@@ -66,13 +66,13 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useProfile } from '@/hooks/useProfile';
 import { PensionCharts } from '@/components/PensionCharts';
-import { useMyBOUMRetirementCalculations } from '@/hooks/myBOUMRetirementCalculations';
+import { useRetirementCalculatorHub } from '@/hooks/useRetirementCalculatorHub';
 import { calculateAffordability } from '@/utils/pension/taxCalculations';
 import { TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
 import SFMCodeBadge from '@/components/SystemFields/SFMCodeBadge';
 import { useNetAssetValue } from '@/hooks/useNetAssetValue';
 import { Switch } from '@/components/ui/switch';
-import { formatCurrency, calculateAge, calculateDaysUntilPension, calculateRemainingPayDays } from '@/utils/pensionCalculations';
+import { formatCurrency, calculateAge, calculateDaysUntilPension, calculateRemainingPayDays, calculateYearsUntilPension } from '@/utils/pensionCalculations';
 import { getPensionParameters } from '@/utils/pensionParameters';
 import { calculateTotalAEContributions } from '@/utils/pension/aeContributionCalculations';
 import { calculateExistingPensionValue as estimateExistingPensionValue } from '@/utils/pension/existingPensionCalculations';
@@ -148,23 +148,16 @@ const RetirementCalculatorEmployee = () => {
   const [activeTab, setActiveTab] = useState('calculator');
   const [retirementAge, setRetirementAge] = useState(67); // Default retirement age
 
-  // Use dynamic calculations instead of hardcoded values
-  const calculations = useMyBOUMRetirementCalculations();
+  // Use centralized Calculator Hub CAL values
+  const hub = useRetirementCalculatorHub();
+  const monthlyFundingCost = hub.cal4128_existingPlanMonthlyTopUpYear1;
 
-  // Load retirement age from Parameter Settings
+  // Set retirement age from Profile (PRF-2041) only; no localStorage
   useEffect(() => {
-    try {
-      const savedParams = localStorage.getItem('retirement-calculator-parameters');
-      if (savedParams) {
-        const parsedParams = JSON.parse(savedParams);
-        if (parsedParams.selectedRetirementAge) {
-          setRetirementAge(parsedParams.selectedRetirementAge);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading retirement age from parameters:', error);
+    if (profile?.retirement_age) {
+      setRetirementAge(profile.retirement_age);
     }
-  }, []);
+  }, [profile?.retirement_age]);
 
   // Calculate age from date of birth
   const age = profile?.date_of_birth 
@@ -172,18 +165,21 @@ const RetirementCalculatorEmployee = () => {
     : null;
 
   // Calculate existing pension value from NAV assets with fallback to estimated value
-  let existingPensionValue = assets?.filter(asset => 
-    asset.category?.name?.toLowerCase().includes('pension') ||
-    asset.name?.toLowerCase().includes('pension')
-  ).reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
+  // Guard against undefined assets to avoid calling reduce on undefined
+  let existingPensionValue = (assets || [])
+    .filter(asset => 
+      asset.category?.name?.toLowerCase().includes('pension') ||
+      asset.name?.toLowerCase().includes('pension')
+    )
+    .reduce((sum, asset) => sum + (asset.value || 0), 0) || 0;
 
   // Fallback: if no NAV pension assets found, estimate existing fund value from salary history
   if (existingPensionValue === 0 && profile?.annual_salary && age !== null) {
     try {
       const { fundValue } = estimateExistingPensionValue(profile.annual_salary!, age!);
       existingPensionValue = fundValue || 0;
-    } catch (e) {
-      console.warn('Existing pension fallback estimation failed:', e);
+    } catch {
+      // Silent fallback failure per no-console policy
     }
   }
 
@@ -201,9 +197,10 @@ const RetirementCalculatorEmployee = () => {
     const totalContribution = employeeContribution + employerContribution;
     
     // Calculate affordability metrics using the tax calculation utility
-    const affordabilityData = calculateAffordability(profile.annual_salary, calculations.monthlyFundingCost);
-    const totalFundingCost = employeeContribution + calculations.monthlyFundingCost;
-    const buomAffordabilityPercentage = (calculations.buomMonthlyCost + employeeContribution) / affordabilityData.taxResult.netPay * 100;
+    const affordabilityData = calculateAffordability(profile.annual_salary, monthlyFundingCost);
+    const totalFundingCost = employeeContribution + monthlyFundingCost;
+    const buomMonthlyCost = monthlyFundingCost * (1 - ((getPensionParameters().buomDiscountRate <= 1 ? getPensionParameters().buomDiscountRate : getPensionParameters().buomDiscountRate / 100)));
+    const buomAffordabilityPercentage = (buomMonthlyCost + employeeContribution) / affordabilityData.taxResult.netPay * 100;
     
     return {
       monthlyGrossPay,
@@ -217,10 +214,10 @@ const RetirementCalculatorEmployee = () => {
       monthlyTakeHomePay: affordabilityData.taxResult.netPay,
       totalFundingCost,
       affordabilityPercentage: affordabilityData.affordabilityPercentage,
-      buomMonthlyCost: calculations.buomMonthlyCost,
+      buomMonthlyCost,
       buomAffordabilityPercentage,
       estimatedNetPay1257L: affordabilityData.taxResult.netPay,
-      monthlyFundingCost: calculations.monthlyFundingCost,
+      monthlyFundingCost,
     };
   })() : null;
 
@@ -238,14 +235,22 @@ const RetirementCalculatorEmployee = () => {
   const currentAge = age || 0;
   const yearsToRetirement = Math.max(0, (retirementAge ?? params.retirementAge) - currentAge);
   // Use monthly-based functions for display metrics, aligned with Free Calculator
-  const daysUntilPensionDisplay = profile?.date_of_birth
-    ? calculateDaysUntilPension(new Date(profile.date_of_birth), retirementAge ?? params.retirementAge)
+  // Use precise calendar month calculation for paydays (regulated standard)
+  const paydaysRemainingDisplay = profile?.date_of_birth
+    ? (() => {
+        const { years, months } = calculateYearsUntilPension(new Date(profile.date_of_birth));
+        return Math.max(0, (years * 12) + months);
+      })()
     : null;
-  const paydaysRemainingDisplay = daysUntilPensionDisplay !== null
-    ? calculateRemainingPayDays(daysUntilPensionDisplay)
+  // Days until pension display value (guards against missing profile DOB)
+  const daysUntilPensionDisplay = profile?.date_of_birth
+    ? calculateDaysUntilPension(
+        new Date(profile.date_of_birth),
+        retirementAge ?? params.retirementAge
+      )
     : null;
   const requiredIncomeAtRetirement = (profile?.annual_salary || 0) * params.pensionIncomeTarget;
-  const projectedIncomeAtRetirement = (calculations.currentProjection || 0) * params.drawdownRate;
+  const projectedIncomeAtRetirement = (hub.cal4119_totalProjectedPensionValue || 0) * params.drawdownRate;
   const incomeShortfall = Math.max(0, requiredIncomeAtRetirement - projectedIncomeAtRetirement);
   const incomeProgress = requiredIncomeAtRetirement > 0
     ? (projectedIncomeAtRetirement / requiredIncomeAtRetirement) * 100
@@ -256,32 +261,33 @@ const RetirementCalculatorEmployee = () => {
   const targetIncomeAtRetirement = targetIncomeToday * Math.pow(1 + params.pensionIncomeInflation, yearsToRetirement);
   const statePensionToday = params.statePensionWeekly * 52;
   const statePensionAtRetirement = statePensionToday * Math.pow(1 + params.pensionIncomeInflation, yearsToRetirement);
-  const existingPlanProjectedIncome = ((calculations.currentProjection || 0) * params.drawdownRate) + statePensionAtRetirement;
+  const existingPlanProjectedIncome = ((hub.cal4119_totalProjectedPensionValue || 0) * params.drawdownRate) + statePensionAtRetirement;
 
   // Page-based Projection Analysis derivations (SFM-CAL-4114 to 4125, 4133)
   const currentAgeYears = profile?.date_of_birth ? calculateAge(new Date(profile.date_of_birth)).years : (age ?? 0);
   const yearsUntilPension = Math.max(0, (retirementAge ?? params.retirementAge) - (currentAgeYears || 0));
   const aeTotals = calculateTotalAEContributions(profile?.annual_salary || 0, currentAgeYears || 0, yearsUntilPension);
   const historicalContributions = aeTotals.historicalContributions || 0; // SFM-CAL-4114
-  const growthFromExisting = Math.max(0, (calculations.existingPlanValueTodayAtRetirement || 0) - (existingPensionValue || 0)); // SFM-CAL-4116
+  const growthFromExisting = Math.max(0, (hub.cal4126_existingFundValueAtRetirement || 0) - (existingPensionValue || 0)); // SFM-CAL-4116
   const futureAEContributions = aeTotals.futureContributions || 0; // SFM-CAL-4117
-  const futureAEGrowth = Math.max(0, (calculations.existingPlanFutureContributions || 0) - futureAEContributions); // SFM-CAL-4118
-  const totalProjectedValue = (calculations.existingPlanValueTodayAtRetirement || 0) + (calculations.existingPlanFutureContributions || 0); // SFM-CAL-4119
-  const requiredCapital = calculations.requiredCapital || 0; // SFM-CAL-4120
-  const capitalShortfall = calculations.capitalShortfall || 0; // SFM-CAL-4121
+  const futureAEGrowth = Math.max(0, (hub.cal4127_existingPlanFutureContributions || 0) - futureAEContributions); // SFM-CAL-4118
+  const totalProjectedValue = (hub.cal4126_existingFundValueAtRetirement || 0) + (hub.cal4127_existingPlanFutureContributions || 0); // SFM-CAL-4119
+  const requiredCapital = hub.cal4120_requiredCapital || 0; // SFM-CAL-4120
+  const capitalShortfall = hub.cal4121_capitalShortfall || 0; // SFM-CAL-4121
   const equivalentIncomeShortfall = Math.round((capitalShortfall || 0) * params.drawdownRate); // SFM-CAL-4133
-  const topUpContributionsPaid = Math.max(0, calculations.totalStandardCost || 0); // SFM-CAL-4122
+  const topUpContributionsPaid = Math.max(0, (monthlyFundingCost || 0) * 12); // SFM-CAL-4122
   const topUpInvestmentGrowth = Math.max(0, capitalShortfall - topUpContributionsPaid); // SFM-CAL-4123
   const topUpTotalFundValue = topUpContributionsPaid + topUpInvestmentGrowth; // SFM-CAL-4124
   const effectiveGrowthRate = topUpContributionsPaid > 0 ? ((topUpInvestmentGrowth / topUpContributionsPaid) * 100) : 0; // SFM-CAL-4125
 
   // Use dynamic calculations instead of mock data
-  const showAffordabilityWarning = calculations.monthlyFundingCost > 0;
-  const isOnTrack = calculations.fundingProgress >= 100;
-  const isReasonablyOnTrack = calculations.fundingProgress >= 80;
+  const fundingProgress = requiredCapital > 0 ? Math.min(100, (totalProjectedValue / requiredCapital) * 100) : 0;
+  const showAffordabilityWarning = monthlyFundingCost > 0;
+  const isOnTrack = fundingProgress >= 100;
+  const isReasonablyOnTrack = fundingProgress >= 80;
 
   // Show loading state if calculations are still loading
-  if (calculations.isLoading) {
+  if (!profile?.date_of_birth) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto p-6">
@@ -344,10 +350,10 @@ const RetirementCalculatorEmployee = () => {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* Top alert bar mirroring Funding Analysis screenshot */}
-                    {calculations.capitalShortfall > 0 && (
+                    {capitalShortfall > 0 && (
                       <Alert className="border-red-200 bg-red-50">
                         <AlertDescription className="text-red-700">
-                          Your estimated Top Up of {formatCurrency(calculations.monthlyFundingCost)} may not be Affordable. Check your eligibility for risk-free financial assistance.
+                          Your estimated Top Up of {formatCurrency(monthlyFundingCost)} may not be Affordable. Check your eligibility for risk-free financial assistance.
                         </AlertDescription>
                       </Alert>
                     )}
@@ -356,14 +362,14 @@ const RetirementCalculatorEmployee = () => {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2 relative">
                         <h3 className="font-medium text-gray-900">Funding Progress</h3>
-                        <div className={`text-3xl font-bold ${calculations.fundingProgress >= 100 ? 'text-green-600' : calculations.fundingProgress >= 80 ? 'text-yellow-500' : 'text-red-600'}`}>
-                          {Math.round(calculations.fundingProgress)}%
+                        <div className={`text-3xl font-bold ${fundingProgress >= 100 ? 'text-green-600' : fundingProgress >= 80 ? 'text-yellow-500' : 'text-red-600'}`}>
+                          {Math.round(fundingProgress)}%
                         </div>
-                        <Progress value={Math.min(calculations.fundingProgress, 100)} className={`h-3 ${calculations.fundingProgress >= 100 ? 'progress-green' : calculations.fundingProgress >= 80 ? 'progress-amber' : 'progress-red'}`} />
+                        <Progress value={Math.min(fundingProgress, 100)} className={`h-3 ${fundingProgress >= 100 ? 'progress-green' : fundingProgress >= 80 ? 'progress-amber' : 'progress-red'}`} />
                         <p className="text-sm text-gray-600">
-                          {calculations.fundingProgress >= 100
+                          {fundingProgress >= 100
                             ? "Congratulations! You're on track for retirement."
-                            : calculations.fundingProgress >= 80
+                              : fundingProgress >= 80
                               ? "You're close to your retirement target."
                               : "You have a pension funding gap that needs attention."}
                         </p>
@@ -374,8 +380,8 @@ const RetirementCalculatorEmployee = () => {
 
                       <div className="space-y-2 relative">
                         <h3 className="font-medium text-gray-900">Current Projection</h3>
-                        <div className={`text-3xl font-bold ${calculations.fundingProgress >= 100 ? 'text-green-600' : calculations.fundingProgress >= 80 ? 'text-yellow-500' : 'text-red-600'}`}>
-                          {formatCurrency(calculations.currentProjection)}
+                        <div className={`text-3xl font-bold ${fundingProgress >= 100 ? 'text-green-600' : fundingProgress >= 80 ? 'text-yellow-500' : 'text-red-600'}`}>
+                          {formatCurrency(totalProjectedValue)}
                         </div>
                         <p className="text-sm text-gray-600">Projected pension pot at retirement</p>
                         <div className="absolute bottom-0 right-0">
@@ -389,7 +395,7 @@ const RetirementCalculatorEmployee = () => {
                       <div className="space-y-2 relative pb-6">
                         <h3 className="font-medium text-gray-900">Capital Target Required</h3>
                         <div className="text-3xl font-bold text-black">
-                          {formatCurrency(calculations.requiredCapital)}
+                          {formatCurrency(requiredCapital)}
                         </div>
                         <p className="text-sm text-gray-600">Assumes full State Pension is payable</p>
                         <div className="absolute bottom-0 right-0">
@@ -399,11 +405,11 @@ const RetirementCalculatorEmployee = () => {
 
                       <div className="space-y-2 relative pb-6">
                         <h3 className="font-medium text-gray-900">Estimated Shortfall</h3>
-                        <div className={`text-3xl font-bold ${calculations.capitalShortfall > 0 ? 'text-[#9333EA]' : 'text-green-600'}`}>
-                          {formatCurrency(Math.abs(calculations.capitalShortfall))}
+                        <div className={`text-3xl font-bold ${capitalShortfall > 0 ? 'text-[#9333EA]' : 'text-green-600'}`}>
+                          {formatCurrency(Math.abs(capitalShortfall))}
                         </div>
                         <p className="text-sm text-gray-600">
-                          {calculations.capitalShortfall > 0 ? 'Additional capital needed' : 'Excess above target'}
+                          {capitalShortfall > 0 ? 'Additional capital needed' : 'Excess above target'}
                         </p>
                         <div className="absolute bottom-0 right-0">
                           <SFMCodeBadge sfmId="SFM-CAL-4121" />
@@ -412,11 +418,11 @@ const RetirementCalculatorEmployee = () => {
                     </div>
 
                     {/* Top-Up Monthly Cost CTA - positioned beneath CAL-4120 and CAL-4121 */}
-                    {calculations.capitalShortfall > 0 && (
+                    {capitalShortfall > 0 && (
                       <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 relative">
                         <h4 className="text-2xl font-semibold text-purple-600 mb-2">Existing Plan Top-Up Monthly Cost</h4>
                         <div className="text-2xl font-bold text-purple-600 mb-2">
-                          {formatCurrency(calculations.monthlyFundingCost)}
+                          {formatCurrency(monthlyFundingCost)}
                         </div>
                         <p className="text-sm text-purple-600 mb-4">
                           Additional monthly contribution needed to close your Estimated Shortfall
@@ -437,13 +443,13 @@ const RetirementCalculatorEmployee = () => {
 
                 {/* Charts block mirroring layout using page-based components */}
                 <PensionCharts
-                  projectedPensionPot={calculations.existingPlanValueTodayAtRetirement + calculations.existingPlanFutureContributions}
+                  projectedPensionPot={hub.cal4126_existingFundValueAtRetirement + hub.cal4127_existingPlanFutureContributions}
                   existingPensionValue={existingPensionValue}
-                  existingPlanValueTodayAtRetirement={calculations.existingPlanValueTodayAtRetirement}
-                  existingPlanFutureContributions={calculations.existingPlanFutureContributions}
-                  shortfall={calculations.shortfall}
-                  monthlyFundingCost={calculations.monthlyFundingCost}
-                  totalStandardCost={calculations.totalStandardCost}
+                  existingPlanValueTodayAtRetirement={hub.cal4126_existingFundValueAtRetirement}
+                  existingPlanFutureContributions={hub.cal4127_existingPlanFutureContributions}
+                  shortfall={capitalShortfall}
+                  monthlyFundingCost={monthlyFundingCost}
+                  totalStandardCost={monthlyFundingCost * 12}
                   annualSalary={profile?.annual_salary ?? 0}
                   yearsToRetirement={(age !== null ? retirementAge - age : 0)}
                   onChangeTab={(tab: string) => setActiveTab(tab)}
