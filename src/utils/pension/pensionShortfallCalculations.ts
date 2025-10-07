@@ -19,7 +19,7 @@ export interface PensionShortfallResult {
  * Calculate escalating monthly payment (PMT) with annual contribution increases
  * This is the correct formula for contributions that escalate with inflation
  */
-function calculateEscalatingPMT(
+export function calculateEscalatingPMT(
   targetAmount: number,
   totalMonths: number,
   monthlyGrowthRate: number,

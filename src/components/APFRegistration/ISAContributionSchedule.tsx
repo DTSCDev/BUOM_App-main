@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Calculator, FileText } from "lucide-react";
 import { formatCurrency } from "@/utils/formatUtils";
 import { getPensionParameters } from "@/utils/pensionParameters";
+import { getISAMonthlyForYear } from "@/utils/pension/isaTimelineCalculator";
 
 interface ISAContributionScheduleProps {
   onClose?: () => void;
@@ -25,13 +26,21 @@ interface MonthlyScheduleEntry {
 
 export function ISAContributionSchedule({ onClose }: ISAContributionScheduleProps) {
   const [showFullSchedule, setShowFullSchedule] = useState(false);
-  const { repaymentMonths } = getPensionParameters();
+  const { repaymentMonths, pensionIncomeInflation, isaRateEnhancedMember } = getPensionParameters();
 
-  // Base monthly amounts for each tranche
-  const baseTranche1 = 74.30;
-  const baseTranche2 = 74.30;
-  const baseTranche3 = 22.51;
-  const inflationRate = 0.02; // 2% per annum
+  // Parameter-driven inflation and display percentage
+  const inflationRate = pensionIncomeInflation; // Parameter Settings-driven inflation
+  const inflationPct = (inflationRate * 100).toFixed(2);
+
+  // Base monthly amounts for each tranche (no hardcoding)
+  // Use parameter-driven ISA rates; fall back to enhanced member rate if unavailable
+  const tranche1Raw = getISAMonthlyForYear(1);
+  const tranche2Raw = getISAMonthlyForYear(2);
+  const tranche3Raw = getISAMonthlyForYear(3);
+
+  const baseTranche1 = Number.isFinite(tranche1Raw) && tranche1Raw > 0 ? tranche1Raw : isaRateEnhancedMember;
+  const baseTranche2 = Number.isFinite(tranche2Raw) && tranche2Raw > 0 ? tranche2Raw : isaRateEnhancedMember;
+  const baseTranche3 = Number.isFinite(tranche3Raw) && tranche3Raw > 0 ? tranche3Raw : isaRateEnhancedMember;
 
   // Generate the complete 240-month schedule
   const generateSchedule = (): MonthlyScheduleEntry[] => {
@@ -137,6 +146,7 @@ export function ISAContributionSchedule({ onClose }: ISAContributionScheduleProp
 
   const downloadDetailedReport = () => {
     const yearsLabel = (repaymentMonths / 12).toFixed(1);
+    const inflationPct = (inflationRate * 100).toFixed(2);
     const reportContent = `
 ISA CONTRIBUTION SCHEDULE - DETAILED MATHEMATICAL ANALYSIS
 =========================================================
@@ -145,20 +155,20 @@ EXECUTIVE SUMMARY
 -----------------
 • Total Contribution Period: ${repaymentMonths} months (${yearsLabel} years)
 • Number of Tranches: 3
-• Annual Inflation Rate: 2.00%
+• Annual Inflation Rate: ${inflationPct}%
 • Total Contributions: £${finalTotal.toLocaleString()}
 • INBL Loan Principle: £87,325
 • Coverage Ratio: ${((finalTotal / 87325) * 100).toFixed(1)}%
 
 TRANCHE CONFIGURATION
 ---------------------
-Tranche 1: £${baseTranche1}/month starting Month 1 (escalating at 2% p.a.)
-Tranche 2: £${baseTranche2}/month starting Month 13 (escalating at 2% p.a.)
-Tranche 3: £${baseTranche3}/month starting Month 25 (escalating at 2% p.a.)
+Tranche 1: £${baseTranche1}/month starting Month 1 (escalating at ${inflationPct}% p.a.)
+Tranche 2: £${baseTranche2}/month starting Month 13 (escalating at ${inflationPct}% p.a.)
+Tranche 3: £${baseTranche3}/month starting Month 25 (escalating at ${inflationPct}% p.a.)
 
 MATHEMATICAL WORKINGS
 ---------------------
-Base Calculation: Monthly amount × (1 + 0.02)^(inflation_years)
+Base Calculation: Monthly amount × (1 + ${inflationRate.toFixed(4)})^(inflation_years)
 
 Key Progressive Totals:
 • Month 1: £74.30 (Tranche 1 only)
@@ -228,7 +238,7 @@ Generated: ${new Date().toLocaleString()}
             <div className="text-sm text-gray-600">Tranches</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">2.0%</div>
+          <div className="text-2xl font-bold text-purple-600">{inflationPct}%</div>
             <div className="text-sm text-gray-600">Annual Inflation</div>
           </div>
         </div>

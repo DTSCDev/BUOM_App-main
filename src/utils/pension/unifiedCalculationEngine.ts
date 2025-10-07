@@ -1,6 +1,7 @@
 
 // Stub implementation to preserve APF Registration functionality
 import { getPensionParameters } from '@/utils/pensionParameters';
+import { compoundingCore } from './compoundingCore';
 import { Asset, Profile } from '@/utils/systemFields/types';
 
 export interface UnifiedCalculationResult {
@@ -63,7 +64,8 @@ function calculateTotalFutureAEContributions(
   currentAge: number, 
   profile: Profile
 ): number {
-  const yearsToRetirement = Math.max(0, 67 - currentAge);
+  const params = getPensionParameters();
+  const yearsToRetirement = Math.max(0, params.retirementAge - currentAge);
   
   // Get contribution rates from profile or use defaults
   const employeeRate = (profile?.pension_contribution_employee || 5) / 100; // Default 5%
@@ -74,7 +76,6 @@ function calculateTotalFutureAEContributions(
   const annualAEContributions = annualSalary * totalContributionRate;
   
   // Project total future contributions with salary growth
-  const params = getPensionParameters();
   let totalFutureContributions = 0;
   
   for (let year = 1; year <= yearsToRetirement; year++) {
@@ -105,25 +106,24 @@ export function calculateUnifiedPensionMetrics(
 ): UnifiedCalculationResult {
   const params = getPensionParameters();
   
-  // Calculate years until pension age (67)
-  const yearsUntilPension = Math.max(0, 67 - currentAge);
+  // Calculate years until pension age using centralized parameter
+  const yearsUntilPension = Math.max(0, params.retirementAge - currentAge);
   
   // FIXED: Use proper pension income target parameter (50%) instead of hardcoded 66.67%
   const targetIncomeAtRetirement = annualSalary * params.pensionIncomeTarget;
   console.log(`🔧 UNIFIED ENGINE: Target income = £${annualSalary.toLocaleString()} × ${params.pensionIncomeTarget} = £${targetIncomeAtRetirement.toLocaleString()}`);
   
   // Project existing pension value to retirement
-  const projectedExistingPlan = existingPensionValue * Math.pow(1.05, yearsUntilPension);
+  const projectedExistingPlan = compoundingCore.compoundMonthly(existingPensionValue, yearsUntilPension * 12);
   
-  // Calculate existing plan income at retirement (4% drawdown)
-  const existingPlanIncomeAtRetirement = projectedExistingPlan * 0.04;
+  // Calculate existing plan income at retirement using centralized drawdown rate
+  const existingPlanIncomeAtRetirement = projectedExistingPlan * params.drawdownRate;
   
-  // Calculate state pension at retirement using proper inflation from parameters
-  const currentStatePension = params.statePensionWeekly * 52; // £11,973
-  const statePensionAtRetirement = currentStatePension * Math.pow(1 + params.salaryInflation, yearsUntilPension);
+  // Calculate state pension at retirement using pension income inflation
+  const statePensionAtRetirement = compoundingCore.getStatePensionAtRetirement(yearsUntilPension);
   
   // FIXED: Calculate state pension lump sum (25% of state pension capital value)
-  const statePensionCapitalValue = statePensionAtRetirement / 0.04;
+  const statePensionCapitalValue = statePensionAtRetirement / params.drawdownRate;
   const statePensionLumpSum = statePensionCapitalValue * 0.25;
   
   // Calculate total projected income
@@ -131,7 +131,7 @@ export function calculateUnifiedPensionMetrics(
   
   // Calculate shortfall
   const incomeShortfall = Math.max(0, targetIncomeAtRetirement - totalProjectedIncome);
-  const currentCapitalShortfall = incomeShortfall / 0.04;
+  const currentCapitalShortfall = incomeShortfall / params.drawdownRate;
   
   // FIXED: Calculate ISA target monthly based on capital shortfall
   // Using the enhanced rate: £98 per £100k of shortfall (monthly)
@@ -191,8 +191,8 @@ export function calculateUnifiedPensionMetrics(
     repaymentProgressPercentage, // FIXED: Now calculated based on ISA progress
     statePensionAtRetirement,
     yearsToRetirement: yearsUntilPension,
-    requiredCapital: targetIncomeAtRetirement / 0.04,
-    projectedExistingPlan: existingPensionValue,
+    requiredCapital: targetIncomeAtRetirement / params.drawdownRate,
+    projectedExistingPlan: projectedExistingPlan,
     totalFutureAEContributions, // FIXED: Now calculated based on profile
     statePensionLumpSum, // FIXED: Now calculated from state pension
     totalProjectedAssets, // FIXED: Now includes all asset types

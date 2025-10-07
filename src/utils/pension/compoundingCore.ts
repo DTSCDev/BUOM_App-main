@@ -12,17 +12,20 @@ export class CompoundingCore {
   
   // Monthly growth rate (e.g. 4.5% / 12)
   get monthlyGrowthRate(): number {
-    return this.params.growthRateAccumulation / 12;
+    // Use effective monthly rate derived from annual growth
+    return Math.pow(1 + this.params.growthRateAccumulation, 1/12) - 1;
   }
   
   // Monthly drawdown growth rate (e.g. 4% / 12)
   get monthlyDrawdownGrowthRate(): number {
-    return this.params.growthRateDrawdown / 12;
+    // Use effective monthly rate derived from annual drawdown growth
+    return Math.pow(1 + this.params.growthRateDrawdown, 1/12) - 1;
   }
   
   // Monthly provider charges (e.g. 0.5% / 12)
   get monthlyProviderCharges(): number {
-    return this.params.providerCharges / 12;
+    // Use effective monthly rate derived from annual provider charges
+    return Math.pow(1 + this.params.providerCharges, 1/12) - 1;
   }
   
   // Monthly advisor fee (applied annually at plan anniversary)

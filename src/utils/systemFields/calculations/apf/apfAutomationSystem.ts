@@ -1,4 +1,5 @@
 // APF Automation System for ISA Updates and Time Tokens
+import { compoundingCore } from '@/utils/pension/compoundingCore';
 export interface APFUpdateStatus {
   lastFormalUpdateDate: Date;
   lastSystemUpdateDate: Date;
@@ -349,7 +350,7 @@ export class APFCalculations {
   /**
    * SFM-APF-1002: Annual Salary with Inflation
    */
-  static calculateAPF1002(sfm002: number, inflationRate: number = 0.02, years: number = 1): number {
+  static calculateAPF1002(sfm002: number, inflationRate: number = compoundingCore.params.salaryInflation, years: number = 1): number {
     return sfm002 * Math.pow(1 + inflationRate, years);
   }
 

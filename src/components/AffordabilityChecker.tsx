@@ -1,4 +1,5 @@
 import React from 'react';
+import { compoundingCore } from '@/utils/pension/compoundingCore';
 import { calculateEnhancedTax, EmploymentDetails } from '@/utils/pension/enhancedTaxCalculations';
 import DetailedPensionContributions from './DetailedPensionContributions';
 import AffordabilityHeader from './AffordabilityChecker/AffordabilityHeader';
@@ -20,8 +21,8 @@ interface AffordabilityCheckerProps {
 function calculateInflationAdjustedPMT(
   targetAmount: number,
   totalMonths: number,
-  annualGrowthRate: number = 0.045, // 4.5% net growth (5% gross - 0.5% fees)
-  annualInflationRate: number = 0.02  // 2% inflation
+  annualGrowthRate: number,
+  annualInflationRate: number
 ): number {
   if (totalMonths <= 0 || targetAmount <= 0) return 0;
   
@@ -101,11 +102,14 @@ const AffordabilityChecker: React.FC<AffordabilityCheckerProps> = ({
   
   // Calculate inflation-adjusted monthly top-up using escalating PMT formula
   const monthsUntilRetirement = yearsUntilPension * 12;
+  const parameterAnnualGrowth = compoundingCore.netMonthlyGrowthRate * 12; // net monthly × 12
+  const parameterAnnualInflation = compoundingCore.params.salaryInflation; // from Parameter Settings
+
   const inflationAdjustedTopUp = calculateInflationAdjustedPMT(
     results.currentCapitalShortfall,
     monthsUntilRetirement,
-    0.045, // 4.5% net growth rate (5% gross - 0.5% fees)
-    0.02   // 2% inflation rate
+    parameterAnnualGrowth,
+    parameterAnnualInflation
   );
   
   // Use the passed monthlyFundingCost as fallback if calculation returns 0
