@@ -4,23 +4,7 @@ import { useNetAssetValue } from '@/hooks/useNetAssetValue';
 import { getPensionParameters } from '@/utils/pensionParameters';
 import { calculateTotalAEContributions } from '@/utils/pension/aeContributionCalculations';
 import { compoundingCore } from '@/utils/pension/compoundingCore';
-// Local PMT helper: escalating monthly payment with effective monthly rates
-function calculateEscalatingPMT(
-  targetAmount: number,
-  totalMonths: number,
-  monthlyGrowthRate: number,
-  annualEscalationRate: number
-): number {
-  if (totalMonths <= 0 || targetAmount <= 0) return 0;
-  const monthlyEscalationRate = Math.pow(1 + annualEscalationRate, 1/12) - 1;
-  const effectiveRate = monthlyGrowthRate - monthlyEscalationRate;
-  if (Math.abs(effectiveRate) < 1e-9) {
-    return targetAmount / totalMonths;
-  }
-  const numerator = targetAmount * effectiveRate;
-  const denominator = Math.pow(1 + monthlyGrowthRate, totalMonths) - Math.pow(1 + monthlyEscalationRate, totalMonths);
-  return numerator / denominator;
-}
+import { calculateTopUpContributions } from '@/utils/pension/topUpCalculations';
 import { calculateDaysUntilPension } from '@/utils/pensionCalculations';
 import { calculateRemainingPayDays } from '@/utils/pensionCalculations';
 import { calculateAge as calcAgeYears } from '@/utils/pensionCalculations';
@@ -53,6 +37,9 @@ export interface RetirementCalculatorValues {
   cal4126_existingFundValueAtRetirement: number;
   cal4127_existingPlanFutureContributions: number;
   cal4128_existingPlanMonthlyTopUpYear1: number;
+  cal4122_topUpContributionsPaid: number;
+  cal4123_topUpInvestmentGrowth: number;
+  cal4124_topUpTotalFundValue: number;
 
   // Income equivalents
   cal4132_existingPlanProjectedIncome: number; // (totalProjected × drawdown) + statePensionAtRetirement
@@ -87,12 +74,8 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
     const daysUntilPension = profile?.date_of_birth
       ? calculateDaysUntilPension(new Date(profile.date_of_birth), retirementAge)
       : Math.round(yearsToRetirement * 365.25);
-    const paydaysRemaining = profile?.date_of_birth
-      ? (() => {
-          const { years, months } = calculateYearsUntilPension(new Date(profile.date_of_birth));
-          return Math.max(0, (years * 12) + months);
-        })()
-      : yearsToRetirement * 12;
+    // APF-1003 / CAL-4113: Paydays Remaining should align to retirement age, not SPA
+    const paydaysRemaining = yearsToRetirement * 12;
 
     // Existing pension assets from NAV
     const existingPensionValue = (assets || [])
@@ -118,27 +101,12 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
     const requiredCapital = netIncomeRequired / params.drawdownRate; // CAL-4120
     const capitalShortfall = Math.max(0, requiredCapital - totalProjectedPensionValue); // CAL-4121
 
-    // Monthly top-up (Year 1) using PMT with effective monthly rates and salary inflation
-    const monthsUntilRetirement = yearsToRetirement * 12;
-    let monthlyTopUpYear1 =
+    // Top-Up calculations using robust escalating contributions (monthly compounding + 2% escalation)
+    const { monthlyTopUpYear1, totalTopUpContributions, totalTopUpValue } =
       (capitalShortfall > 0 && yearsToRetirement > 0)
-        ? calculateEscalatingPMT(
-            capitalShortfall,
-            monthsUntilRetirement,
-            compoundingCore.netMonthlyGrowthRate,
-            params.salaryInflation
-          )
-        : 0;
-    // Guard against invalid PMT outputs
-    if (!Number.isFinite(monthlyTopUpYear1) || monthlyTopUpYear1 < 0) {
-      monthlyTopUpYear1 = 0;
-    }
-
-    // CAL-4128: Estimated Shortfall Target at Retirement
-    // Per specification: 4128 = Top Up Monthly Contribution in Year 1 + (CAL-4402) + CAL-4401 - CAL-4403
-    // Implemented as an effective one-step adjustment to the Year-1 PMT using these annual parameters.
-    const effectiveAnnualAdjustment = (params.salaryInflation + params.growthRateAccumulation - params.providerCharges);
-    const existingPlanMonthlyTopUpYear1 = monthlyTopUpYear1 * (1 + effectiveAnnualAdjustment);
+        ? calculateTopUpContributions(capitalShortfall, yearsToRetirement)
+        : { monthlyTopUpYear1: 0, totalTopUpContributions: 0, totalTopUpValue: 0 };
+    const topUpInvestmentGrowth = Math.max(0, totalTopUpValue - totalTopUpContributions);
 
     // Income equivalent
     const existingPlanProjectedIncome = (totalProjectedPensionValue * params.drawdownRate) + statePensionAtRetirement; // CAL-4132
@@ -165,7 +133,12 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
       cal4121_capitalShortfall: capitalShortfall,
       cal4126_existingFundValueAtRetirement: existingFundValueAtRetirement,
       cal4127_existingPlanFutureContributions: existingPlanFutureContributions,
-      cal4128_existingPlanMonthlyTopUpYear1: existingPlanMonthlyTopUpYear1,
+      // Repurpose CAL-4128 to reflect total future AE contributions with growth (until retirement)
+      cal4128_existingPlanMonthlyTopUpYear1: existingPlanFutureContributions,
+      // Top-Up breakdown (multi-year totals, not just Year 1)
+      cal4122_topUpContributionsPaid: totalTopUpContributions,
+      cal4123_topUpInvestmentGrowth: topUpInvestmentGrowth,
+      cal4124_topUpTotalFundValue: totalTopUpValue,
 
       // Income equivalents
       cal4132_existingPlanProjectedIncome: existingPlanProjectedIncome,

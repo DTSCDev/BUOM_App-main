@@ -56,7 +56,7 @@ export function APFStep2KeyFinancials({ profile, onComplete }: APFStep2KeyFinanc
   const shortfallTarget = unifiedResult?.currentCapitalShortfall || 0;
 
   // Calculate APF sponsorships using the shortfall target
-  const apfSponsorships = (currentAge && annualSalary && shortfallTarget) 
+  const apfSponsorships = (currentAge && annualSalary !== null && shortfallTarget > 0)
     ? calculateActualSponsorshipsFromShortfall(
         currentAge,
         annualSalary,
@@ -70,7 +70,8 @@ export function APFStep2KeyFinancials({ profile, onComplete }: APFStep2KeyFinanc
   const totalAPFFunding = apfSponsorships.reduce((sum, s) => sum + s.sponsorshipAmount, 0);
   const maxFundingYears = apfSponsorships.length;
 
-  if (!currentAge || !annualSalary || !shortfallTarget) {
+  // Render a helpful message only when essential inputs are missing
+  if (!currentAge || annualSalary === null) {
     return (
       <Card>
         <CardContent className="p-6">

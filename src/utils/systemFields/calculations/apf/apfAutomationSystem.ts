@@ -1,5 +1,6 @@
 // APF Automation System for ISA Updates and Time Tokens
 import { compoundingCore } from '@/utils/pension/compoundingCore';
+import { APFCalculations as UnifiedAPFCalculations } from '@/utils/apf/apfAutomationSystem';
 export interface APFUpdateStatus {
   lastFormalUpdateDate: Date;
   lastSystemUpdateDate: Date;
@@ -338,7 +339,7 @@ export class APFAutomationSystem {
 }
 
 // APF Calculation Functions for the new SFM codes with updated logic
-export class APFCalculations {
+export class LegacyAPFCalculations {
   
   /**
    * SFM-APF-1001: Annual Salary (Base Reference)
@@ -482,3 +483,5 @@ export class APFCalculations {
     };
   }
 }
+// Ensure consumers use the unified APF calculator for consistent outputs
+export const APFCalculations = UnifiedAPFCalculations;

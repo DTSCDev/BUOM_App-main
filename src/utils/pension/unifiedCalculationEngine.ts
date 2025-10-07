@@ -21,7 +21,6 @@ export interface UnifiedCalculationResult {
   requiredCapital: number;
   projectedExistingPlan: number;
   totalFutureAEContributions: number;
-  statePensionLumpSum: number;
   totalProjectedAssets: number;
   capitalShortfallToday: number;
   existingPlanIncome: number;
@@ -122,10 +121,6 @@ export function calculateUnifiedPensionMetrics(
   // Calculate state pension at retirement using pension income inflation
   const statePensionAtRetirement = compoundingCore.getStatePensionAtRetirement(yearsUntilPension);
   
-  // FIXED: Calculate state pension lump sum (25% of state pension capital value)
-  const statePensionCapitalValue = statePensionAtRetirement / params.drawdownRate;
-  const statePensionLumpSum = statePensionCapitalValue * 0.25;
-  
   // Calculate total projected income
   const totalProjectedIncome = existingPlanIncomeAtRetirement + statePensionAtRetirement;
   
@@ -165,7 +160,6 @@ export function calculateUnifiedPensionMetrics(
     projectedExistingPlan: projectedExistingPlan.toLocaleString(),
     existingPlanIncomeAtRetirement: existingPlanIncomeAtRetirement.toLocaleString(),
     statePensionAtRetirement: statePensionAtRetirement.toLocaleString(),
-    statePensionLumpSum: statePensionLumpSum.toLocaleString(),
     totalProjectedIncome: totalProjectedIncome.toLocaleString(),
     incomeShortfall: incomeShortfall.toLocaleString(),
     currentCapitalShortfall: currentCapitalShortfall.toLocaleString(),
@@ -194,7 +188,6 @@ export function calculateUnifiedPensionMetrics(
     requiredCapital: targetIncomeAtRetirement / params.drawdownRate,
     projectedExistingPlan: projectedExistingPlan,
     totalFutureAEContributions, // FIXED: Now calculated based on profile
-    statePensionLumpSum, // FIXED: Now calculated from state pension
     totalProjectedAssets, // FIXED: Now includes all asset types
     capitalShortfallToday: currentCapitalShortfall,
     existingPlanIncome: existingPlanIncomeAtRetirement,

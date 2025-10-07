@@ -1,6 +1,7 @@
 
 import { calculateUnifiedPensionMetrics } from "@/utils/pension/unifiedCalculationEngine";
 import { APFSponsorshipBreakdown } from '@/utils/pension/buomTypes';
+import { PensionParametersConfig } from '@/utils/pensionParameters/types';
 
 export class ComponentCalculators {
   static calculateAllComponents(
@@ -9,7 +10,7 @@ export class ComponentCalculators {
     existingPensionValue: number,
     annualSalary: number,
     age: number,
-    params: any
+    params: PensionParametersConfig
   ) {
     // Input validation to prevent NaN propagation
     const safeYearsFromCurrent = isNaN(yearsFromCurrent) ? 0 : Math.max(0, yearsFromCurrent);
@@ -29,19 +30,28 @@ export class ComponentCalculators {
     );
     
     // Extract the components we need from the unified calculation
-    const result = {
+    type ComponentResults = {
+      targetCapitalRequired: number;
+      grownExistingValue: number;
+      totalContributionValue: number;
+      statePensionCapitalValue: number;
+      targetIncomeAtRetirement: number;
+    };
+
+    const result: ComponentResults = {
       targetCapitalRequired: unifiedResult.requiredCapital,
       grownExistingValue: unifiedResult.projectedExistingPlan,
       totalContributionValue: unifiedResult.totalFutureAEContributions,
-      statePensionCapitalValue: unifiedResult.statePensionLumpSum,
+      statePensionCapitalValue: unifiedResult.statePensionAtRetirement / (params?.drawdownRate || 0.035),
       targetIncomeAtRetirement: unifiedResult.targetIncomeAtRetirement
     };
     
     // Final validation to ensure no NaN values
-    Object.entries(result).forEach(([key, value]) => {
+    (Object.keys(result) as (keyof ComponentResults)[]).forEach((key) => {
+      const value = result[key];
       if (isNaN(value)) {
-        console.warn(`ComponentCalculators: ${key} resulted in NaN, setting to 0`);
-        (result as any)[key] = 0;
+        console.warn(`ComponentCalculators: ${String(key)} resulted in NaN, setting to 0`);
+        result[key] = 0;
       }
     });
     
@@ -56,8 +66,7 @@ export class ComponentCalculators {
   
   static calculateApfMaturityReduction(
     monthsElapsed: number,
-    apfSponsorships: APFSponsorshipBreakdown[],
-    isaTimeline: any
+    apfSponsorships: APFSponsorshipBreakdown[]
   ): number {
     // Input validation
     const safeMonthsElapsed = isNaN(monthsElapsed) ? 0 : Math.max(0, monthsElapsed);

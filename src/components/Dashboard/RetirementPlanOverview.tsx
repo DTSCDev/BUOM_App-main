@@ -81,8 +81,9 @@ export function ApfRetirementPlanSummary() {
     unifiedProfile
   );
 
-  // APF-1001 = PRF-2021; APF-1002 = PRF-2021 + inflation to SPA (67)
-  const annualSalaryInflated = (profile.annual_salary || 0) * Math.pow(1 + params.salaryInflation, yearsToSPA);
+  // APF-1001 = PRF-2021; APF-1002 = PRF-2021 × (1 + CAL-4402)^CAL-4111
+  // Align to hub: use CAL-4111 (time to retirement years), not SPA years
+  const annualSalaryInflated = (profile.annual_salary || 0) * Math.pow(1 + params.salaryInflation, hub.cal4111_timeToRetirementYears);
 
   // CAL-4107: Target Income at Retirement
   const targetIncomeToday = (profile.annual_salary || 0) * params.pensionIncomeTarget;
