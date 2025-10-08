@@ -7,6 +7,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -239,7 +240,7 @@ export function AppSidebar() {
                     )}
                   </SidebarMenuButton>
                   {expanded && (
-                    <div className="ml-6 space-y-1">
+                    <SidebarMenuSub className="ml-6 space-y-1">
                       {item.children.map((child) => {
                         const childActive = child.href ? isActive(child.href) : false;
                         return (
@@ -272,7 +273,7 @@ export function AppSidebar() {
                           </SidebarMenuItem>
                         );
                       })}
-                    </div>
+                    </SidebarMenuSub>
                   )}
                 </SidebarMenuItem>
               );
