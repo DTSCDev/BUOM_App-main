@@ -2,9 +2,10 @@ import { useMemo } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useNetAssetValue } from '@/hooks/useNetAssetValue';
 import { getPensionParameters } from '@/utils/pensionParameters';
-import { calculateTotalAEContributions } from '@/utils/pension/aeContributionCalculations';
+import { calculateTotalAEContributions, calculateMonthlyHistoricalAEContributions } from '@/utils/pension/aeContributionCalculations';
 import { compoundingCore } from '@/utils/pension/compoundingCore';
-import { calculateTopUpContributions } from '@/utils/pension/topUpCalculations';
+// Top-up PMT formula
+import { calculateEscalatingPMT } from '@/utils/pension/pensionShortfallCalculations';
 import { calculateDaysUntilPension } from '@/utils/pensionCalculations';
 import { calculateRemainingPayDays } from '@/utils/pensionCalculations';
 import { calculateAge as calcAgeYears } from '@/utils/pensionCalculations';
@@ -37,6 +38,8 @@ export interface RetirementCalculatorValues {
   cal4126_existingFundValueAtRetirement: number;
   cal4127_existingPlanFutureContributions: number;
   cal4128_existingPlanMonthlyTopUpYear1: number;
+  // Exact PMT rounded to 50p for audit/identification
+  cal4128_monthlyTopUpYear1Actual50p: number;
   cal4122_topUpContributionsPaid: number;
   cal4123_topUpInvestmentGrowth: number;
   cal4124_topUpTotalFundValue: number;
@@ -84,7 +87,8 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
 
     // AE contributions breakdown
     const aeTotals = calculateTotalAEContributions(annualSalary, currentAgeYears || 0, yearsToRetirement);
-    const historicalContributions = aeTotals.historicalContributions || 0; // CAL-4114
+    // Recompute CAL-4114 using strict monthly payday method with 50p rounding
+    const historicalContributions = calculateMonthlyHistoricalAEContributions(annualSalary, currentAgeYears || 0);
     const futureAEContributions = aeTotals.futureContributions || 0; // CAL-4117
 
     // Growth assumptions (MONTHLY compounding at net monthly rate)
@@ -101,11 +105,27 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
     const requiredCapital = netIncomeRequired / params.drawdownRate; // CAL-4120
     const capitalShortfall = Math.max(0, requiredCapital - totalProjectedPensionValue); // CAL-4121
 
-    // Top-Up calculations using robust escalating contributions (monthly compounding + 2% escalation)
-    const { monthlyTopUpYear1, totalTopUpContributions, totalTopUpValue } =
+    // CAL-4128: Monthly top-up cost (Year 1) using PMT formula with escalation
+    const monthlyRate = compoundingCore.netMonthlyGrowthRate;
+    const escalationRate = compoundingCore.params.salaryInflation;
+    const monthlyTopUpPMTRaw = (capitalShortfall > 0 && yearsToRetirement > 0)
+      ? calculateEscalatingPMT(
+          capitalShortfall,
+          yearsToRetirement * 12,
+          monthlyRate,
+          escalationRate
+        )
+      : 0;
+    // Exact amount rounded to nearest 50p for calculations and audit
+    const monthlyTopUpPMT50p = Math.round(monthlyTopUpPMTRaw * 2) / 2;
+    // Display value rounded to nearest pound (up or down)
+    const monthlyTopUpPMTRounded = Math.round(monthlyTopUpPMTRaw);
+
+    // Compute top-up totals using the 50p-precision PMT as contribution
+    const { totalContributions: totalTopUpContributions, futureValue: totalTopUpValue } =
       (capitalShortfall > 0 && yearsToRetirement > 0)
-        ? calculateTopUpContributions(capitalShortfall, yearsToRetirement)
-        : { monthlyTopUpYear1: 0, totalTopUpContributions: 0, totalTopUpValue: 0 };
+        ? compoundingCore.escalatingMonthlyContributions(monthlyTopUpPMT50p, monthsToRetirement)
+        : { totalContributions: 0, futureValue: 0 };
     const topUpInvestmentGrowth = Math.max(0, totalTopUpValue - totalTopUpContributions);
 
     // Income equivalent
@@ -133,10 +153,12 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
       cal4121_capitalShortfall: capitalShortfall,
       cal4126_existingFundValueAtRetirement: existingFundValueAtRetirement,
       cal4127_existingPlanFutureContributions: existingPlanFutureContributions,
-      // Repurpose CAL-4128 to reflect total future AE contributions with growth (until retirement)
-      cal4128_existingPlanMonthlyTopUpYear1: existingPlanFutureContributions,
-      // Top-Up breakdown (multi-year totals, not just Year 1)
-      cal4122_topUpContributionsPaid: totalTopUpContributions,
+      // CAL-4128: Existing Plan Monthly Top Up (Year 1) via PMT (nearest pound)
+      cal4128_existingPlanMonthlyTopUpYear1: monthlyTopUpPMTRounded,
+      // Exact PMT used for totals (rounded to 50p)
+      cal4128_monthlyTopUpYear1Actual50p: monthlyTopUpPMT50p,
+      // CAL-4122: Total Future AE Contributions with Inflation until retirement
+      cal4122_topUpContributionsPaid: futureAEContributions,
       cal4123_topUpInvestmentGrowth: topUpInvestmentGrowth,
       cal4124_topUpTotalFundValue: totalTopUpValue,
 

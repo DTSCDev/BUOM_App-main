@@ -198,6 +198,35 @@ export const apfPageFields: SystemField[] = [
     valueType: "Count"
   },
 
+  // APF & INBL Summary - Total Program (SFM-APF-1281 to SFM-APF-1283)
+  {
+    sfmId: "SFM-APF-1281",
+    description: "APF Registration - Total Initial Funding",
+    pageName: "APF Registration",
+    cardName: "APF & INBL Summary - Total Program",
+    outputValue: "apfTotalInitialFunding",
+    correlatedTo: "Sum of APF sponsorship contributions across all years",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1282",
+    description: "APF Registration - Total Maturity Value",
+    pageName: "APF Registration",
+    cardName: "APF & INBL Summary - Total Program",
+    outputValue: "apfTotalMaturityValue",
+    correlatedTo: "Total APF maturity across all sponsorship years",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1283",
+    description: "APF Registration - Total INBL Principal",
+    pageName: "APF Registration",
+    cardName: "APF & INBL Summary - Total Program",
+    outputValue: "totalINBLPrincipal",
+    correlatedTo: "Aggregate INBL principal balance funded by APF",
+    valueType: "Currency"
+  },
+
   // NEW SFM CODE MAPPINGS PROVIDED BY USER
   {
     sfmId: "SFM-APF-1010",

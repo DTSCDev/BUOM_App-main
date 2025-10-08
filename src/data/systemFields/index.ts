@@ -3,7 +3,7 @@ import { freeCalculatorFields } from './freeCalculatorFields';
 import { apfPageFields, generateAPFYearCodes } from './apfPageFields';
 import { profilePageFields } from './profilePageFields';
 import { netAssetValueFields } from './netAssetValueFields';
-import { calculatorsPageFields, paymentsPageFields, reportsPageFields, statementsPageFields, benefitsPageFields } from './pageBasedSFMFields';
+import { calculatorsPageFields, paymentsPageFields, reportsPageFields, statementsPageFields, benefitsPageFields, generateAPF42XXSeries } from './pageBasedSFMFields';
 import { buomHubFields } from './buomHubFields';
 import { retirementCalculatorFields } from './RetirementCalculatorFields';
 
@@ -15,6 +15,7 @@ export const systemFields: SystemField[] = [
   ...freeCalculatorFields,        // SFM-0XX-X series (Free Calculator & Affordability)
   ...apfPageFields,              // SFM-APF-1XXX-X series (APF Pages & Sub Pages)
   ...generateAPFYearCodes(),     // SFM-APF-1XXX-X series (APF Year-specific codes)
+  ...generateAPF42XXSeries(),    // SFM-APF-42XX series (Per-year APF metrics with M/P suffix)
   ...profilePageFields,          // SFM-PRF-2XXX-X series (Profile Page)
   ...netAssetValueFields,        // SFM-NAV-3XXX-X series (Net Asset Value)
   ...calculatorsPageFields,       // SFM-CAL-4XXX-X series (Calculators Page)

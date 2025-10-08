@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatUtils';
-import { systemFields } from '@/data/systemFields';
 import { TrendingUp } from "lucide-react";
 import { UnifiedCalculationResult } from "@/utils/pension/unifiedCalculationEngine";
 import { APFMetricSummaryCard } from "@/components/Dashboard/APFMetricSummaryCard";
@@ -17,39 +16,26 @@ interface APFINBLSummaryCardProps {
   };
   unifiedResult: UnifiedCalculationResult;
   sponsorships: APFSponsorshipBreakdown[];
+  opacity?: string;
 }
 
-export function APFINBLSummaryCard({ profile, unifiedResult, sponsorships }: APFINBLSummaryCardProps) {
+export function APFINBLSummaryCard({ profile, unifiedResult, sponsorships, opacity = "opacity-100" }: APFINBLSummaryCardProps) {
   const { calculatePayslipComparison } = usePayslipCalculations();
   
-  // Use systemFields directly instead of useSFMResolver
-  const getSFMValue = (sfmCode: string): number => {
-    const field = systemFields.find(f => f.sfmId === sfmCode);
-    return field ? parseFloat(field.outputValue) || 0 : 0;
-  };
-
-  // Get annual salary from SFM-PRF-2021 (Profile Annual Salary)
-  const annualSalary = getSFMValue('SFM-PRF-2021');
+  // Use profile annual salary passed into the card
+  const annualSalary = profile.annualSalary || 0;
   
-  // Calculate totals across ALL sponsorship years (fallback values)
-  const totalAPFInitialFunding = sponsorships.reduce((sum, s) => sum + s.sponsorshipAmount, 0);
-  const totalMaturityValue = sponsorships.reduce((sum, s) => sum + s.maturityValue, 0);
-  
-  // Calculate total INBL across all years (fallback value)
-  const totalINBLPrincipal = sponsorships.reduce((sum, sponsorship) => {
+  // Formulas per APF spec:
+  // APF-1202 = CAL-4105 (Estimated Shortfall)
+  const apf1202_maturity = unifiedResult?.currentCapitalShortfall ?? 0;
+  // APF-1201 = APF-1202 / 1.582
+  const apf1201_initialFunding = apf1202_maturity / 1.582;
+  // APF-1203 = INBL Loan Principal (NPG + NRSR fee) aggregated across years
+  const apf1203_inblPrincipal = sponsorships.reduce((sum, sponsorship) => {
     const payslipComparison = calculatePayslipComparison(annualSalary, sponsorship.sponsorshipAmount);
+    // totalINBLPrincipal returned monthly; aggregate annually per year in program
     return sum + (payslipComparison.totalINBLPrincipal * 12);
   }, 0);
-  
-  // Get SFM values for display (using page-based codes)
-  const sfmAPFFunding = getSFMValue('SFM-APF-1201');
-  const sfmMaturityValue = getSFMValue('SFM-APF-1202');
-  const sfmINBLPrincipal = getSFMValue('SFM-APF-1203');
-  
-  // Use SFM values if available, otherwise fall back to calculated values
-  const displayAPFFunding = sfmAPFFunding > 0 ? sfmAPFFunding : totalAPFInitialFunding;
-  const displayMaturityValue = sfmMaturityValue > 0 ? sfmMaturityValue : totalMaturityValue;
-  const displayINBLPrincipal = sfmINBLPrincipal > 0 ? sfmINBLPrincipal : totalINBLPrincipal;
   
   // Show constraint information if APF is limited by salary exchange
   const isConstrainedBySalaryExchange = unifiedResult.proposedAPFFunding > unifiedResult.feasibleAPFFunding;
@@ -66,26 +52,29 @@ export function APFINBLSummaryCard({ profile, unifiedResult, sponsorships }: APF
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <APFMetricSummaryCard
             title="TOTAL APF FUNDING"
-            value={formatCurrency(displayAPFFunding)}
-            headerBgColor="bg-yellow-600"
-            valueTextColor="text-yellow-600"
-            sfmCode="SFM-APF-1201"
+            value={formatCurrency(apf1201_initialFunding)}
+            headerBgColor="bg-amber-600" // ZVaR Asset
+            valueTextColor="text-amber-600"
+            sfmCode="SFM-APF-1281"
+            opacity={opacity}
           />
           
           <APFMetricSummaryCard
             title="TOTAL MATURITY VALUE"
-            value={formatCurrency(displayMaturityValue)}
-            headerBgColor="bg-yellow-600"
-            valueTextColor="text-yellow-600"
-            sfmCode="SFM-APF-1202"
+            value={formatCurrency(apf1202_maturity)}
+            headerBgColor="bg-blue-600" // ISA/asset maturity cue
+            valueTextColor="text-blue-600"
+            sfmCode="SFM-APF-1282"
+            opacity={opacity}
           />
           
           <APFMetricSummaryCard
             title="TOTAL INBL PRINCIPAL"
-            value={formatCurrency(displayINBLPrincipal)}
-            headerBgColor="bg-yellow-600"
-            valueTextColor="text-yellow-600"
-            sfmCode="SFM-APF-1203"
+            value={formatCurrency(apf1203_inblPrincipal)}
+            headerBgColor="bg-emerald-600" // INBL loan principal
+            valueTextColor="text-emerald-600"
+            sfmCode="SFM-APF-1283"
+            opacity={opacity}
           />
         </div>
         
@@ -93,8 +82,9 @@ export function APFINBLSummaryCard({ profile, unifiedResult, sponsorships }: APF
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-start space-x-2">
               <div className="text-amber-600 text-sm">
-                <strong>Salary Exchange Constraint:</strong> APF funding limited to £{formatCurrency(unifiedResult.feasibleAPFFunding)} 
-                due to {unifiedResult.salaryExchangeReasonForLimit.toLowerCase()}.
+                <strong>Salary Exchange Constraint:</strong> APF funding limited to 
+                <span className={opacity}>£{formatCurrency(unifiedResult.feasibleAPFFunding)}</span>
+                {" "}due to {unifiedResult.salaryExchangeReasonForLimit.toLowerCase()}.
               </div>
             </div>
           </div>

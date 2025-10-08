@@ -5,8 +5,8 @@ import { Calendar, AlertTriangle, CheckCircle } from "lucide-react";
 import { APFSponsorshipBreakdown } from "@/utils/pension/buomTypes";
 import { MetricCard } from "@/components/Dashboard/MetricCard";
 import { usePayslipCalculations } from "@/hooks/usePayslipCalculations";
-import { getSFMCodeForMetric } from "@/utils/systemFields/sfmCodeGenerator";
-import { useSFMResolver } from "@/hooks/useSFMResolver";
+import { getAPF42XXCode } from "@/utils/systemFields/apf42xxMapper";
+// Removed SFM resolver to avoid circular dependencies with Steps 3 & 5
 
 // Define a minimal Profile type to avoid `any`
 interface Profile {
@@ -18,11 +18,11 @@ interface APFSponsorshipYearsCardProps {
   showMonthly: boolean;
   profile: Profile;
   initialCapitalShortfall: number;
+  opacity?: string;
 }
 
-export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, initialCapitalShortfall }: APFSponsorshipYearsCardProps) {
+export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, initialCapitalShortfall, opacity = "opacity-100" }: APFSponsorshipYearsCardProps) {
   const { calculatePayslipComparison } = usePayslipCalculations();
-  const { resolveSFM, ready } = useSFMResolver();
   const monthlyDivisor = 252;
   const annualSalary = profile?.annual_salary || 60000;
   
@@ -75,7 +75,11 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
             const displayAge = sponsorship.age;
             const isShortfallEliminated = cumulativeShortfall === 0;
             const yearNumber = index + 1;
-            const isPartialYear = sponsorship.sponsorshipAmount < 40000; // Likely partial if less than annual allowance
+            // Partial year detection: treat only the final year as partial when the
+            // contribution is below the optimized allowance (~£47,430)
+            const OPTIMIZED_CONTRIBUTION = 47430;
+            const isFinalYear = index === sponsorships.length - 1;
+            const isPartialYear = isFinalYear && sponsorship.sponsorshipAmount < OPTIMIZED_CONTRIBUTION;
             
             return (
               <div key={index} className="border rounded-lg p-4">
@@ -111,9 +115,8 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {(() => {
-                    const sfmCode = getSFMCodeForMetric('APF_INITIAL_FUNDING', yearNumber);
-                    const resolved = ready ? resolveSFM(sfmCode) : 0;
-                    const displayValue = resolved > 0 ? resolved : sponsorship.sponsorshipAmount;
+                    const sfmCode = getAPF42XXCode('APF_INITIAL_FUNDING', yearNumber, isPartialYear);
+                    const displayValue = sponsorship.sponsorshipAmount;
                     return (
                       <MetricCard
                         title="APF INITIAL FUNDING"
@@ -121,14 +124,14 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
                         headerBgColor="bg-yellow-600"
                         valueTextColor="text-yellow-600"
                         sfmCode={sfmCode}
+                        opacity={opacity}
                       />
                     );
                   })()}
                   
                   {(() => {
-                    const sfmCode = getSFMCodeForMetric('APF_MATURITY', yearNumber);
-                    const resolved = ready ? resolveSFM(sfmCode) : 0;
-                    const displayValue = resolved > 0 ? resolved : sponsorship.maturityValue;
+                    const sfmCode = getAPF42XXCode('APF_MATURITY', yearNumber, isPartialYear);
+                    const displayValue = sponsorship.maturityValue;
                     return (
                       <MetricCard
                         title="APF MATURITY"
@@ -136,14 +139,14 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
                         headerBgColor="bg-yellow-600"
                         valueTextColor="text-yellow-600"
                         sfmCode={sfmCode}
+                        opacity={opacity}
                       />
                     );
                   })()}
                   
                   {(() => {
-                    const sfmCode = getSFMCodeForMetric('TOTAL_INBL_PRINCIPAL', yearNumber);
-                    const resolved = ready ? resolveSFM(sfmCode) : 0;
-                    const displayValue = resolved > 0 ? resolved : inblAmount;
+                    const sfmCode = getAPF42XXCode('TOTAL_INBL_PRINCIPAL', yearNumber, isPartialYear);
+                    const displayValue = inblAmount;
                     return (
                       <MetricCard
                         title="TOTAL INBL PRINCIPAL"
@@ -151,14 +154,14 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
                         headerBgColor="bg-green-600"
                         valueTextColor="text-green-600"
                         sfmCode={sfmCode}
+                        opacity={opacity}
                       />
                     );
                   })()}
                   
                   {(() => {
-                    const sfmCode = getSFMCodeForMetric('SHORTFALL_BALANCE', yearNumber);
-                    const resolved = ready ? resolveSFM(sfmCode) : 0;
-                    const displayValue = resolved > 0 ? resolved : cumulativeShortfall;
+                    const sfmCode = getAPF42XXCode('SHORTFALL_BALANCE', yearNumber, isPartialYear);
+                    const displayValue = cumulativeShortfall;
                     const eliminated = displayValue <= 0 || isShortfallEliminated;
                     const titleText = eliminated ? 'SHORTFALL ELIMINATED!' : 'SHORTFALL BALANCE';
                     return (
@@ -167,6 +170,7 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
                         value={eliminated ? "£0" : formatCurrency(showMonthly ? displayValue / monthlyDivisor : displayValue)}
                         headerBgColor={eliminated ? "bg-green-600" : "bg-red-600"}
                         valueTextColor={eliminated ? "text-green-600" : "text-red-600"}
+                        opacity={opacity}
                         sfmCode={sfmCode}
                       />
                     );
@@ -180,7 +184,9 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
                   </div>
                 ) : (
                   <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                    <strong>Note:</strong> Remaining shortfall of £{cumulativeShortfall.toLocaleString()} to be covered by {index === sponsorships.length - 1 ? 'future APF funding' : 'next year APF funding'}.
+                    <strong>Note:</strong> Remaining shortfall of {" "}
+                    <span className={opacity}>£{cumulativeShortfall.toLocaleString()}</span>{" "}
+                    to be covered by {index === sponsorships.length - 1 ? 'future APF funding' : 'next year APF funding'}.
                   </div>
                 )}
               </div>
@@ -197,15 +203,15 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
               </div>
               <div>
                 <span className="text-gray-600">Total Initial APF Funding:</span>
-                <span className="font-medium ml-2">£{totalAPFFundingRequired.toLocaleString()}</span>
+                <span className={`font-medium ml-2 ${opacity}`}>£{totalAPFFundingRequired.toLocaleString()}</span>
               </div>
               <div>
                 <span className="text-gray-600">Total APF Maturity Value:</span>
-                <span className="font-medium ml-2">£{totalMaturityValue.toLocaleString()}</span>
+                <span className={`font-medium ml-2 ${opacity}`}>£{totalMaturityValue.toLocaleString()}</span>
               </div>
               <div>
                 <span className="text-gray-600">Plan Status:</span>
-                <span className="font-medium ml-2 text-green-600">
+                <span className={`font-medium ml-2 text-green-600 ${opacity}`}>
                   {totalMaturityValue >= initialCapitalShortfall ? 'Complete' : 'In Progress'}
                 </span>
               </div>

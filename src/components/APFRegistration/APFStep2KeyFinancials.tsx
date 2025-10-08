@@ -1,16 +1,13 @@
-import { useState } from "react";
-import { isTestingAccount } from "@/utils/testing";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
-import { APFINBLSummaryCard } from "./APFStep2Cards/APFINBLSummaryCard";
 import { APFSponsorshipYearsCard } from "./APFStep2Cards/APFSponsorshipYearsCard";
+import { APFINBLSummaryCard } from "./APFStep2Cards/APFINBLSummaryCard";
 import { calculateActualSponsorshipsFromShortfall } from "@/utils/pension/apfSponsorshipCalculations";
 import { calculateAge } from "@/utils/pensionCalculations";
 import { calculateUnifiedPensionMetrics, UnifiedCalculationResult } from "@/utils/pension/unifiedCalculationEngine";
 import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 import { calculateExistingPensionValue as calculateExistingPensionFromAssets } from "./APFStep4Components/calculationUtils";
 import { Asset as UnifiedAsset, Profile as UnifiedProfile } from "@/utils/systemFields/types";
+ 
 
 interface APFStep2KeyFinancialsProps {
   profile: {
@@ -24,7 +21,6 @@ interface APFStep2KeyFinancialsProps {
 }
 
 export function APFStep2KeyFinancials({ profile, onComplete }: APFStep2KeyFinancialsProps) {
-  const [acknowledged, setAcknowledged] = useState<boolean>(isTestingAccount() ? true : false);
   const { assets } = useNetAssetValue();
   
   // Get basic data from profile - fix the calculateAge usage
@@ -70,16 +66,7 @@ export function APFStep2KeyFinancials({ profile, onComplete }: APFStep2KeyFinanc
   const totalAPFFunding = apfSponsorships.reduce((sum, s) => sum + s.sponsorshipAmount, 0);
   const maxFundingYears = apfSponsorships.length;
 
-  // Render a helpful message only when essential inputs are missing
-  if (!currentAge || annualSalary === null) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Missing required data for APF calculations...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Do not gate rendering on missing data; fallback values are handled downstream
 
   // Use unified engine outputs for the summary card; fall back to minimal fields when unavailable
   const summaryUnified: UnifiedCalculationResult = unifiedResult || {
@@ -105,85 +92,49 @@ export function APFStep2KeyFinancials({ profile, onComplete }: APFStep2KeyFinanc
     targetIncomeToday: 0
   };
 
-  // Create profile object for APFINBLSummaryCard
-  const profileForCard = {
-    annualSalary: annualSalary,
+  // Profile passthrough for cards that rely on salary or labels
+  const profileForCards = {
+    annual_salary: annualSalary ?? undefined,
     firstName: profile.firstName || "",
     lastName: profile.lastName || "",
     dateOfBirth: profile.dateOfBirth || new Date()
-  };
+  } as const;
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-gray-900">
-            Key Financial Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-sm text-blue-600 font-medium">Current Age</div>
-              <div className="text-2xl font-bold text-blue-900">{currentAge}</div>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-sm text-green-600 font-medium">Annual Salary</div>
-              <div className="text-2xl font-bold text-green-900">£{annualSalary.toLocaleString()}</div>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <div className="text-sm text-orange-600 font-medium">Shortfall Target</div>
-              <div className="text-2xl font-bold text-orange-900">£{shortfallTarget.toLocaleString()}</div>
-            </div>
-          </div>
+      <APFINBLSummaryCard
+        profile={{
+          annualSalary: annualSalary ?? 0,
+          firstName: profile.firstName || "",
+          lastName: profile.lastName || "",
+          dateOfBirth: profile.dateOfBirth || new Date()
+        }}
+        unifiedResult={summaryUnified}
+        sponsorships={apfSponsorships}
+      />
 
-          <div className="border-t pt-4">
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={acknowledged}
-                onChange={(e) => setAcknowledged(e.target.checked)}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">
-                I acknowledge these financial details and wish to proceed with the APF calculation
-              </span>
-              {acknowledged && <Check className="w-5 h-5 text-green-600" />}
-            </label>
-            {acknowledged && onComplete && (
-              <div className="mt-4">
-                <Button
-                  onClick={() => onComplete({
-                    sponsorships: apfSponsorships,
-                    maxFundingYears,
-                    totalAPFFunding,
-                  })}
-                  className="w-full"
-                >
-                  Save and Continue
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {(acknowledged || isTestingAccount()) && (
-        <div className="space-y-6">
-          <APFINBLSummaryCard 
-            profile={profileForCard}
-            unifiedResult={summaryUnified}
-            sponsorships={apfSponsorships}
-          />
-          
+      <div className="space-y-6">
           <APFSponsorshipYearsCard
             sponsorships={apfSponsorships}
             showMonthly={false}
-            profile={profile}
+            profile={profileForCards}
             initialCapitalShortfall={shortfallTarget}
           />
-        </div>
-      )}
+        {onComplete && (
+          <div className="pt-2">
+            <Button
+              onClick={() => onComplete({
+                sponsorships: apfSponsorships,
+                maxFundingYears,
+                totalAPFFunding,
+              })}
+              className="w-full"
+            >
+              Save and Continue
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

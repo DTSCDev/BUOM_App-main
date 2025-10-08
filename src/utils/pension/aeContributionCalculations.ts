@@ -20,8 +20,8 @@ export const calculateTotalAEContributions = (
   const historicalYears = Math.max(0, currentAge - 21);
   const futureYears = yearsUntilPension;
   
-  // CORRECTED: Use the fixed existing pension calculation for historical contributions
-  const { totalContributions: historicalContributions } = calculateExistingPensionValue(annualSalary, currentAge);
+  // UPDATED: Use monthly payday method for historical contributions to match Free Calculator
+  const historicalContributions = calculateMonthlyHistoricalAEContributions(annualSalary, currentAge);
   
   console.log('=== CORRECTED HISTORICAL AE CONTRIBUTIONS ===');
   console.log(`Current salary: £${annualSalary.toLocaleString()}`);
@@ -45,6 +45,35 @@ export const calculateTotalAEContributions = (
     historicalYears,
     futureYears
   };
+};
+
+// NEW: Historical AE contributions (age 21 to current age) using monthly salary inflation and 50p rounding per payday
+export const calculateMonthlyHistoricalAEContributions = (
+  annualSalary: number,
+  currentAge: number
+): number => {
+  const historicalYears = Math.max(0, currentAge - 21);
+  if (historicalYears <= 0) return 0;
+
+  // Deflate current salary back to age 21
+  const salaryAtAge21 = annualSalary / Math.pow(1 + compoundingCalculator.annualSalaryInflation, historicalYears);
+
+  // Base monthly AE contribution at age 21 (Set 2 & 3)
+  const monthlyContributionAtAge21 = compoundingCalculator.calculateMonthlyAEContribution(salaryAtAge21);
+
+  const totalMonths = historicalYears * 12;
+  const monthlySalaryInflation = Math.pow(1 + compoundingCalculator.annualSalaryInflation, 1/12) - 1;
+
+  let totalContributions = 0;
+
+  for (let month = 0; month < totalMonths; month++) {
+    // Inflate contribution monthly from age 21 (no per-payday rounding; match Free Calculator)
+    const inflated = monthlyContributionAtAge21 * Math.pow(1 + monthlySalaryInflation, month);
+    totalContributions += inflated;
+  }
+
+  // Return nearest pound for reporting (aligns with Free Calculator)
+  return Math.round(totalContributions);
 };
 
 // *** ACTUAL AE contributions based on real salary and timeline ***

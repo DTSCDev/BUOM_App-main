@@ -40,6 +40,8 @@ export default function APFRegistration() {
 
   const handleStepComplete = (data: Record<string, unknown>) => {
     setApplicationData(prev => ({ ...prev, ...data }));
+    // Advance to next step immediately after a step reports completion
+    setCurrentStep(prev => (prev < 6 ? prev + 1 : prev));
   };
 
   if (profileLoading) {

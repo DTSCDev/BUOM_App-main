@@ -1,7 +1,9 @@
 
 import { useState, useEffect } from "react";
+import { useProfile } from "@/hooks/useProfile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
+// Removed quick metric dependencies
 import { APFPersonalInfoSection } from "./APFPersonalInfoSection";
 import { APFAddressSection } from "./APFAddressSection";
 import { APFEmploymentSection } from "./APFEmploymentSection";
@@ -32,11 +34,30 @@ interface APFStep1PersonalDetailsProps {
     company_number?: string;
     business_address?: string;
     works_from_home?: boolean;
+    paye_tax_code?: string;
   };
   onComplete: (data: Record<string, unknown>) => void;
 }
 
 export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1PersonalDetailsProps) {
+  const { updateProfile } = useProfile();
+  const formatGBP = (value: number | string) => {
+    const num = typeof value === 'string' ? Number(value.toString().replace(/[^0-9.-]/g, '')) : value;
+    if (isNaN(num)) return '';
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      maximumFractionDigits: 0,
+    }).format(num);
+  };
+
+  const parseGBPToNumber = (value: string): number | null => {
+    const cleaned = value.replace(/[^0-9.-]/g, "");
+    if (!cleaned) return null;
+    const num = Number(cleaned);
+    return isNaN(num) ? null : num;
+  };
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -49,6 +70,9 @@ export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1Persona
     city: "",
     postCode: "",
     country: "United Kingdom",
+    annualSalary: "",
+    payeTaxCode: "",
+    p11dBenefit: "",
     employmentType: "",
     employerName: "",
     employerAddress: "",
@@ -64,6 +88,8 @@ export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1Persona
   });
 
   const [isValid, setIsValid] = useState(false);
+
+  // Removed quick display metrics (Current Age, Annual Salary)
 
   // Populate form with profile data
   useEffect(() => {
@@ -94,6 +120,11 @@ export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1Persona
         companyNumber: profile.company_number || "",
         businessAddress: profile.business_address || "",
         worksFromHome: profile.works_from_home || false,
+        // Salary details (form style)
+        annualSalary: profile.annual_salary != null ? formatGBP(profile.annual_salary) : "",
+        // PAYE & P11D
+        payeTaxCode: profile.paye_tax_code || "",
+        p11dBenefit: "",
       }));
       
       console.log('Step1 - Form data updated with profile');
@@ -122,8 +153,17 @@ export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1Persona
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (isValid) {
+      const salaryNumber = parseGBPToNumber(formData.annualSalary);
+      const updates: Partial<import("@/hooks/useProfile").ProfileData> = {};
+      if (salaryNumber !== null) updates.annual_salary = salaryNumber;
+      if (formData.payeTaxCode) updates.paye_tax_code = formData.payeTaxCode;
+
+      if (Object.keys(updates).length > 0) {
+        await updateProfile(updates);
+      }
+
       console.log('Step1 - Submitting form data:', formData);
       onComplete(formData);
     }
@@ -140,6 +180,8 @@ export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1Persona
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Removed quick metric tiles per request */}
+
         <APFPersonalInfoSection 
           formData={formData}
           onInputChange={handleInputChange}
