@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { APFSponsorshipYearsCard } from "./APFStep2Cards/APFSponsorshipYearsCard";
-import { APFINBLSummaryCard } from "./APFStep2Cards/APFINBLSummaryCard";
-import { calculateActualSponsorshipsFromShortfall } from "@/utils/pension/apfSponsorshipCalculations";
-import { calculateAge } from "@/utils/pensionCalculations";
-import { calculateUnifiedPensionMetrics, UnifiedCalculationResult } from "@/utils/pension/unifiedCalculationEngine";
-import { useNetAssetValue } from "@/hooks/useNetAssetValue";
-import { calculateExistingPensionValue as calculateExistingPensionFromAssets } from "./APFStep4Components/calculationUtils";
-import { Asset as UnifiedAsset, Profile as UnifiedProfile } from "@/utils/systemFields/types";
- 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MetricCard } from "@/components/Dashboard/MetricCard";
+import { APFMetricSummaryCard } from "@/components/Dashboard/APFMetricSummaryCard";
+import { Calendar, AlertTriangle, TrendingUp } from "lucide-react";
+import { formatCurrency } from "@/utils/formatUtils";
+import { useRetirementCalculatorHub } from "@/hooks/useRetirementCalculatorHub";
+import { useProfile } from "@/hooks/useProfile";
+import { getPensionParameters } from "@/utils/pensionParameters";
+import { APFInblSummaryProposedCard } from "./APFStep2Cards/APFInblSummaryProposedCard";
 
 interface APFStep2KeyFinancialsProps {
   profile: {
@@ -20,121 +20,152 @@ interface APFStep2KeyFinancialsProps {
   onComplete?: (data: Record<string, unknown>) => void;
 }
 
-export function APFStep2KeyFinancials({ profile, onComplete }: APFStep2KeyFinancialsProps) {
-  const { assets } = useNetAssetValue();
-  
-  // Get basic data from profile - fix the calculateAge usage
-  const currentAge = profile?.date_of_birth ? calculateAge(new Date(profile.date_of_birth)).years : null;
-  const annualSalary = profile?.annual_salary || null;
-  
-  // Compute shortfall using unified engine (PRF + NAV)
-  const existingPensionValue = calculateExistingPensionFromAssets(assets || []);
-  // Map NAV Asset type to unified engine Asset type
-  const assetsForUnified: UnifiedAsset[] = (assets || []).map(a => ({
-    name: a.name,
-    category: { name: a.category?.name },
-    value: a.value,
-  }));
-  // Prepare profile for unified engine
-  const unifiedProfile: UnifiedProfile = {
-    annual_salary: annualSalary ?? undefined,
+export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps) {
+  // Central values: CAL-4121 shortfall and PRF salary/P11D for Year 1 calc
+  const hub = useRetirementCalculatorHub();
+  const { profile } = useProfile();
+  const params = getPensionParameters();
+
+  const annualSalary = profile?.annual_salary || hub.prf2021_annualSalary || 0; // SFM-PRF-2021
+  // Safely parse P11D (may be stored as a currency string)
+  const parseCurrencyToNumber = (raw?: string | null): number => {
+    if (!raw) return 0;
+    const cleaned = String(raw).replace(/[^0-9.-]/g, "");
+    const n = Number(cleaned);
+    return isNaN(n) ? 0 : n;
   };
-  const unifiedResult: UnifiedCalculationResult | null = (currentAge && annualSalary !== null)
-    ? calculateUnifiedPensionMetrics(
-        currentAge,
-        annualSalary,
-        existingPensionValue,
-        true,
-        assetsForUnified,
-        unifiedProfile
-      )
-    : null;
-  const shortfallTarget = unifiedResult?.currentCapitalShortfall || 0;
+  const p11d = parseCurrencyToNumber(profile?.p11d); // SFM-PRF-2030
+  const personalAllowance = params.personalAllowance; // SFM-CAL-4421
 
-  // Calculate APF sponsorships using the shortfall target
-  const apfSponsorships = (currentAge && annualSalary !== null && shortfallTarget > 0)
-    ? calculateActualSponsorshipsFromShortfall(
-        currentAge,
-        annualSalary,
-        shortfallTarget,
-        true, // Enhanced member
-        profile
-      )
-    : [];
+  // APF-4201-M: Year 1 Max Initial Contribution (no Carry Forward)
+  const year1MaxInitialContribution = Math.max(0, annualSalary + p11d - personalAllowance);
+  // SFM-APF-4211-M: Year 1 Maturity (APF-4201-M × 1.582)
+  const year1Maturity = year1MaxInitialContribution * params.apfMaturityMultiplier;
 
-  // Simple totals from sponsorships
-  const totalAPFFunding = apfSponsorships.reduce((sum, s) => sum + s.sponsorshipAmount, 0);
-  const maxFundingYears = apfSponsorships.length;
+  // APF & INBL SUMMARY: APF-1282 from CAL-4121, APF-1281 derived
+  const totalMaturityValue = hub.cal4121_capitalShortfall || 0; // SFM-APF-1282
+  const totalInitialFunding = totalMaturityValue / params.apfMaturityMultiplier; // SFM-APF-1281
 
-  // Do not gate rendering on missing data; fallback values are handled downstream
+  // SFM-APF-4241-M: INBL Principal (Year 1, Maximum) – allowed temporary fixed value per instructions
+  const inblPrincipalYear1 = 37919;
 
-  // Use unified engine outputs for the summary card; fall back to minimal fields when unavailable
-  const summaryUnified: UnifiedCalculationResult = unifiedResult || {
-    proposedAPFFunding: totalAPFFunding,
-    feasibleAPFFunding: totalAPFFunding,
-    salaryExchangeReasonForLimit: "",
-    currentCapitalShortfall: shortfallTarget,
-    retirementProgressPercentage: 0,
-    targetIncomeAtRetirement: 0,
-    existingPlanIncomeAtRetirement: 0,
-    apfTargetIncome: 0,
-    isaTargetMonthly: 0,
-    isaValueToday: 0,
-    repaymentProgressPercentage: 0,
-    statePensionAtRetirement: 0,
-    yearsToRetirement: 0,
-    requiredCapital: 0,
-    projectedExistingPlan: 0,
-    totalFutureAEContributions: 0,
-    totalProjectedAssets: 0,
-    capitalShortfallToday: 0,
-    existingPlanIncome: 0,
-    targetIncomeToday: 0
-  };
+  // APF-4251-M: Remaining shortfall balance (Year 1, Maximum)
+  const year1ShortfallBalance = Math.max(0, totalInitialFunding - year1MaxInitialContribution);
 
-  // Profile passthrough for cards that rely on salary or labels
-  const profileForCards = {
-    annual_salary: annualSalary ?? undefined,
-    firstName: profile.firstName || "",
-    lastName: profile.lastName || "",
-    dateOfBirth: profile.dateOfBirth || new Date()
-  } as const;
+  // Plan Summary calculations
+  const totalYearsRequired = year1MaxInitialContribution > 0
+    ? Math.ceil(totalInitialFunding / year1MaxInitialContribution)
+    : 0;
 
   return (
     <div className="space-y-6">
-      <APFINBLSummaryCard
-        profile={{
-          annualSalary: annualSalary ?? 0,
-          firstName: profile.firstName || "",
-          lastName: profile.lastName || "",
-          dateOfBirth: profile.dateOfBirth || new Date()
-        }}
-        unifiedResult={summaryUnified}
-        sponsorships={apfSponsorships}
-      />
-
-      <div className="space-y-6">
-          <APFSponsorshipYearsCard
-            sponsorships={apfSponsorships}
-            showMonthly={false}
-            profile={profileForCards}
-            initialCapitalShortfall={shortfallTarget}
-          />
-        {onComplete && (
-          <div className="pt-2">
-            <Button
-              onClick={() => onComplete({
-                sponsorships: apfSponsorships,
-                maxFundingYears,
-                totalAPFFunding,
-              })}
-              className="w-full"
-            >
-              Save and Continue
-            </Button>
-          </div>
-        )}
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+          2
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold">Step 2: Key Financials for APF Funding</h2>
+          <p className="text-sm text-gray-600">Review your Advanced Pension Funding structure and INBL loan details</p>
+        </div>
       </div>
+
+      {/* APF & INBL Summary - Proposed Funding */}
+      <APFInblSummaryProposedCard profile={{ annual_salary: annualSalary }} sponsorships={[]} opacity="opacity-100" />
+
+      {/* Year 1 Sponsorship Funding */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              <span className="text-lg font-semibold" style={{ color: '#4FF456' }}>Year 1 Sponsorship Funding</span>
+            </div>
+            <span className="text-sm text-gray-700">(2025/26) · Age 42</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Advisory Banner */}
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+            <div>
+              <div className="font-medium text-yellow-800">Advisory Protection Applied</div>
+              <div className="text-sm text-yellow-700">1257L tax code limit — Personal Allowance deducted from AIP Offer to preserve NI credits.</div>
+            </div>
+          </div>
+
+          {/* Year 1 metric tiles */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <MetricCard
+              title="APF INITIAL CONTRIBUTION"
+              value={formatCurrency(year1MaxInitialContribution)}
+              headerBgColor="bg-transparent"
+              valueTextColor="text-[rgb(191,144,0)]"
+              style={{ backgroundColor: 'rgb(191,144,0)' }}
+              opacity="opacity-100"
+            />
+            <MetricCard
+              title="APF MATURITY"
+              value={formatCurrency(year1Maturity)}
+              headerBgColor="bg-purple-600"
+              valueTextColor="text-purple-600"
+              opacity="opacity-100"
+            />
+            <MetricCard
+              title="TOTAL INBL PRINCIPAL"
+              value={formatCurrency(inblPrincipalYear1)}
+              headerBgColor="bg-green-600"
+              valueTextColor="text-green-600"
+              opacity="opacity-100"
+            />
+            <MetricCard
+              title="SHORTFALL BALANCE"
+              value={formatCurrency(year1ShortfallBalance)}
+              headerBgColor="bg-red-600"
+              valueTextColor="text-red-600"
+              opacity="opacity-100"
+            />
+          </div>
+
+          {/* Note under tiles */}
+          <div className="text-xs text-gray-600 border rounded-md p-2">Note: Remaining shortfall of {formatCurrency(year1ShortfallBalance)} will be met by additional APF funding in future tax years (subject to status)</div>
+      </CardContent>
+    </Card>
+
+      {/* Plan Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold" style={{ color: '#4FF456' }}>APF Sponsorship Plan Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center items-start">
+            <div className="flex flex-col items-center">
+              <div className="text-sm text-gray-600 min-h-[40px]">Total Sponsorship Years Required</div>
+              <div className="text-lg font-semibold leading-none">{totalYearsRequired}</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="text-sm text-gray-600 min-h-[40px]">Total Initial APF Contributions</div>
+              <div className="text-lg font-semibold leading-none text-[rgb(191,144,0)]">{formatCurrency(totalInitialFunding)}</div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="text-sm text-gray-600 min-h-[40px]">Total APF Maturity Value</div>
+              <div className="text-lg font-semibold leading-none text-purple-600">{formatCurrency(totalMaturityValue)}</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Confirmation (no inline Next button; navigation controls handle Next) */}
+      <Card>
+        <CardContent className="space-y-4">
+          <label className="flex items-start gap-3 text-sm text-gray-700">
+            <input type="checkbox" className="mt-1" />
+            <span>
+              I acknowledge that I have reviewed and understood the APF funding structure, INBL loan terms, and the value proposition of this arrangement.
+            </span>
+          </label>
+        </CardContent>
+      </Card>
     </div>
   );
 }

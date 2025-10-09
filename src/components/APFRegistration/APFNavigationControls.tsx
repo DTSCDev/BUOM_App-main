@@ -29,7 +29,7 @@ export function APFNavigationControls({ currentStep, canProceed, onNext, onBack 
       <Button
         onClick={onNext}
         disabled={currentStep === 6}
-        className="flex items-center space-x-2"
+        className="flex items-center space-x-2 bg-[#4FF456] text-gray-700 hover:bg-[#4FF456]"
       >
         <span>{currentStep === 6 ? "Complete" : "Next"}</span>
         <ArrowRight className="h-4 w-4" />

@@ -158,10 +158,10 @@ export function APFRegistrationStep2({ onNext, onBack, profile, dashboardData }:
           </div>
 
           <div className="flex justify-between">
-            <Button type="button" variant="outline" onClick={onBack}>
+            <Button type="button" onClick={onBack} className="bg-[#4FF456] text-gray-700 hover:bg-[#4FF456]">
               Back
             </Button>
-            <Button type="submit" disabled={!formData.inblFundingApproved}>
+            <Button type="submit" disabled={!formData.inblFundingApproved} className="bg-[#4FF456] text-gray-700 hover:bg-[#4FF456]">
               Continue to Affordability Check
             </Button>
           </div>
