@@ -1,7 +1,8 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// Removed button toggle; using switch instead
+import { Switch } from "@/components/ui/switch";
 import { formatCurrency } from "@/utils/formatUtils";
 import { ImportantNoticeDialog } from "./ImportantNoticeDialog";
 import { ApfSalarySummary } from "./apfSalarySummary";
@@ -85,9 +86,9 @@ export function ApfRetirementPlanSummary() {
   // Align to hub: use CAL-4111 (time to retirement years), not SPA years
   const annualSalaryInflated = (profile.annual_salary || 0) * Math.pow(1 + params.salaryInflation, hub.cal4111_timeToRetirementYears);
 
-  // CAL-4107: Target Income at Retirement
-  const targetIncomeToday = (profile.annual_salary || 0) * params.pensionIncomeTarget;
-  const targetIncomeAtRetirement = targetIncomeToday * Math.pow(1 + params.pensionIncomeInflation, yearsToSPA);
+  // APF-1004: Future Target Income = APF-1002 × CAL-4406
+  // APF-1002 is annualSalaryInflated; CAL-4406 maps to params.pensionIncomeTarget
+  const targetIncomeAtRetirement = annualSalaryInflated * params.pensionIncomeTarget;
 
   const totalProjectedValue = (hub.cal4126_existingFundValueAtRetirement || 0) + (hub.cal4127_existingPlanFutureContributions || 0);
 
@@ -108,7 +109,7 @@ export function ApfRetirementPlanSummary() {
     annualSalary: profile.annual_salary || 0, // APF-1001
     annualSalaryInflated, // APF-1002
     paydaysRemaining: hub.cal4113_paydaysRemaining, // APF-1003 (CAL-4113)
-    targetIncomeAtRetirement: hub.cal4107_targetIncomeAtRetirement, // APF-1004 (CAL-4107)
+    targetIncomeAtRetirement, // APF-1004 (CAL-4107) — unified to local calculation
     existingPlanIncomeAtRetirement, // APF-1005 (CAL-4132)
     apfTargetIncome, // APF-1006
     retirementProgressPercentage: Math.min(100, targetIncomeAtRetirement > 0 ? (existingPlanIncomeAtRetirement / targetIncomeAtRetirement) * 100 : 0),
@@ -127,22 +128,8 @@ export function ApfRetirementPlanSummary() {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-xl font-bold" style={{ color: '#4FF456' }}>RETIREMENT PLAN</CardTitle>
-        <div className="flex items-center gap-2 mt-2">
-          <Button
-            variant={isAnnualView ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsAnnualView(true)}
-          >
-            Annual
-          </Button>
-          <Button
-            variant={!isAnnualView ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsAnnualView(false)}
-          >
-            Monthly
-          </Button>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl font-bold" style={{ color: '#4FF456' }}>RETIREMENT PLAN</CardTitle>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -151,11 +138,13 @@ export function ApfRetirementPlanSummary() {
           futureSalary={calculations.annualSalaryInflated}
           paydaysRemaining={calculations.paydaysRemaining}
           formatValue={formatValue}
+          isAnnualView={isAnnualView}
+          onToggle={(checked) => setIsAnnualView(checked)}
         />
 
-        <ApfIncomeSummary calculations={calculations} />
+        <ApfIncomeSummary calculations={calculations} formatValue={formatValue} />
 
-        <ApfISAPlanSummary calculations={calculations} />
+        <ApfISAPlanSummary calculations={calculations} formatValue={formatValue} />
 
         <div className="flex justify-center pt-4 border-t">
           <ImportantNoticeDialog />

@@ -10,12 +10,11 @@ interface ApfISAPlanSummaryProps {
     isaSavingsTargetToday: number;
     repaymentProgressPercentage: number;
   };
+  formatValue: (value: number) => string;
 }
 
-export function ApfISAPlanSummary({ calculations }: ApfISAPlanSummaryProps) {
+export function ApfISAPlanSummary({ calculations, formatValue }: ApfISAPlanSummaryProps) {
   const fundingStatus = DemoDataService.getUserFundingStatus();
-
-  const formatValue = (value: number) => `£${Math.round(value).toLocaleString()}`;
 
   // Add null checking and default values
   if (!calculations) {

@@ -18,19 +18,37 @@ const SFMCodeDisplay: React.FC<{ sfmCode: string }> = ({ sfmCode }) => {
 };
 
 import { MetricCard } from "./MetricCard";
+import { Switch } from "@/components/ui/switch";
 
 interface ApfSalarySummaryProps {
   currentSalary: number;
   futureSalary: number;
   paydaysRemaining: number;
   formatValue: (value: number) => string;
+  isAnnualView: boolean;
+  onToggle: (checked: boolean) => void;
 }
 
-export function ApfSalarySummary({ currentSalary, futureSalary, paydaysRemaining, formatValue }: ApfSalarySummaryProps) {
+export function ApfSalarySummary({ currentSalary, futureSalary, paydaysRemaining, formatValue, isAnnualView, onToggle }: ApfSalarySummaryProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-gray-700">Salary Assumptions</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-700">Salary Assumptions</h3>
+        <div className="flex items-center gap-3">
+          <span className={`text-sm ${isAnnualView ? 'text-gray-400' : ''}`} style={!isAnnualView ? { color: '#4FF456', fontWeight: 600 } : undefined}>
+            Monthly
+          </span>
+          <Switch
+            checked={isAnnualView}
+            onCheckedChange={onToggle}
+            className="data-[state=unchecked]:bg-input data-[state=checked]:bg-primary"
+          />
+          <span className={`text-sm ${!isAnnualView ? 'text-gray-400' : ''}`} style={isAnnualView ? { color: '#4FF456', fontWeight: 600 } : undefined}>
+            Annual
+          </span>
+        </div>
+      </div>
       <div className="grid grid-cols-3 gap-3">
         <MetricCard
           title="CURRENT SALARY"

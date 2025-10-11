@@ -9,12 +9,11 @@ interface ApfIncomeSummaryProps {
     apfTargetIncome: number;
     retirementProgressPercentage: number;
   };
+  formatValue: (value: number) => string;
 }
 
-export function ApfIncomeSummary({ calculations }: ApfIncomeSummaryProps) {
+export function ApfIncomeSummary({ calculations, formatValue }: ApfIncomeSummaryProps) {
   const fundingStatus = DemoDataService.getUserFundingStatus();
-
-  const formatValue = (value: number) => `£${Math.round(value).toLocaleString()}`;
 
   // Add null checking and default values
   if (!calculations) {
