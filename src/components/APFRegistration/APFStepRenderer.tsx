@@ -6,6 +6,7 @@ import { APFStep4BestUseOfMoney } from "./APFStep4BestUseOfMoney";
 import { APFStep5SalaryExchange } from "./APFStep5SalaryExchange";
 import { APFStep6Terms } from "./APFStep6Terms";
 import { ProfileData } from "@/hooks/useProfile";
+import { APFRegistrationData } from "@/types/apfRegistration";
 
 // Convert ProfileData (with null values) to the format expected by step components (with undefined)
 type StepProfile = {
@@ -52,9 +53,10 @@ interface Profile extends ProfileData {
 interface APFStepRendererProps {
   currentStep: number;
   profile: Profile;
-  applicationData: Record<string, unknown>;
-  onComplete?: (data: Record<string, unknown>) => void;
+  applicationData: APFRegistrationData;
+  onComplete?: (data: Partial<APFRegistrationData>) => void;
   stage?: 1 | 2 | 3;
+  registerStepSave?: (fn: () => Promise<Partial<APFRegistrationData>>) => void;
 }
 
 // Default onComplete handler
@@ -104,14 +106,15 @@ export function APFStepRenderer({
   profile, 
   applicationData,
   onComplete,
-  stage
+  stage,
+  registerStepSave
 }: APFStepRendererProps) {
   const stepProfile = convertProfileForSteps(profile);
   const handleComplete = onComplete || defaultOnComplete;
   
   switch (currentStep) {
     case 1:
-      return <APFStep1PersonalDetails profile={stepProfile} onComplete={handleComplete} />;
+      return <APFStep1PersonalDetails profile={stepProfile} onComplete={handleComplete} onRegisterSave={registerStepSave} />;
     case 2:
       return <APFStep2KeyFinancials profile={stepProfile} onComplete={handleComplete} />;
     case 3:

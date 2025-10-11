@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency } from "@/utils/formatUtils";
 
 interface FormData {
@@ -25,6 +25,8 @@ interface APFStep5ConfirmationSectionProps {
     is_director?: boolean;
   };
   feasibleAPFFunding: number;
+  annualNPG: number;
+  annualNetPayReduction: number;
   formData: FormData;
   setFormData: (updater: (prev: FormData) => FormData) => void;
   canProceed: boolean;
@@ -34,6 +36,8 @@ interface APFStep5ConfirmationSectionProps {
 export function APFStep5ConfirmationSection({
   profile,
   feasibleAPFFunding,
+  annualNPG,
+  annualNetPayReduction,
   formData,
   setFormData,
   canProceed,
@@ -42,67 +46,50 @@ export function APFStep5ConfirmationSection({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Salary Exchange Confirmation</CardTitle>
+        <CardTitle className="text-[#4FF456]">Salary Exchange Confirmation</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <h4 className="font-semibold text-blue-900 mb-2">Employment Details:</h4>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Tax Code: {profile?.paye_tax_code || '1257L'}</li>
-            <li>• Employment Status: {profile?.is_director ? 'Director' : 'Employee'}</li>
-            {profile?.is_director && (
-              <li>• NIC Calculation: Annual basis</li>
-            )}
-          </ul>
-        </div>
+        {/* Employment Details card removed as deprecated */}
 
         <div className="space-y-3">
           <label className="flex items-start space-x-3">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={formData.netPayGuaranteeAccepted}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                netPayGuaranteeAccepted: e.target.checked
-              }))}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+              onCheckedChange={(checked) =>
+                setFormData(prev => ({
+                  ...prev,
+                  netPayGuaranteeAccepted: Boolean(checked)
+                }))
+              }
+              className="mt-1 border-gray-300 data-[state=checked]:bg-[#4FF456] data-[state=checked]:text-gray-700"
             />
             <div className="text-sm">
-              <span className="font-medium">Net Pay Guarantee (NPG) Acceptance</span>
+              <span className="font-medium text-[#4FF456]">Net Pay Guarantee (NPG) Acceptance</span>
               <p className="text-gray-600 mt-1">
-                I understand and accept that BUOM will provide a Net Pay Guarantee to ensure my take-home pay 
-                is not reduced as a result of the salary exchange arrangement for APF funding of {formatCurrency(feasibleAPFFunding)}.
+                I understand and accept that BUOM will provide a NPG to ensure my net spending power is not reduced whilst the APF Salary Exchange arrangement is in motion. The NPG amount for the relevant Tax Period is +{formatCurrency(Math.abs(annualNetPayReduction))}.
               </p>
             </div>
           </label>
 
           <label className="flex items-start space-x-3">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={formData.payslipChangesAcknowledged}
-              onChange={(e) => setFormData(prev => ({
-                ...prev,
-                payslipChangesAcknowledged: e.target.checked
-              }))}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+              onCheckedChange={(checked) =>
+                setFormData(prev => ({
+                  ...prev,
+                  payslipChangesAcknowledged: Boolean(checked)
+                }))
+              }
+              className="mt-1 border-gray-300 data-[state=checked]:bg-[#4FF456] data-[state=checked]:text-gray-700"
             />
             <div className="text-sm">
-              <span className="font-medium">Payslip Changes Acknowledgment</span>
+              <span className="font-medium text-[#4FF456]">Payslip Changes Acknowledgment</span>
               <p className="text-gray-600 mt-1">
-                I acknowledge that my payslip will show a reduced gross salary and that BUOM will make 
-                additional payments to maintain my net pay through the NPG arrangement.
+                I acknowledge that my payslip will show a reduced gross salary during APF but that my net spending power will not reduce and my Employer's Salary Reference shall reflect a notional value of {formatCurrency(profile?.annual_salary ?? 0)}.
               </p>
             </div>
           </label>
         </div>
-
-        <Button 
-          onClick={onSubmit}
-          disabled={!canProceed}
-          className="w-full"
-        >
-          {canProceed ? 'Continue to Terms & Conditions' : 'Please accept all confirmations to continue'}
-        </Button>
       </CardContent>
     </Card>
   );

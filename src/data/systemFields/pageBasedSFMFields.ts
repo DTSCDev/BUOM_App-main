@@ -1023,8 +1023,7 @@ export const generateAPF42XXSeries = (): SystemField[] => {
     { start: 4251, end: 4260, description: "Remaining Shortfall Balance", outputPrefix: "remainingShortfallBalance" },
     { start: 4261, end: 4270, description: "Monthly ISA Repayment Plan", outputPrefix: "monthlyISARepaymentPlan" },
     { start: 4271, end: 4280, description: "Rolling 12 Month ISA Target", outputPrefix: "rolling12MonthISATarget" },
-    { start: 4281, end: 4290, description: "Time Token Reward", outputPrefix: "timeTokenReward" },
-    { start: 4291, end: 4300, description: "APF Initial Contributions", outputPrefix: "apfInitialContributions" }
+    { start: 4281, end: 4290, description: "Time Token Reward", outputPrefix: "timeTokenReward" }
   ];
   
   codeRanges.forEach(range => {

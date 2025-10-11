@@ -43,7 +43,8 @@ export const getPensionParameters = (): PensionParametersConfig => {
     additionalRateIncomeTax: 0.45,
     niPrimaryThreshold: 1048,
     niUpperEarningsLimit: 4189,
-    niBasicRate: 0.12,
+    // 2025/26 employee NI main rate reduced to 8%
+    niBasicRate: 0.08,
     niReducedRate: 0.02,
     statePensionWeekly: 230.25,
     affordabilityThreshold: 0.04,

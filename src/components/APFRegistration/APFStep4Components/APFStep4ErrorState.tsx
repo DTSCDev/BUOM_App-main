@@ -14,9 +14,9 @@ export function APFStep4ErrorState({
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <TrendingUp className="h-6 w-6 text-blue-600" />
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>4</div>
         <div>
-          <h2 className="text-xl font-semibold">Step 4: Best Use of Money</h2>
+          <h2 id="step4-header" className="text-xl font-semibold" style={{ color: '#4FF456' }}>Step 4: Best Use of Money</h2>
           <p className="text-sm text-gray-600">Analyze the value proposition of your APF investment</p>
         </div>
       </div>

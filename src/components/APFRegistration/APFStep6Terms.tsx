@@ -191,14 +191,15 @@ export function APFStep6Terms({ applicationData, onComplete }: APFStep6TermsProp
   return (
     <div className="max-w-2xl mx-auto bg-white">
       {/* Header */}
-      <div className="text-center py-6 border-b">
-        <h1 className="text-2xl font-bold">Terms & Conditions</h1>
+      <div className="py-6 border-b flex items-center justify-center gap-3">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>6</div>
+        <h1 id="step6-header" className="text-2xl font-bold" style={{ color: '#4FF456' }}>Terms & Conditions</h1>
       </div>
 
       <div className="p-6 space-y-8">
         {/* Non Contributory Terms */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-blue-600">Non Contributory Terms</h2>
+          <h2 className="text-lg font-semibold" style={{ color: '#4FF456' }}>Non Contributory Terms</h2>
           <p className="text-gray-700 text-sm leading-relaxed">
             I confirm that I have not been asked to invest any of my own savings or income to participate in Advanced Pension Funding (APF) via BUOM.
           </p>
@@ -242,7 +243,7 @@ export function APFStep6Terms({ applicationData, onComplete }: APFStep6TermsProp
 
         {/* Acceptance */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-blue-600">Acceptance</h2>
+          <h2 className="text-lg font-semibold" style={{ color: '#4FF456' }}>Acceptance</h2>
           <p className="text-gray-700 text-sm leading-relaxed">
             I wish to apply for INBL Loan terms at 0% and APF using using the most Effective, Efficient and Relevant steps that have met FSMA, COBS and [R]PSM.
           </p>

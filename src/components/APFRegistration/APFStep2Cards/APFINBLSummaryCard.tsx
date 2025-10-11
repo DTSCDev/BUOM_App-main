@@ -71,8 +71,8 @@ export function APFINBLSummaryCard({ profile, unifiedResult, sponsorships, opaci
           <APFMetricSummaryCard
             title="TOTAL INBL PRINCIPAL"
             value={formatCurrency(apf1203_inblPrincipal)}
-            headerBgColor="bg-emerald-600" // INBL loan principal
-            valueTextColor="text-emerald-600"
+            headerBgColor="bg-green-600" // INBL loan principal
+            valueTextColor="text-green-600"
             sfmCode="SFM-APF-1283"
             opacity={opacity}
           />

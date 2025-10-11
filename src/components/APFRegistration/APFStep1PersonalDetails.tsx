@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { useProfile } from "@/hooks/useProfile";
+import { APFRegistrationData } from "@/types/apfRegistration";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check } from "lucide-react";
 // Removed quick metric dependencies
 import { APFPersonalInfoSection } from "./APFPersonalInfoSection";
 import { APFAddressSection } from "./APFAddressSection";
@@ -36,10 +36,11 @@ interface APFStep1PersonalDetailsProps {
     works_from_home?: boolean;
     paye_tax_code?: string;
   };
-  onComplete: (data: Record<string, unknown>) => void;
+  onComplete: (data: Partial<APFRegistrationData>) => void;
+  onRegisterSave?: (fn: () => Promise<Record<string, unknown>>) => void;
 }
 
-export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1PersonalDetailsProps) {
+export function APFStep1PersonalDetails({ profile, onComplete, onRegisterSave }: APFStep1PersonalDetailsProps) {
   const { updateProfile } = useProfile();
   const formatGBP = (value: number | string) => {
     const num = typeof value === 'string' ? Number(value.toString().replace(/[^0-9.-]/g, '')) : value;
@@ -165,18 +166,46 @@ export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1Persona
       }
 
       console.log('Step1 - Submitting form data:', formData);
-      onComplete(formData);
+      onComplete({ step1: { ...formData } });
     }
   };
 
+  // Auto-save handler for global Next navigation
+  const saveOnNext = async (): Promise<Partial<APFRegistrationData>> => {
+    try {
+      if (isValid) {
+        const salaryNumber = parseGBPToNumber(formData.annualSalary);
+        const updates: Partial<import("@/hooks/useProfile").ProfileData> = {};
+        if (salaryNumber !== null) updates.annual_salary = salaryNumber;
+        if (formData.payeTaxCode) updates.paye_tax_code = formData.payeTaxCode;
+
+        if (Object.keys(updates).length > 0) {
+          await updateProfile(updates);
+        }
+      }
+    } catch (e) {
+      console.warn('Step1 - saveOnNext profile update failed:', e);
+    }
+    // Always return current form data section for reporting
+    return { step1: { ...formData } };
+  };
+
+  // Register auto-save callback with parent
+  useEffect(() => {
+    if (onRegisterSave) {
+      onRegisterSave(saveOnNext);
+    }
+    // Re-register to capture latest formData and validity state
+  }, [onRegisterSave, formData, isValid]);
+
   return (
     <Card>
-      <CardHeader>
+      <CardHeader id="step1-header">
         <CardTitle className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>
             1
           </div>
-          Personal Details
+          <span style={{ color: '#4FF456' }}>Personal Details</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -204,33 +233,7 @@ export function APFStep1PersonalDetails({ profile, onComplete }: APFStep1Persona
         
         <APFDataProtectionNotice />
 
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            {isValid ? (
-              <>
-                <Check className="w-4 h-4 text-green-600" />
-                Ready to proceed
-              </>
-            ) : (
-              <>
-                <div className="w-4 h-4 border-2 border-gray-300 rounded-full" />
-                Please complete all required fields
-              </>
-            )}
-          </div>
-          
-          <button
-            onClick={handleSubmit}
-            disabled={!isValid}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              isValid 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Continue to Step 2
-          </button>
-        </div>
+        {/* Inline proceed notice and CTA removed; navigation uses global Next/Previous controls */}
       </CardContent>
     </Card>
   );

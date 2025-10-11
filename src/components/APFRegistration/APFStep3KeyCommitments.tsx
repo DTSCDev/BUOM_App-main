@@ -101,9 +101,9 @@ export function APFStep3KeyCommitments({ profile, applicationData, onComplete }:
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <CheckCircle className="h-6 w-6 text-blue-600" />
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>3</div>
           <div>
-            <h2 className="text-xl font-semibold">Step 3: Key Commitments</h2>
+            <h2 id="step3-header" className="text-xl font-semibold" style={{ color: '#4FF456' }}>Step 3: Key Commitments</h2>
             <p className="text-sm text-gray-600">Understand your NRSR terms and repayment obligations</p>
           </div>
         </div>

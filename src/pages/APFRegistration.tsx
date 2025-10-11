@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useProfile, ProfileData } from "@/hooks/useProfile";
 import { APFRegistrationHeader } from "@/components/APFRegistration/APFRegistrationHeader";
@@ -6,6 +6,7 @@ import { APFProgressIndicator } from "@/components/APFRegistration/APFProgressIn
 import { APFStepRenderer } from "@/components/APFRegistration/APFStepRenderer";
 import { APFNavigationControls } from "@/components/APFRegistration/APFNavigationControls";
 import { isTestingAccount } from "@/utils/testing";
+import { APFRegistrationData } from "@/types/apfRegistration";
 
 // Use the actual ProfileData interface from the hook
 interface Profile extends ProfileData {
@@ -19,30 +20,94 @@ interface Profile extends ProfileData {
 export default function APFRegistration() {
   const [currentStep, setCurrentStep] = useState(1);
   const [apfStage, setApfStage] = useState<1 | 2 | 3>(1);
-  const [applicationData, setApplicationData] = useState<Record<string, unknown>>({});
+  const [applicationData, setApplicationData] = useState<APFRegistrationData>({});
   const { profile, isLoading: profileLoading } = useProfile();
+  const saveCurrentStepRef = useRef<(() => Promise<Partial<APFRegistrationData>>) | undefined>(undefined);
+  const [pendingScrollAnchor, setPendingScrollAnchor] = useState<string | null>(null);
+  const scrollAttemptsRef = useRef(0);
+
+  const getStepAnchor = (step: number) => `step${step}-header`;
+
+  const registerStepSave = (fn: () => Promise<Partial<APFRegistrationData>>) => {
+    saveCurrentStepRef.current = fn;
+  };
 
   const handleNext = () => {
-    if (currentStep < 6) {
-      setCurrentStep(currentStep + 1);
+    // Attempt auto-save for the current step if available
+    if (saveCurrentStepRef.current) {
+      Promise.resolve(saveCurrentStepRef.current())
+        .then((data) => {
+          if (data && typeof data === 'object') {
+            setApplicationData(prev => ({ ...prev, ...data }));
+          }
+        })
+        .catch((e) => {
+          console.warn('Auto-save on Next failed:', e);
+        })
+        .finally(() => {
+          setCurrentStep(prev => {
+            const next = prev < 6 ? prev + 1 : prev;
+            setPendingScrollAnchor(getStepAnchor(next));
+            return next;
+          });
+        });
+    } else {
+      setCurrentStep(prev => {
+        const next = prev < 6 ? prev + 1 : prev;
+        setPendingScrollAnchor(getStepAnchor(next));
+        return next;
+      });
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep(prev => {
+        const next = prev - 1;
+        setPendingScrollAnchor(getStepAnchor(next));
+        return next;
+      });
     }
   };
 
   const handleStepClick = (stepId: number) => {
     setCurrentStep(stepId);
+    setPendingScrollAnchor(getStepAnchor(stepId));
   };
 
-  const handleStepComplete = (data: Record<string, unknown>) => {
+  const handleStepComplete = (data: Partial<APFRegistrationData>) => {
     setApplicationData(prev => ({ ...prev, ...data }));
     // Advance to next step immediately after a step reports completion
-    setCurrentStep(prev => (prev < 6 ? prev + 1 : prev));
+    setCurrentStep(prev => {
+      const next = prev < 6 ? prev + 1 : prev;
+      setPendingScrollAnchor(getStepAnchor(next));
+      return next;
+    });
   };
+
+  // Smooth scroll to the pending anchor once the new step is rendered
+  useEffect(() => {
+    if (!pendingScrollAnchor) return;
+    scrollAttemptsRef.current = 0;
+
+    const tryScroll = () => {
+      const el = document.getElementById(pendingScrollAnchor!);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setPendingScrollAnchor(null);
+        return;
+      }
+      if (scrollAttemptsRef.current < 20) {
+        scrollAttemptsRef.current += 1;
+        setTimeout(tryScroll, 50);
+      } else {
+        setPendingScrollAnchor(null);
+      }
+    };
+
+    // Kick off scroll attempt after render
+    setTimeout(tryScroll, 0);
+  }, [pendingScrollAnchor]);
 
   if (profileLoading) {
     return (
@@ -103,6 +168,7 @@ export default function APFRegistration() {
                 applicationData={applicationData}
                 onComplete={handleStepComplete}
                 stage={apfStage}
+                registerStepSave={registerStepSave}
               />
             </div>
 

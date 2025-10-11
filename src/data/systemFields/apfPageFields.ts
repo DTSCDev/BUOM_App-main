@@ -292,6 +292,397 @@ export const apfPageFields: SystemField[] = [
     valueType: "Currency"
   },
 
+  // Step 5: Salary Exchange & NPG (APF Registration)
+  {
+    sfmId: "SFM-APF-1501",
+    description: "APF Registration - Existing Annual Salary",
+    pageName: "APF Registration",
+    cardName: "Salary Exchange Summary",
+    outputValue: "annualSalary",
+    correlatedTo: "SFM-PRF-2021 - Profile Annual Salary",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1502",
+    description: "APF Registration - Existing Monthly Salary",
+    pageName: "APF Registration",
+    cardName: "Salary Exchange Summary",
+    outputValue: "monthlySalary",
+    correlatedTo: "SFM-PRF-2021 / 12",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1503",
+    description: "APF Registration - Existing Annual Net Pay",
+    pageName: "APF Registration",
+    cardName: "Salary Exchange Summary",
+    outputValue: "annualNetPayBefore",
+    correlatedTo: "Annual net pay before APF changes",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1504",
+    description: "APF Registration - Existing Monthly Net Pay",
+    pageName: "APF Registration",
+    cardName: "Salary Exchange Summary",
+    outputValue: "monthlyNetPayBefore",
+    correlatedTo: "Monthly net pay before APF changes",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1505",
+    description: "APF Registration - Proposed Annual Salary",
+    pageName: "APF Registration",
+    cardName: "Salary Exchange Summary",
+    outputValue: "proposedGrossAnnualSalary",
+    correlatedTo: "Existing Annual Salary − Proposed Annual Salary Exchange",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1506",
+    description: "APF Registration - Proposed Monthly Salary",
+    pageName: "APF Registration",
+    cardName: "Salary Exchange Summary",
+    outputValue: "proposedGrossMonthlySalary",
+    correlatedTo: "Existing Monthly Salary − Proposed Monthly Salary Exchange",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1507",
+    description: "APF Registration - Proposed Annual Salary Exchange",
+    pageName: "APF Registration",
+    cardName: "Salary Exchange Summary",
+    outputValue: "annualSalaryExchange",
+    correlatedTo: "Annual salary sacrifice amount (feasible APF funding)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1508",
+    description: "APF Registration - Proposed Monthly Salary Exchange",
+    pageName: "APF Registration",
+    cardName: "Salary Exchange Summary",
+    outputValue: "monthlySalaryExchange",
+    correlatedTo: "Monthly salary sacrifice amount (annual / 12)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1509",
+    description: "APF Registration - Proposed Annual Net Pay",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Card",
+    outputValue: "annualNetPayAfter",
+    correlatedTo: "Annual net pay after APF including NPG",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1510",
+    description: "APF Registration - Proposed Monthly Net Pay",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Card",
+    outputValue: "monthlyNetPayAfter",
+    correlatedTo: "Monthly net pay after APF including NPG",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1511",
+    description: "APF Registration - Net Pay Reduction (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Card",
+    outputValue: "annualNetPayReduction",
+    correlatedTo: "Annual net pay reduction (Before − After)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1512",
+    description: "APF Registration - Net Pay Guarantee (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Card",
+    outputValue: "annualNetPayGuarantee",
+    correlatedTo: "Annual Net Pay Guarantee (applied where reduction would exceed NPG)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1513",
+    description: "APF Registration - Net Pay Reduction (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Card",
+    outputValue: "monthlyNetPayReduction",
+    correlatedTo: "Monthly net pay reduction (Before − After)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1514",
+    description: "APF Registration - Net Pay Guarantee (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Card",
+    outputValue: "monthlyNetPayGuarantee",
+    correlatedTo: "Monthly Net Pay Guarantee (applied where reduction would exceed NPG)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1520",
+    description: "APF Registration - Current Gross Pay (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentGrossPayMonthly",
+    correlatedTo: "Monthly gross pay before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1521",
+    description: "APF Registration - Current Pension Contribution (AE) (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentPensionContributionMonthly",
+    correlatedTo: "Monthly AE pension contribution before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1522",
+    description: "APF Registration - Current Gross Pay After Pension (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentGrossAfterPensionMonthly",
+    correlatedTo: "Monthly gross pay after AE pension before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1523",
+    description: "APF Registration - Current Income Tax (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentIncomeTaxMonthly",
+    correlatedTo: "Monthly income tax before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1524",
+    description: "APF Registration - Current National Insurance (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentNationalInsuranceMonthly",
+    correlatedTo: "Monthly national insurance before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1525",
+    description: "APF Registration - Current Net Pay (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentNetPayMonthly",
+    correlatedTo: "Monthly net pay before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1530",
+    description: "APF Registration - Total Salary Exchange (Schedule)",
+    pageName: "APF Registration",
+    cardName: "Monthly Salary Exchange Schedule",
+    outputValue: "totalSalaryExchange",
+    correlatedTo: "Total salary exchange across schedule months",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1531",
+    description: "APF Registration - Total Net Pay Reduction (Schedule)",
+    pageName: "APF Registration",
+    cardName: "Monthly Salary Exchange Schedule",
+    outputValue: "totalNetPayReduction",
+    correlatedTo: "Total net pay reduction across schedule months",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1532",
+    description: "APF Registration - Total Net Pay Guarantee (Schedule)",
+    pageName: "APF Registration",
+    cardName: "Monthly Salary Exchange Schedule",
+    outputValue: "totalNetPayGuarantee",
+    correlatedTo: "Total Net Pay Guarantee across schedule months",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1533",
+    description: "APF Registration - New Gross Pay (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "newGrossPayMonthly",
+    correlatedTo: "Monthly gross pay after APF (pre-sacrifice base)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1534",
+    description: "APF Registration - APF Salary Sacrifice (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "apfSalarySacrificeMonthly",
+    correlatedTo: "Monthly salary exchange applied",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1535",
+    description: "APF Registration - Gross Pay After APF (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "grossPayAfterAPFMonthly",
+    correlatedTo: "Monthly gross pay after APF (post-sacrifice)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1536",
+    description: "APF Registration - Income Tax After APF (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "incomeTaxAfterMonthly",
+    correlatedTo: "Monthly income tax after APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1537",
+    description: "APF Registration - National Insurance After APF (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "nationalInsuranceAfterMonthly",
+    correlatedTo: "Monthly national insurance after APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1538",
+    description: "APF Registration - INBL Loan Support (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "inblLoanSupportMonthly",
+    correlatedTo: "Monthly INBL loan support applied",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1539",
+    description: "APF Registration - New Net Pay (Monthly)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "newNetPayMonthly",
+    correlatedTo: "Monthly net pay after APF (including INBL)",
+    valueType: "Currency"
+  },
+
+  // Payslip Comparison Popup (Annual equivalents)
+  {
+    sfmId: "SFM-APF-1540",
+    description: "APF Registration - Current Gross Pay (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentGrossPayAnnual",
+    correlatedTo: "Annual gross pay before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1541",
+    description: "APF Registration - Current Pension Contribution (AE) (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentPensionContributionAnnual",
+    correlatedTo: "Annual AE pension contribution before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1542",
+    description: "APF Registration - Current Gross Pay After Pension (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentGrossAfterPensionAnnual",
+    correlatedTo: "Annual gross pay after AE pension before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1543",
+    description: "APF Registration - Current Income Tax (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentIncomeTaxAnnual",
+    correlatedTo: "Annual income tax before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1544",
+    description: "APF Registration - Current National Insurance (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentNationalInsuranceAnnual",
+    correlatedTo: "Annual national insurance before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1545",
+    description: "APF Registration - Current Net Pay (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "currentNetPayAnnual",
+    correlatedTo: "Annual net pay before APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1550",
+    description: "APF Registration - New Gross Pay (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "newGrossPayAnnual",
+    correlatedTo: "Annual gross pay after APF (pre-sacrifice base)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1551",
+    description: "APF Registration - APF Salary Sacrifice (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "apfSalarySacrificeAnnual",
+    correlatedTo: "Annual salary exchange applied",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1552",
+    description: "APF Registration - Gross Pay After APF (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "grossPayAfterAPFAnnual",
+    correlatedTo: "Annual gross pay after APF (post-sacrifice)",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1553",
+    description: "APF Registration - Income Tax After APF (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "incomeTaxAfterAnnual",
+    correlatedTo: "Annual income tax after APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1554",
+    description: "APF Registration - National Insurance After APF (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "nationalInsuranceAfterAnnual",
+    correlatedTo: "Annual national insurance after APF",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1555",
+    description: "APF Registration - INBL Loan Support (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "inblLoanSupportAnnual",
+    correlatedTo: "Annual INBL loan support applied",
+    valueType: "Currency"
+  },
+  {
+    sfmId: "SFM-APF-1556",
+    description: "APF Registration - New Net Pay (Annual)",
+    pageName: "APF Registration",
+    cardName: "Payslip Comparison Popup",
+    outputValue: "newNetPayAnnual",
+    correlatedTo: "Annual net pay after APF (including INBL)",
+    valueType: "Currency"
+  },
+
   // APF Plan Overview Fields (SFM-APF-1300 to SFM-APF-1399)
   {
     sfmId: "SFM-APF-1301",

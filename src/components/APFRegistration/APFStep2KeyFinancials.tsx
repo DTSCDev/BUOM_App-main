@@ -60,12 +60,12 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+      <div id="step2-header" className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>
           2
         </div>
         <div>
-          <h2 className="text-xl font-semibold">Step 2: Key Financials for APF Funding</h2>
+          <h2 className="text-xl font-semibold" style={{ color: '#4FF456' }}>Step 2: Key Financials for APF Funding</h2>
           <p className="text-sm text-gray-600">Review your Advanced Pension Funding structure and INBL loan details</p>
         </div>
       </div>
@@ -103,6 +103,7 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
               valueTextColor="text-[rgb(191,144,0)]"
               style={{ backgroundColor: 'rgb(191,144,0)' }}
               opacity="opacity-100"
+              sfmCode="SFM-APF-4201-M"
             />
             <MetricCard
               title="APF MATURITY"
@@ -110,6 +111,7 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
               headerBgColor="bg-purple-600"
               valueTextColor="text-purple-600"
               opacity="opacity-100"
+              sfmCode="SFM-APF-4211-M"
             />
             <MetricCard
               title="TOTAL INBL PRINCIPAL"
@@ -117,6 +119,7 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
               headerBgColor="bg-green-600"
               valueTextColor="text-green-600"
               opacity="opacity-100"
+              sfmCode="SFM-APF-4241-M"
             />
             <MetricCard
               title="SHORTFALL BALANCE"
@@ -124,11 +127,12 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
               headerBgColor="bg-red-600"
               valueTextColor="text-red-600"
               opacity="opacity-100"
+              sfmCode="SFM-APF-4251-M"
             />
           </div>
 
           {/* Note under tiles */}
-          <div className="text-xs text-gray-600 border rounded-md p-2">Note: Remaining shortfall of {formatCurrency(year1ShortfallBalance)} will be met by additional APF funding in future tax years (subject to status)</div>
+          <div className="text-xs font-bold text-black border rounded-md p-2" style={{ backgroundColor: '#4FF456' }}>Note: Remaining shortfall of {formatCurrency(year1ShortfallBalance)} will be met by additional APF funding in future tax years (subject to status)</div>
       </CardContent>
     </Card>
 

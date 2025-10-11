@@ -41,12 +41,15 @@ export function usePayslipCalculations() {
     const afterAPFBase = calculateUKTax(grossPayAfterAPF);
     
     // Override pension contribution to 0 since APF replaces AE during sponsorship years
+    // Also recompute net pay using grossPayAfterAPF (no AE deduction)
+    const monthlyNetPayAfterAPF = grossPayAfterAPF - afterAPFBase.incomeTax - afterAPFBase.nationalInsurance;
     const afterAPF: PayslipDetails = {
       ...afterAPFBase,
       pensionContribution: 0,
       employerContribution: 0,
       totalContribution: 0,
-      grossPayAfterPension: grossPayAfterAPF // Already reduced by APF
+      grossPayAfterPension: grossPayAfterAPF, // Already reduced by APF
+      netPay: monthlyNetPayAfterAPF
     };
     
     // NPG (Net Pay Guarantee) - equals net pay lost from salary sacrifice

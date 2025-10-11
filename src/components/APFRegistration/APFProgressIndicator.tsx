@@ -25,7 +25,7 @@ export function APFProgressIndicator({ currentStep, completedSteps, onStepClick 
     <Card>
       <CardHeader className="pb-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Application Progress</h3>
+          <h3 className="text-lg font-semibold text-[#4FF456]">Application Progress</h3>
           <span className="text-sm text-gray-500">Step {currentStep} of 6</span>
         </div>
         <Progress value={progressPercentage} className="w-full h-2" />

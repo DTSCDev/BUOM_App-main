@@ -38,7 +38,7 @@ export function APFInblSummaryProposedCard({ profile, sponsorships, opacity = 'o
             headerBgColor="bg-transparent"
             valueTextColor="text-[rgb(191,144,0)]"
             style={{ backgroundColor: 'rgb(191,144,0)' }}
-            sfmCode="APF-1201"
+            sfmCode="SFM-APF-1281"
             opacity={opacity}
           />
 
@@ -47,16 +47,16 @@ export function APFInblSummaryProposedCard({ profile, sponsorships, opacity = 'o
             value={formatCurrency(apf1202_totalMaturityValue)}
             headerBgColor="bg-purple-600"
             valueTextColor="text-purple-600"
-            sfmCode="APF-1202"
+            sfmCode="SFM-APF-1282"
             opacity={opacity}
           />
 
           <APFMetricSummaryCard
             title="TOTAL INBL PRINCIPAL"
             value={formatCurrency(apf1203_totalINBLPrincipal)}
-            headerBgColor="bg-emerald-600"
-            valueTextColor="text-emerald-600"
-            sfmCode="APF-1203"
+            headerBgColor="bg-green-600"
+            valueTextColor="text-green-600"
+            sfmCode="SFM-APF-1283"
             opacity={opacity}
           />
         </div>

@@ -10,6 +10,7 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   server: {
     host: "::",
     port: 8080,
+    strictPort: true,
     // Removed HTTPS to fix Chrome access issues
   },
   base: "/",
