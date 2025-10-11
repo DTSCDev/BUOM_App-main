@@ -21,13 +21,13 @@ export function ProgressBanner({ progressPercentage, className = "" }: ProgressB
       };
     } else if (adjustedProgress >= 75) {
       return {
-        color: "bg-yellow-500",
+        color: "bg-purple-600",
         text: "NEEDS ATTENTION",
         textColor: "text-white"
       };
     } else {
       return {
-        color: "bg-red-500",
+        color: "bg-blue-600",
         text: "ACTION REQUIRED",
         textColor: "text-white"
       };

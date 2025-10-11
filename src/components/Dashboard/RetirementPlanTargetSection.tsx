@@ -21,7 +21,7 @@ export function RetirementPlanTargetSection({ calculations }: RetirementPlanTarg
   if (!calculations) {
     return (
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-700">Retirement Plan Target</h3>
+        <h3 className="text-lg font-semibold text-purple-600">Retirement Plan Target Income</h3>
         <div className="text-center text-gray-500">Loading...</div>
       </div>
     );
@@ -29,7 +29,7 @@ export function RetirementPlanTargetSection({ calculations }: RetirementPlanTarg
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-gray-700">Retirement Plan Target</h3>
+      <h3 className="text-lg font-semibold text-purple-600">Retirement Plan Target Income</h3>
       <ProgressBanner 
         progressPercentage={calculations.retirementProgressPercentage || 0}
         className="mb-3"
@@ -52,8 +52,8 @@ export function RetirementPlanTargetSection({ calculations }: RetirementPlanTarg
         <MetricCard
           title="APF FUTURE TARGET INCOME"
           value={formatValue(calculations.apfTargetIncome || 0)}
-          headerBgColor="bg-yellow-600"
-          valueTextColor="text-yellow-600"
+          headerBgColor="bg-purple-600"
+          valueTextColor="text-purple-600"
           opacity={fundingStatus.hasAPF ? "opacity-100" : "opacity-35"}
           sfmCode="SFM-APF-1006"
         />

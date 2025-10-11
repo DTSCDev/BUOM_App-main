@@ -127,7 +127,7 @@ export function ApfRetirementPlanSummary() {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">RETIREMENT PLAN</CardTitle>
+        <CardTitle className="text-xl font-bold" style={{ color: '#4FF456' }}>RETIREMENT PLAN</CardTitle>
         <div className="flex items-center gap-2 mt-2">
           <Button
             variant={isAnnualView ? "default" : "outline"}

@@ -21,7 +21,7 @@ export function ApfISAPlanSummary({ calculations }: ApfISAPlanSummaryProps) {
   if (!calculations) {
     return (
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-700">Repayment Plan Target</h3>
+        <h3 className="text-lg font-semibold text-blue-600">Repayment Plan Target</h3>
         <div className="text-center text-gray-500">Loading...</div>
       </div>
     );
@@ -29,7 +29,7 @@ export function ApfISAPlanSummary({ calculations }: ApfISAPlanSummaryProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-gray-700">Repayment Plan Target</h3>
+      <h3 className="text-lg font-semibold text-blue-600">Repayment Plan Target</h3>
       <ProgressBanner 
         progressPercentage={calculations.repaymentProgressPercentage || 0}
         className="mb-3"

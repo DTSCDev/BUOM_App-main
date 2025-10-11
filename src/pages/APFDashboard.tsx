@@ -96,7 +96,7 @@ export default function APFDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">APF Dashboard</h1>
+        <h1 className="text-3xl font-bold" style={{ color: '#4FF456' }}>APF Dashboard</h1>
         <p className="text-muted-foreground mt-2">Advanced Pension Funding - Member Portal</p>
       </div>
       
