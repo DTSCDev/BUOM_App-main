@@ -158,7 +158,7 @@ export function APFAEEquivalentCard({ maturityValue, showMonthly = false }: APFA
           </ul>
           <div className="text-sm text-gray-700 mt-3">
             <span className="font-semibold">VALUE FOR MONEY CONCLUSION:</span>
-            <p className="mt-2">Significantly higher contributions are needed by Low-Cost DC Workplace Pensions to achieve same maturity value over 240 month timeline.</p>
+            <p className="mt-2">Significantly higher contributions are needed by Low-Cost DC Workplace Pensions to match the APF Maturity Value over a 240 month timeline.</p>
           </div>
         </div>
       </CardContent>
