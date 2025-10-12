@@ -164,17 +164,7 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
         </CardContent>
       </Card>
 
-      {/* Confirmation (no inline Next button; navigation controls handle Next) */}
-      <Card>
-        <CardContent className="space-y-4">
-          <label className="flex items-start gap-3 text-sm text-gray-700">
-            <input type="checkbox" className="mt-1" />
-            <span>
-              I acknowledge that I have reviewed and understood the APF funding structure, INBL loan terms, and the value proposition of this arrangement.
-            </span>
-          </label>
-        </CardContent>
-      </Card>
+      {/* Confirmation card removed per request */}
     </div>
   );
 }

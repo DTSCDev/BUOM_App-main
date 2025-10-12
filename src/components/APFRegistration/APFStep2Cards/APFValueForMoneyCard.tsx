@@ -16,7 +16,7 @@ export function APFValueForMoneyCard({ isaContributions, maturityValue, showMont
     <Card>
       <CardHeader>
         <CardTitle>
-          <span>Value for Money</span>
+          <span style={{ color: '#4FF456' }}>BUOM Outcome</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -30,7 +30,7 @@ export function APFValueForMoneyCard({ isaContributions, maturityValue, showMont
           />
           
           <MetricCard
-            title="MATURITY VALUE"
+            title="APF MATURITY VALUE"
             value={formatCurrency(maturityValue)}
             headerBgColor="bg-yellow-600"
             valueTextColor="text-yellow-600"
@@ -40,9 +40,10 @@ export function APFValueForMoneyCard({ isaContributions, maturityValue, showMont
           <MetricCard
             title="RETURN ON CAPITAL"
             value={`${Math.round(returnOnCapital)}%`}
-            headerBgColor="bg-green-600"
-            valueTextColor="text-green-600"
-            style={{ backgroundColor: '#4FF546' }}
+            headerBgColor="bg-transparent"
+            titleTextColor="text-gray-700"
+            valueTextColor="text-[#4FF456]"
+            style={{ backgroundColor: '#4FF456' }}
             sfmCode="SFM-APF-1262"
           />
         </div>

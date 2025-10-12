@@ -14,7 +14,7 @@ export function APFProgressIndicator({ currentStep, completedSteps, onStepClick 
     { id: 1, title: "Personal Details", description: "Verify your information" },
     { id: 2, title: "Key Financials", description: "Review funding requirements" },
     { id: 3, title: "Key Commitments", description: "Understand your obligations" },
-    { id: 4, title: "Best Use of Money", description: "Value for money analysis" },
+    { id: 4, title: "Value for Money Comparison", description: "Compare BUOM vs DC Workplace" },
     { id: 5, title: "Salary Exchange", description: "Choose funding method" },
     { id: 6, title: "Terms & Conditions", description: "Agreement in Principle" }
   ];

@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatUtils";
-import { Calculator } from "lucide-react";
 import { MetricCard } from "@/components/Dashboard/MetricCard";
 import { calculateFullISATimeline } from "@/utils/pension/isaTimelineCalculator";
 import { calculateISAContributions } from "@/utils/pension/isaContributionCalculator";
@@ -115,11 +114,10 @@ export function APFAEEquivalentCard({ maturityValue, showMonthly = false }: APFA
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          <Calculator className="h-5 w-5" />
-          <span>Auto Enrollment Equivalent Comparison</span>
+          <span className="text-gray-700">Low-Cost DC Workplace Outcome</span>
         </CardTitle>
-        <p className="text-sm text-gray-600">
-          AE contributions required to match APF maturity value over identical 21-year timeline
+        <p className="text-sm text-gray-700">
+          Contributions required to match APF maturity value over identical 240-month timeline
         </p>
       </CardHeader>
       <CardContent>
@@ -127,38 +125,41 @@ export function APFAEEquivalentCard({ maturityValue, showMonthly = false }: APFA
           <MetricCard
             title={showMonthly ? "TOTAL AE (MONTHLY AVG)" : "TOTAL AE CONTRIBUTIONS"}
             value={formatCurrency(displayAEContributions)}
-            headerBgColor="bg-orange-600"
-            valueTextColor="text-orange-600"
+            headerBgColor="bg-gray-700"
+            valueTextColor="text-gray-700"
             sfmCode="SFM-APF-1263"
           />
           
           <MetricCard
             title="SAME MATURITY VALUE"
             value={formatCurrency(maturityValue)}
-            headerBgColor="bg-green-600"
-            valueTextColor="text-green-600"
+            headerBgColor="bg-gray-400"
+            valueTextColor="text-gray-700"
             sfmCode="SFM-APF-1264"
           />
           
           <MetricCard
             title="RETURN ON CAPITAL"
             value={`${Math.round(aeReturnOnCapital)}%`}
-            headerBgColor="bg-green-600"
-            valueTextColor="text-green-600"
-            style={{ backgroundColor: '#4FF546' }}
+            headerBgColor="bg-gray-300"
+            titleTextColor="text-gray-700"
+            valueTextColor="text-gray-700"
             sfmCode="SFM-APF-1265"
           />
         </div>
 
-        <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-          <h4 className="font-semibold text-orange-800 mb-2">Auto Enrollment Comparison Notes</h4>
-          <ul className="text-sm space-y-1 text-orange-700">
-            <li>• Uses identical 21-year contribution timeline as APF ({ISA_CALCULATION_CONSTANTS.CONTRIBUTION_MONTHS_PER_TRANCHE} months per tranche)</li>
-            <li>• Assumes {((params.growthRateAccumulation - params.providerCharges) * 100).toFixed(1)}% annual growth rate for AE pension</li>
-            <li>• Includes same {(params.pensionIncomeInflation * 100).toFixed(0)}% annual inflation escalation</li>
-            <li>• Return on Capital shows AE investment efficiency vs contributions</li>
-            <li>• Higher total AE contributions needed to achieve same maturity value</li>
+        <div className="mt-6 p-4 bg-gray-200 border border-gray-300 rounded-lg">
+          <h4 className="font-semibold text-gray-700 mb-2">Auto Enrollment Comparison Notes</h4>
+          <ul className="text-sm space-y-1 text-gray-700">
+            <li>• Uses identical 240 month contribution timeline as BUOM's Advanced Pension Funding solution (240 months per tranche)</li>
+            <li>• Assumes 5% monthly compounding rate for growth and 0.5% product fee charge.</li>
+            <li>• Assumes 2% inflation escalation.</li>
+            <li>• Return on Capital shows investment efficiency vs contributions</li>
           </ul>
+          <div className="text-sm text-gray-700 mt-3">
+            <span className="font-semibold">VALUE FOR MONEY CONCLUSION:</span>
+            <p className="mt-2">Significantly higher contributions are needed by Low-Cost DC Workplace Pensions to achieve same maturity value over 240 month timeline.</p>
+          </div>
         </div>
       </CardContent>
     </Card>

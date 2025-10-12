@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+// import { useEffect } from "react";
 import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 import { useAPFStep4Calculations } from "./APFStep4Components/useAPFStep4Calculations";
 import { APFStep4LoadingState } from "./APFStep4Components/APFStep4LoadingState";
@@ -35,13 +35,7 @@ export function APFStep4BestUseOfMoney({ profile, onComplete }: APFStep4BestUseO
     hasValidCalculations: !!unifiedResult
   });
 
-  // Auto-complete this step immediately when calculations are ready
-  useEffect(() => {
-    if (!assetsLoading) {
-      console.log('APFStep4 - Auto-completing step (no confirmations needed)');
-      onComplete({ step4Completed: true });
-    }
-  }, [assetsLoading, onComplete]);
+  // Removed auto-complete behavior to allow navigation via global Next button
 
   // Show loading state while assets are loading
   if (assetsLoading) {
