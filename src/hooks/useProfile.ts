@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { TablesUpdate } from "@/integrations/supabase/types";
+import type { TablesUpdate, TablesInsert } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { getFreeCalculatorDataFromStorage } from "@/utils/dataMapping/freeCalculatorToMainAppMapper";
@@ -52,18 +52,72 @@ export function useProfile() {
   // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!user?.id) return;
-      
+      if (!user?.id) {
+        setProfile(null);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        // Attempt to fetch existing member profile
+        const { data: existing, error } = await supabase
           .from('members')
           .select('*')
           .eq('id', user.id)
           .maybeSingle();
-        
+
         if (error) throw error;
-        
+
+        let data = existing;
+
+        // If no member row exists yet for this authenticated user, auto-provision a minimal record
+        if (!data) {
+          // Require an email to create the record
+          const email = user.email;
+          if (!email) {
+            throw new Error('Authenticated user missing email; cannot create member profile');
+          }
+
+          // Robustly derive first/last name from common metadata keys
+          type UserMetadata = Partial<{
+            first_name: string;
+            firstName: string;
+            given_name: string;
+            last_name: string;
+            lastName: string;
+            family_name: string;
+            full_name: string;
+            name: string;
+          }>;
+          const meta = (user.user_metadata ?? {}) as UserMetadata;
+          const fullName: string | undefined = meta.full_name || meta.name;
+          const computedFirst: string | null =
+            meta.first_name ?? meta.firstName ?? meta.given_name ??
+            (typeof fullName === 'string' ? fullName.split(' ')[0] || null : null);
+          const computedLast: string | null =
+            meta.last_name ?? meta.lastName ?? meta.family_name ??
+            (typeof fullName === 'string' ? (fullName.split(' ').slice(1).join(' ') || null) : null);
+
+          const defaultInsert: TablesInsert<'members'> = {
+            id: user.id,
+            email,
+            first_name: computedFirst,
+            last_name: computedLast,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          const { data: created, error: insertError } = await supabase
+            .from('members')
+            .insert(defaultInsert)
+            .select('*')
+            .maybeSingle();
+
+          if (insertError) throw insertError;
+          data = created;
+        }
+
         if (data) {
           // Helpers to safely read optional fields not present in generated types
           const extra = data as Record<string, unknown>;

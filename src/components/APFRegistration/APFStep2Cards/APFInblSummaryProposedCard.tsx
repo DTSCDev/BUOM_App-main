@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { APFMetricSummaryCard } from '@/components/Dashboard/APFMetricSummaryCard';
 import { formatCurrency } from '@/utils/formatUtils';
-import { TrendingUp } from 'lucide-react';
 import { useRetirementCalculatorHub } from '@/hooks/useRetirementCalculatorHub';
 import { getPensionParameters } from '@/utils/pensionParameters';
 
@@ -19,14 +18,14 @@ export function APFInblSummaryProposedCard({ profile, sponsorships, opacity = 'o
   // Per spec: APF-1282 receives CAL-4121; APF-1281 = APF-1282 / 1.582
   const apf1202_totalMaturityValue = hub.cal4121_capitalShortfall;
   const apf1201_totalInitialFunding = apf1202_totalMaturityValue / params.apfMaturityMultiplier;
-  // APF-1203 to be implemented via Step 3 logic later; placeholder aligned with Year 1
-  const apf1203_totalINBLPrincipal = 37919;
+  // APF-1283 should show APF-1282 × 0.5215786284925253 (per wiring spec)
+  const APF_1283_FACTOR = 0.5215786284925253;
+  const apf1203_totalINBLPrincipal = apf1202_totalMaturityValue * APF_1283_FACTOR;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <TrendingUp className="h-5 w-5" />
+        <CardTitle>
           <span style={{ color: '#4FF456' }}>APF & INBL Summary - Proposed Funding</span>
         </CardTitle>
       </CardHeader>

@@ -1,10 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatUtils';
-import { TrendingUp } from "lucide-react";
 import { UnifiedCalculationResult } from "@/utils/pension/unifiedCalculationEngine";
 import { APFMetricSummaryCard } from "@/components/Dashboard/APFMetricSummaryCard";
-import { usePayslipCalculations } from "@/hooks/usePayslipCalculations";
+// APF-1283 wiring: derive from APF-1282 using specified factor
 import { APFSponsorshipBreakdown } from "@/utils/pension/buomTypes";
 
 interface APFINBLSummaryCardProps {
@@ -20,7 +19,6 @@ interface APFINBLSummaryCardProps {
 }
 
 export function APFINBLSummaryCard({ profile, unifiedResult, sponsorships, opacity = "opacity-100" }: APFINBLSummaryCardProps) {
-  const { calculatePayslipComparison } = usePayslipCalculations();
   
   // Use profile annual salary passed into the card
   const annualSalary = profile.annualSalary || 0;
@@ -30,12 +28,9 @@ export function APFINBLSummaryCard({ profile, unifiedResult, sponsorships, opaci
   const apf1202_maturity = unifiedResult?.currentCapitalShortfall ?? 0;
   // APF-1201 = APF-1202 / 1.582
   const apf1201_initialFunding = apf1202_maturity / 1.582;
-  // APF-1203 = INBL Loan Principal (NPG + NRSR fee) aggregated across years
-  const apf1203_inblPrincipal = sponsorships.reduce((sum, sponsorship) => {
-    const payslipComparison = calculatePayslipComparison(annualSalary, sponsorship.sponsorshipAmount);
-    // totalINBLPrincipal returned monthly; aggregate annually per year in program
-    return sum + (payslipComparison.totalINBLPrincipal * 12);
-  }, 0);
+  // APF-1283 should show APF-1282 × 0.5215786284925253 (per wiring spec)
+  const APF_1283_FACTOR = 0.5215786284925253;
+  const apf1203_inblPrincipal = apf1202_maturity * APF_1283_FACTOR;
   
   // Show constraint information if APF is limited by salary exchange
   const isConstrainedBySalaryExchange = unifiedResult.proposedAPFFunding > unifiedResult.feasibleAPFFunding;
@@ -43,8 +38,7 @@ export function APFINBLSummaryCard({ profile, unifiedResult, sponsorships, opaci
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <TrendingUp className="h-5 w-5" />
+        <CardTitle>
           <span>APF & INBL Summary - Total Program</span>
         </CardTitle>
       </CardHeader>

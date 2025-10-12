@@ -160,12 +160,11 @@ const App = () => (
                 </AppLayout>
               </RequireAuth>
             } />
+            {/* Temporarily relax auth for debugging APF Registration */}
             <Route path="/apf-registration" element={
-              <RequireAuth>
-                <AppLayout>
-                  <APFRegistration />
-                </AppLayout>
-              </RequireAuth>
+              <ConditionalLayout>
+                <APFRegistration />
+              </ConditionalLayout>
             } />
             <Route path="/get-started" element={
               <RequireAuth>

@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatUtils";
-import { TrendingUp } from "lucide-react";
 import { MetricCard } from "@/components/Dashboard/MetricCard";
 
 interface APFValueForMoneyCardProps {
@@ -16,8 +15,7 @@ export function APFValueForMoneyCard({ isaContributions, maturityValue, showMont
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <TrendingUp className="h-5 w-5" />
+        <CardTitle>
           <span>Value for Money</span>
         </CardTitle>
       </CardHeader>

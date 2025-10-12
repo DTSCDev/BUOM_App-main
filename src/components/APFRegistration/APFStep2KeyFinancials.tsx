@@ -2,12 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/Dashboard/MetricCard";
 import { APFMetricSummaryCard } from "@/components/Dashboard/APFMetricSummaryCard";
-import { Calendar, AlertTriangle, TrendingUp } from "lucide-react";
+import { AlertTriangle, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/utils/formatUtils";
 import { useRetirementCalculatorHub } from "@/hooks/useRetirementCalculatorHub";
 import { useProfile } from "@/hooks/useProfile";
 import { getPensionParameters } from "@/utils/pensionParameters";
 import { APFInblSummaryProposedCard } from "./APFStep2Cards/APFInblSummaryProposedCard";
+import { usePayslipCalculations } from "@/hooks/usePayslipCalculations";
 
 interface APFStep2KeyFinancialsProps {
   profile: {
@@ -46,8 +47,10 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
   const totalMaturityValue = hub.cal4121_capitalShortfall || 0; // SFM-APF-1282
   const totalInitialFunding = totalMaturityValue / params.apfMaturityMultiplier; // SFM-APF-1281
 
-  // SFM-APF-4241-M: INBL Principal (Year 1, Maximum) – allowed temporary fixed value per instructions
-  const inblPrincipalYear1 = 37919;
+  // SFM-APF-4241-M: Year 1 INBL Principal = APF-4221-M (NPG) + APF-4231-M (NRSR Fee)
+  const { calculatePayslipComparison } = usePayslipCalculations();
+  const payslipYear1 = calculatePayslipComparison(annualSalary, year1MaxInitialContribution);
+  const inblPrincipalYear1 = (payslipYear1.npgAmount + payslipYear1.nrsrFee) * 12; // annualised
 
   // APF-4251-M: Remaining shortfall balance (Year 1, Maximum)
   const year1ShortfallBalance = Math.max(0, totalInitialFunding - year1MaxInitialContribution);
@@ -78,7 +81,6 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
               <span className="text-lg font-semibold" style={{ color: '#4FF456' }}>Year 1 Sponsorship Funding</span>
             </div>
             <span className="text-sm text-gray-700">(2025/26) · Age 42</span>
@@ -145,14 +147,17 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center items-start">
             <div className="flex flex-col items-center">
               <div className="text-sm text-gray-600 min-h-[40px]">Total Sponsorship Years Required</div>
+              <div className="h-2" />
               <div className="text-lg font-semibold leading-none">{totalYearsRequired}</div>
             </div>
             <div className="flex flex-col items-center">
               <div className="text-sm text-gray-600 min-h-[40px]">Total Initial APF Contributions</div>
+              <div className="h-2" />
               <div className="text-lg font-semibold leading-none text-[rgb(191,144,0)]">{formatCurrency(totalInitialFunding)}</div>
             </div>
             <div className="flex flex-col items-center">
               <div className="text-sm text-gray-600 min-h-[40px]">Total APF Maturity Value</div>
+              <div className="h-2" />
               <div className="text-lg font-semibold leading-none text-purple-600">{formatCurrency(totalMaturityValue)}</div>
             </div>
           </div>

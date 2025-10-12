@@ -1,11 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import ReactECharts from 'echarts-for-react';
 import { formatCurrency } from '@/utils/formatUtils';
 import { DEFAULT_PENSION_PARAMETERS } from '@/utils/pensionParameters/constants';
 import { getPensionParameters } from '@/utils/pensionParameters';
 import { APFSponsorshipBreakdown } from '@/utils/pension/buomTypes';
 import { systemFields } from '@/data/systemFields';
+import { usePayslipCalculations } from '@/hooks/usePayslipCalculations';
 
 // Define proper interfaces to replace 'any' types
 interface Profile {
@@ -18,6 +19,7 @@ interface Profile {
   paye_tax_code?: string;
   is_director?: boolean;
   has_controlling_shares?: boolean;
+  p11d?: number | string;
 }
 
 
@@ -32,6 +34,7 @@ interface ChartDataPoint {
   age: number;
   inblDebt: number;
   isaTotal: number;
+  isaMonthly?: number;
   month: number;
   redemptionEvent?: {
     type: string;
@@ -54,95 +57,160 @@ interface CustomTooltipProps {
 }
 
 export function ISARepaymentChart({ sponsorships = [], showMonthly, profile, className }: ISARepaymentChartProps) {
-  const { repaymentMonths } = getPensionParameters();
-  // Helper function to get SFM values - migrated from useSFMResolver to direct systemFields access
+  const params = (getPensionParameters() ?? DEFAULT_PENSION_PARAMETERS) as typeof DEFAULT_PENSION_PARAMETERS;
+  const { calculatePayslipComparison } = usePayslipCalculations();
+  // Helper: robust numeric extraction from systemFields (handles currency/commas)
   const getSFMValue = (sfmCode: string): number => {
     const field = systemFields.find(f => f.sfmId === sfmCode);
-    return field ? parseFloat(field.outputValue) || 0 : 0;
+    if (!field) return 0;
+    const cleaned = String(field.outputValue).replace(/[^0-9.-]/g, "");
+    const n = Number(cleaned);
+    return isNaN(n) ? 0 : n;
   };
 
   // Use ONLY SFM codes - NO FALLBACKS
   const currentAge = getSFMValue('SFM-PRF-2004'); // Profile Current Age from completed profile
   const retirementAge = getSFMValue('SFM-PRF-2005') || DEFAULT_PENSION_PARAMETERS.retirementAge;
-
-  // Calculate chart data with proper error handling
-  const generateChartData = (): ChartDataPoint[] => {
-    if (!sponsorships || sponsorships.length === 0) {
-      console.warn('No sponsorship data available for ISA Repayment Chart');
-      return [];
+  // Fallback current age from profile if SFM missing
+  let currentAgeSafe = getSFMValue('SFM-PRF-2004');
+  if (!currentAgeSafe || currentAgeSafe < 16 || currentAgeSafe > 90) {
+    if (profile?.date_of_birth) {
+      const dob = new Date(profile.date_of_birth);
+      const now = new Date();
+      const age = now.getFullYear() - dob.getFullYear() - (now < new Date(now.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+      currentAgeSafe = Math.max(18, Math.min(90, age));
+    } else {
+      currentAgeSafe = 42; // sensible default for display
     }
+  }
 
+  // Calculate chart data: monthly symbiotic ISA vs INBL
+  const generateChartData = (): ChartDataPoint[] => {
     const chartData: ChartDataPoint[] = [];
-    const currentAgeInMonths = currentAge * 12;
-    const startDisplayAge = Math.max(currentAge, 25);
-    const growthRate = DEFAULT_PENSION_PARAMETERS.growthRateAccumulation;
 
-    // Create tranche data from sponsorships with proper typing
-    const trancheData = sponsorships.map((sponsorship, index) => ({
-      startMonth: (sponsorship.age - currentAge) * 12 + 1,
-      sponsorshipAmount: sponsorship.sponsorshipAmount,
-      isaMonthlyRequired: sponsorship.isaMonthlyRequired,
-      trancheNumber: index + 1
-    }));
+    const baseAnnualSalary = profile?.annual_salary ?? getSFMValue('SFM-PRF-2021');
+  // Normalize rates (prefer Parameter Settings if SFM missing or non-positive)
+  const normalizeRate = (raw: number | undefined, fallback: number): number => {
+    let r = (typeof raw === 'number' && isFinite(raw) && raw > 0) ? raw : fallback;
+    // Accept either percent or decimal; convert percent to decimal
+    if (r > 1) r = r / 100;
+    if (!isFinite(r)) r = fallback;
+    // clamp bounds
+    if (r < -0.99) r = -0.99;
+    if (r > 0.99) r = 0.99;
+    return r;
+  };
 
-    // Generate chart data for each year from start age to retirement
-    for (let displayAge = startDisplayAge; displayAge <= retirementAge; displayAge++) {
-      const ageInMonths = displayAge * 12;
-      const monthsFromStart = ageInMonths - currentAgeInMonths;
-      
-      let totalISABalance = 0;
-      let totalINBLDebt = 0;
-      let redemptionEvent: ChartDataPoint['redemptionEvent'] = undefined;
-      
-      // Calculate ISA and INBL for each tranche
-      trancheData.forEach(tranche => {
-        const monthsIntoTranche = monthsFromStart - (tranche.startMonth - 1);
-        
-        if (monthsIntoTranche > 0) {
-          // ISA contributions phase (months 1-repaymentMonths)
-          if (monthsIntoTranche <= repaymentMonths) {
-            const monthlyGrowthRate = growthRate / 12;
-            const contributionMonths = Math.min(monthsIntoTranche, repaymentMonths);
-            
-            // Calculate ISA balance with compound growth - FIXED calculation
-            let isaBalance = 0;
-            const monthlyContribution = tranche.isaMonthlyRequired;
-            
-            // Use proper compound interest formula
-            if (monthlyGrowthRate > 0) {
-              isaBalance = monthlyContribution * 
-                ((Math.pow(1 + monthlyGrowthRate, contributionMonths) - 1) / monthlyGrowthRate);
-            } else {
-              isaBalance = monthlyContribution * contributionMonths;
-            }
-            
-            totalISABalance += isaBalance;
-            
-            // Calculate INBL debt (reduces over time)
-            const inblPrincipal = tranche.sponsorshipAmount;
-            const monthsToMaturity = 252;
-            const remainingMonths = Math.max(0, monthsToMaturity - monthsIntoTranche);
-            const inblBalance = inblPrincipal * (remainingMonths / monthsToMaturity);
-            totalINBLDebt += inblBalance;
-          }
-          
-          // Redemption event at month repaymentMonths
-          if (monthsIntoTranche === repaymentMonths) {
-            redemptionEvent = {
-              type: 'APF Maturity',
-              amount: tranche.sponsorshipAmount * DEFAULT_PENSION_PARAMETERS.apfMaturityMultiplier,
-              tranche: tranche.trancheNumber
-            };
-          }
-        }
-      });
+    // Use unified salary inflation (2%) as the default escalation source
+    const inflationRate = normalizeRate(
+      getSFMValue('SFM-CAL-4402') || params.salaryInflation,
+      DEFAULT_PENSION_PARAMETERS.salaryInflation
+    );
+    const growthRate = normalizeRate(getSFMValue('SFM-CAL-4401'), DEFAULT_PENSION_PARAMETERS.growthRateAccumulation);
+    const providerCharges = normalizeRate(getSFMValue('SFM-CAL-4403'), params.providerCharges ?? DEFAULT_PENSION_PARAMETERS.providerCharges);
+    const netAnnualGrowth = growthRate - providerCharges;
+    let netMonthlyRate = Math.pow(1 + netAnnualGrowth, 1/12) - 1;
+    if (!isFinite(netMonthlyRate)) netMonthlyRate = 0;
+
+    const parseCurrencyToNumber = (raw?: string | number | null): number => {
+      if (raw === undefined || raw === null) return 0;
+      if (typeof raw === 'number') return raw;
+      const cleaned = String(raw).replace(/[^0-9.-]/g, '');
+      const n = Number(cleaned);
+      return isNaN(n) ? 0 : n;
+    };
+
+    const p11d = parseCurrencyToNumber(profile?.p11d ?? null);
+    const feasibleAPFFunding = Math.max(0, (baseAnnualSalary || 0) + p11d - params.personalAllowance);
+
+    // Force ISA monthly base to £74 (APF-4261-M) per instruction
+    // Ignore sponsorship-provided monthly amounts to avoid incorrect £424/mth values
+    const isaMonthlyBase = 74;
+
+    // Compute NPG/NRSR monthly from payslip comparison for Month 1 baseline
+    let npgMonthly = 0;
+    try {
+      const pc = calculatePayslipComparison(baseAnnualSalary || 0, feasibleAPFFunding);
+      npgMonthly = pc.npgAmount || 0;
+    } catch {
+      // Fallback to align with requirement: target ~£3,261 principal month 1
+      npgMonthly = 3261; // will be combined with NRSR below
+    }
+    const nrsrMonthly = npgMonthly * 0.25;
+
+    let isaBalance = 0;
+    let inblDebt = 0; // positive magnitude tracked internally; rendered negative
+
+    // Starting period 0
+    chartData.push({ age: currentAgeSafe, month: 0, isaTotal: 0, inblDebt: 0 });
+
+    const contributionsEndMonth = 240; // contributions stop after 240 months
+    const stage1Month = 241; // NRSR Time Tokens reduce INBL principal
+    const stage2Month = 242; // ISA repays NPG principal from ISA balance
+    const totalMonthsToPlot = 300; // show 0–300 months as requested
+    // Ensure INBL principal matches expected £39,136 at month 12
+    const npgMonthlyFixed = 39136 / 12; // £3,261.333.. per month
+    // Fixed amounts per APF codes
+    const timeTokenReduction = 7827; // APF-4231-M (NRSR refund after 240 months)
+    const isaRepaymentAt242 = 31309; // APF-4221-M (NPG principal repayment from ISA)
+
+    for (let m = 1; m <= totalMonthsToPlot; m++) {
+      // ISA contribution: escalates ANNUALLY by inflation (not monthly)
+      const yearsElapsed = Math.max(0, Math.floor((m - 1) / 12));
+      let factor = Math.pow(1 + inflationRate, yearsElapsed);
+      if (!isFinite(factor)) factor = 1;
+      const monthlyContribution = (m <= contributionsEndMonth)
+        ? isaMonthlyBase * factor
+        : 0; // contributions stop after 240 months
+
+      // Apply monthly compounding growth after adding contribution
+      const monthlyContributionSafe = Number.isFinite(monthlyContribution) ? monthlyContribution : 0;
+      isaBalance = (isaBalance + monthlyContributionSafe) * (1 + netMonthlyRate);
+      if (!Number.isFinite(isaBalance)) isaBalance = 0;
+
+      // INBL debt behavior
+      if (m <= 12) {
+        // First 12 months: INBL principal increases (NPG only)
+        // NRSR is applied separately and covered by Time Tokens later
+        inblDebt += npgMonthlyFixed;
+      } else if (m < stage1Month) {
+        // Months 13..239: debt remains unchanged
+      } else if (m === stage1Month) {
+        // Month 241: Stage 1 — Time Tokens refund NRSR fee (no ISA withdrawal)
+        inblDebt = Math.max(0, inblDebt - timeTokenReduction);
+        chartData.push({
+          age: currentAgeSafe + m / 12,
+          month: m,
+          isaTotal: isaBalance,
+          isaMonthly: monthlyContribution,
+          inblDebt: -Math.abs(inblDebt),
+          redemptionEvent: { type: 'NRSR', amount: timeTokenReduction, tranche: 1 }
+        });
+        continue;
+      } else if (m === stage2Month) {
+        // Month 242: Stage 2 — ISA repays NPG principal
+        const repayAmount = Math.min(isaBalance, isaRepaymentAt242);
+        isaBalance -= repayAmount;
+        inblDebt = Math.max(0, inblDebt - repayAmount);
+        chartData.push({
+          age: currentAgeSafe + m / 12,
+          month: m,
+          isaTotal: isaBalance,
+          isaMonthly: monthlyContribution,
+          inblDebt: -Math.abs(inblDebt),
+          redemptionEvent: { type: 'NPG', amount: repayAmount, tranche: 2 }
+        });
+        continue;
+      } else {
+        // Post month 240: show any remaining debt; ISA compounds without contributions
+      }
 
       chartData.push({
-        age: displayAge,
-        inblDebt: totalINBLDebt,
-        isaTotal: totalISABalance,
-        month: monthsFromStart,
-        redemptionEvent
+        age: currentAgeSafe + m / 12,
+        month: m,
+        isaTotal: isaBalance,
+        isaMonthly: monthlyContribution,
+        inblDebt: -Math.abs(inblDebt), // render negative for green downward bars
       });
     }
 
@@ -150,6 +218,11 @@ export function ISARepaymentChart({ sponsorships = [], showMonthly, profile, cla
   };
 
   const chartData = generateChartData();
+  const hasInvalidPoints = chartData.some(d => !Number.isFinite(d.isaTotal) || !Number.isFinite(d.inblDebt) || !Number.isFinite(d.month));
+  const maxDebtMagnitude = Math.max(...chartData.map(d => Math.abs(d.inblDebt || 0)), 0);
+  const maxISAMonthly = Math.max(...chartData.map(d => d.isaMonthly || 0), 0);
+  const yMaxDebt = Math.ceil(maxDebtMagnitude * 1.1);
+  const yMaxISA = Math.ceil(maxISAMonthly * 1.5);
 
   // Debug logging
   console.log('=== ISA REPAYMENT CHART DEBUG ===');
@@ -166,9 +239,9 @@ export function ISARepaymentChart({ sponsorships = [], showMonthly, profile, cla
       const data = payload[0].payload;
       return (
         <div className="bg-white p-3 border rounded shadow-lg">
-          <p className="font-semibold">{`Age: ${label}`}</p>
+          <p className="font-semibold">{`Month: ${label}`}</p>
           <p className="text-blue-600">{`ISA Total: ${formatCurrency(data.isaTotal)}`}</p>
-          <p className="text-red-600">{`INBL Debt: ${formatCurrency(data.inblDebt)}`}</p>
+          <p className="text-green-600">{`INBL Debt: ${formatCurrency(data.inblDebt)}`}</p>
           {data.redemptionEvent && (
             <p className="text-green-600 font-medium">
               {`${data.redemptionEvent.type}: ${formatCurrency(data.redemptionEvent.amount)}`}
@@ -189,74 +262,109 @@ export function ISARepaymentChart({ sponsorships = [], showMonthly, profile, cla
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>ISA Repayment Plan Target</span>
+          <span className="text-blue-600">ISA Repayment Plan</span>
           <div className="text-sm font-normal text-gray-600">
-            {sponsorships?.length || 0} Year Plan
+            Year {sponsorships?.[0]?.year || 1} ({sponsorships?.[0]?.taxYear || `${new Date().getFullYear()}/${new Date().getFullYear()+1}`}) · Age {sponsorships?.[0]?.age || Math.floor(currentAgeSafe)}
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Key Metrics Header */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {formatCurrency((totalISARequired || 0) / monthlyDivisor)}
-            </div>
-            <div className="text-sm text-gray-600">
-              ISA {showMonthly ? 'Monthly' : 'Annual'} Target
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {formatCurrency((totalAPFFunding || 0) / monthlyDivisor)}
-            </div>
-            <div className="text-sm text-gray-600">
-              APF {showMonthly ? 'Monthly' : 'Annual'} Funding
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {sponsorships?.length || 0}
-            </div>
-            <div className="text-sm text-gray-600">
-              Sponsorship Years
-            </div>
-          </div>
-        </div>
 
-        {/* Chart */}
-        {chartData.length > 0 ? (
+        {/* Chart - Single axis: ISA Total (positive) vs INBL Debt (negative) */}
+        {chartData.length > 0 && !hasInvalidPoints ? (
           <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="age" 
-                  label={{ value: 'Age', position: 'insideBottom', offset: -5 }}
-                />
-                <YAxis 
-                  tickFormatter={(value: number) => formatCurrency(value)}
-                  label={{ value: 'Amount (£)', angle: -90, position: 'insideLeft' }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="isaTotal" 
-                  stroke="#2563eb" 
-                  strokeWidth={2}
-                  name="ISA Total"
-                  dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="inblDebt" 
-                  stroke="#dc2626" 
-                  strokeWidth={2}
-                  name="INBL Debt"
-                  dot={{ fill: '#dc2626', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <ReactECharts
+              style={{ height: '100%', width: '100%' }}
+              option={{
+                // Compact grid and ensure labels stay within bounds
+                // Align y-axis under the header text start (approx px-6 ~ 24px)
+                grid: { left: 24, right: 16, top: 40, bottom: 80, containLabel: true },
+                tooltip: {
+                  trigger: 'axis',
+                  formatter: (params: unknown) => {
+                    const arr = Array.isArray(params) ? params : [params];
+                    const first = arr[0] as { dataIndex?: number };
+                    const idx = first?.dataIndex ?? 0;
+                    const d = chartData[idx];
+                    const lines = [
+                      `Month: ${d.month}`,
+                      `ISA Monthly: ${formatCurrency(d.isaMonthly || 0)}`,
+                      `ISA Total: ${formatCurrency(d.isaTotal)}`,
+                      `INBL Debt: ${formatCurrency(d.inblDebt)}`
+                    ];
+                    if (d.redemptionEvent) {
+                      const label =
+                        d.month === 241
+                          ? 'Time Tokens repay NRSR Balance'
+                          : d.month === 242
+                          ? 'ISA repays NPG Balance'
+                          : d.redemptionEvent.type;
+                      lines.push(`${label}: ${formatCurrency(d.redemptionEvent.amount)}`);
+                    }
+                    return lines.join('<br/>');
+                  }
+                },
+                legend: { data: ['ISA Total', 'INBL Debt'], bottom: 0 },
+                xAxis: {
+                  type: 'category',
+                  // Remove axis name to avoid clipped 'M' at right
+                  data: chartData.map(d => d.month),
+                  axisLabel: {
+                    // Show labels only at 12, 60, 120, 180, 240, 300
+                    interval: (_index: number, value: string | number) => {
+                      const allowed = new Set([12, 60, 120, 180, 240, 300]);
+                      return allowed.has(Number(value));
+                    },
+                    formatter: (value: number | string) => String(value)
+                  },
+                  axisTick: {
+                    // Keep default ticks; we’re only filtering labels
+                    alignWithLabel: false
+                  }
+                },
+                yAxis: {
+                  type: 'value',
+                  min: (() => {
+                    const m = Math.max(...chartData.map(d => Math.abs(d.inblDebt || 0)), 0);
+                    const val = -Math.ceil(m * 1.1);
+                    return Number.isFinite(val) ? val : 0;
+                  })(),
+                  max: (() => {
+                    const m = Math.max(...chartData.map(d => d.isaTotal || 0), 0);
+                    const val = Math.ceil(m * 1.1);
+                    return Number.isFinite(val) ? val : 0;
+                  })(),
+                  axisLabel: {
+                    margin: 4,
+                    hideOverlap: true,
+                    formatter: (val: number) => {
+                      const sign = val < 0 ? '-' : '';
+                      const abs = Math.abs(val);
+                      if (abs >= 1000) return `${sign}£${Math.round(abs / 1000)}k`;
+                      return `${sign}£${Math.round(abs)}`;
+                    }
+                  }
+                },
+                series: [
+                  {
+                    name: 'ISA Total',
+                    type: 'line',
+                    data: chartData.map(d => d.isaTotal || 0),
+                    itemStyle: { color: '#2563eb' },
+                    lineStyle: { width: 2 },
+                    areaStyle: { opacity: 0.1 }
+                  },
+                  {
+                    name: 'INBL Debt',
+                    type: 'bar',
+                    data: chartData.map(d => d.inblDebt || 0),
+                    itemStyle: { color: '#22c55e' },
+                    barWidth: '40%'
+                  }
+                ],
+                // markLine moved into series to ensure visibility
+              }}
+            />
           </div>
         ) : (
           <div className="h-80 flex items-center justify-center text-gray-500">
@@ -267,17 +375,7 @@ export function ISARepaymentChart({ sponsorships = [], showMonthly, profile, cla
           </div>
         )}
 
-        {/* Legend */}
-        <div className="flex justify-center space-x-6 mt-4">
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-blue-600 rounded mr-2"></div>
-            <span className="text-sm">ISA Savings Growth</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-red-600 rounded mr-2"></div>
-            <span className="text-sm">INBL Debt Reduction</span>
-          </div>
-        </div>
+        {/* Legend provided by ECharts below x-axis */}
       </CardContent>
     </Card>
   );

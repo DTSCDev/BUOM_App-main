@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatUtils";
-import { Calendar, AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 import { APFSponsorshipBreakdown } from "@/utils/pension/buomTypes";
 import { MetricCard } from "@/components/Dashboard/MetricCard";
 import { usePayslipCalculations } from "@/hooks/usePayslipCalculations";
@@ -60,8 +60,7 @@ export function APFSponsorshipYearsCard({ sponsorships, showMonthly, profile, in
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Calendar className="h-5 w-5" />
+        <CardTitle>
           <span>Sponsorship Years Required ({sponsorships.length} Year{sponsorships.length !== 1 ? 's' : ''})</span>
         </CardTitle>
       </CardHeader>
