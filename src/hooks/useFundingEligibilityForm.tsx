@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { generateBUOMMembershipNumber } from '@/utils/pensionCalculations';
+import { generateUniqueMembershipId } from '@/services/membershipService';
 import { FundingEligibilityFormValues, fundingEligibilityFormSchema } from '@/components/FundingEligibilityFormFields';
 
 export const useFundingEligibilityForm = () => {
@@ -37,8 +38,8 @@ export const useFundingEligibilityForm = () => {
       // Persist full eligibility data locally for data migration mapping
       localStorage.setItem('funding-eligibility-data', JSON.stringify(data));
       
-      // Generate a BUOM membership number
-      const newMembershipNumber = generateBUOMMembershipNumber();
+      // Generate a BUOM membership number with collision safeguards
+      const newMembershipNumber = await generateUniqueMembershipId(generateBUOMMembershipNumber);
       setMembershipNumber(newMembershipNumber);
 
       console.log('Submitting to Supabase with data:', {

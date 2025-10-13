@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
+import { useDocuments } from '@/hooks/useDocuments';
 import { useNetAssetValue } from '@/hooks/useNetAssetValue';
 import { useProfessionalAdvisors } from '@/hooks/useProfessionalAdvisors';
 
@@ -33,14 +35,22 @@ interface ToDoItem {
 export default function BUOMHub() {
   const navigate = useNavigate();
   const { profile } = useProfile();
+  const { user } = useAuth();
+  const { documents } = useDocuments(user?.id);
   const { assets } = useNetAssetValue();
   const { advisors } = useProfessionalAdvisors();
+
+  // Helper: check required document uploads and NI capture
+  const requiredDocTypes = ["payslip", "id", "proof_of_address"];
+  const requiredDocsUploaded = requiredDocTypes.every(type =>
+    (documents || []).some(doc => doc.type === type)
+  );
 
   // Calculate completion status for each section
   const getToDoItems = (): ToDoItem[] => {
     const workplaceComplete = !!(profile?.annual_salary && profile?.employment_type);
     const pensionComplete = !!(profile?.pension_provider && (profile?.pension_contribution_employee || profile?.pension_contribution_employer));
-    const documentsComplete = false; // TODO: Check document uploads
+    const documentsComplete = requiredDocsUploaded; // NI is captured via payslip upload
     const pastPensionComplete = assets?.some(asset => asset.category?.name?.toLowerCase().includes('pension')) || false;
     const assetsComplete = assets && assets.length > 0;
     const legacyComplete = false; // TODO: Check legacy planning completion
@@ -67,8 +77,8 @@ export default function BUOMHub() {
       },
       {
         id: 'documents',
-        title: 'Latest Payslip / Self Assessment',
-        description: 'Profile > Documents',
+        title: 'Upload Required Documents',
+        description: 'Profile > Documents (Payslip, ID, Address)',
         completed: documentsComplete,
         route: '/profile?section=documents',
         icon: <FileText className="h-4 w-4" />,
@@ -116,6 +126,8 @@ export default function BUOMHub() {
   const todoItems = getToDoItems();
   const completedItems = todoItems.filter(item => item.completed).length;
   const completionPercentage = Math.round((completedItems / todoItems.length) * 100);
+  const documentsItem = todoItems.find(t => t.id === 'documents');
+  const canStartAPF = !!documentsItem?.completed; // Stage 1 gating: required uploads complete
 
   const handleNavigation = (route: string) => {
     navigate(route);
@@ -219,10 +231,17 @@ export default function BUOMHub() {
                     </p>
                   </div>
                 )}
-                {completionPercentage >= 100 && (
+                {canStartAPF && (
                   <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                     <p className="text-green-800 font-medium">
-                      Great job! Your profile is complete. Consider exploring APF options.
+                      Required documents uploaded. You can start APF Registration.
+                    </p>
+                  </div>
+                )}
+                {!canStartAPF && (
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                    <p className="text-yellow-800 font-medium">
+                      Upload required documents (Payslip, ID, Address) before starting APF Registration.
                     </p>
                   </div>
                 )}
@@ -276,19 +295,18 @@ export default function BUOMHub() {
                 ))}
               </div>
 
-              {completionPercentage === 100 && (
-                <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-green-800 text-sm font-medium text-center">
-                    🎉 All tasks completed! Ready for APF registration.
-                  </p>
-                  <Button 
-                    className="w-full mt-2" 
-                    onClick={() => navigate('/apf-registration')}
-                  >
-                    Start APF Registration
-                  </Button>
-                </div>
-              )}
+              <div className="mt-4 p-3 rounded-lg border" style={{ borderColor: canStartAPF ? '#bbf7d0' : '#fde68a', backgroundColor: canStartAPF ? '#f0fdf4' : '#fffbeb' }}>
+                <p className={canStartAPF ? "text-green-800 text-sm font-medium text-center" : "text-yellow-800 text-sm font-medium text-center"}>
+                  {canStartAPF ? 'Ready for APF registration.' : 'Complete required uploads before starting APF registration.'}
+                </p>
+                <Button 
+                  className="w-full mt-2" 
+                  onClick={() => navigate('/apf-registration')}
+                  disabled={!canStartAPF}
+                >
+                  Start APF Registration
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

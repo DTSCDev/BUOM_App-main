@@ -31,6 +31,7 @@ import {
   Settings,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import ProfileIdentityHeader from "./ProfileIdentityHeader";
 import { useState } from "react";
 
 interface NavItem {
@@ -207,14 +208,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="bg-white border-r border-gray-200">
-      <SidebarHeader className="py-4">
-        <div className="flex items-left justify-left">
-          <img 
-            src="/buom-logo.png" 
-            alt="BUOM Logo" 
-            className="h-12 w-auto object-contain"
-          />
-        </div>
+      <SidebarHeader className="py-2">
+        <ProfileIdentityHeader />
       </SidebarHeader>
       <SidebarContent className="text-[#030227]">
         <SidebarMenu>
@@ -323,7 +318,14 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        <div className="p-4">
+        <div className="p-4 space-y-2">
+          <div className="flex items-center justify-center">
+            <img 
+              src="/buom-logo.png" 
+              alt="BUOM Logo" 
+              className="h-8 w-auto object-contain"
+            />
+          </div>
           <p className="text-xs text-center text-[#030227]">
             © {new Date().getFullYear()} BUOM
           </p>

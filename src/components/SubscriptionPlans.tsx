@@ -33,6 +33,7 @@ const SubscriptionPlans: React.FC = () => {
     try {
       setIsProcessing(true);
 
+
       // Get the membership ID from local storage or generate a new one
       const membershipId = localStorage.getItem('buomMembershipNumber') || '';
       if (!membershipId) {

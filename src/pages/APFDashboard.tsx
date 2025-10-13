@@ -11,6 +11,7 @@ import { calculateUnifiedPensionMetrics } from "@/utils/pension/unifiedCalculati
 import { Asset as UnifiedAsset, Profile as UnifiedProfile } from "@/utils/systemFields/types";
 import { getPensionParameters } from "@/utils/pensionParameters";
 import { Button } from "@/components/ui/button";
+import { AIPKeyDataCard } from "@/components/Dashboard/AIPKeyDataCard";
 
 export default function APFDashboard() {
   const { profile } = useProfile();
@@ -105,6 +106,7 @@ export default function APFDashboard() {
         {/* Left Column - Retirement Plan Overview */}
         <div className="space-y-6">
           <ApfRetirementPlanSummary />
+          <AIPKeyDataCard />
         </div>
         
         {/* Right Column - Chart */}

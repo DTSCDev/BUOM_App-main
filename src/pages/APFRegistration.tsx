@@ -7,6 +7,7 @@ import { APFStepRenderer } from "@/components/APFRegistration/APFStepRenderer";
 import { APFNavigationControls } from "@/components/APFRegistration/APFNavigationControls";
 import { isTestingAccount } from "@/utils/testing";
 import { APFRegistrationData } from "@/types/apfRegistration";
+import { toast } from "@/hooks/use-toast";
 
 // Use the actual ProfileData interface from the hook
 interface Profile extends ProfileData {
@@ -79,9 +80,9 @@ export default function APFRegistration() {
     setApplicationData(prev => ({ ...prev, ...data }));
     // Advance to next step immediately after a step reports completion
     setCurrentStep(prev => {
-      const next = prev < 6 ? prev + 1 : prev;
-      setPendingScrollAnchor(getStepAnchor(next));
-      return next;
+      const nextCandidate = prev < 6 ? prev + 1 : prev;
+      setPendingScrollAnchor(getStepAnchor(nextCandidate));
+      return nextCandidate;
     });
   };
 
