@@ -201,7 +201,7 @@ export function APFStep1PersonalDetails({ profile, onComplete, onRegisterSave }:
   return (
     <Card>
       <CardHeader id="step1-header">
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-2xl font-semibold leading-tight">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>
             1
           </div>

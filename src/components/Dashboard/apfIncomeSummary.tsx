@@ -19,7 +19,7 @@ export function ApfIncomeSummary({ calculations, formatValue }: ApfIncomeSummary
   if (!calculations) {
     return (
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-purple-600">Retirement Plan Target Income</h3>
+        <h3 className="text-lg font-semibold text-purple-600">APF Retirement Target Income</h3>
         <div className="text-center text-gray-500">Loading...</div>
       </div>
     );
@@ -27,7 +27,7 @@ export function ApfIncomeSummary({ calculations, formatValue }: ApfIncomeSummary
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-purple-600">Retirement Plan Target Income</h3>
+      <h3 className="text-lg font-semibold text-purple-600">APF Retirement Target Income</h3>
       <ProgressBanner 
         progressPercentage={calculations.retirementProgressPercentage || 0}
         className="mb-3"
@@ -48,7 +48,7 @@ export function ApfIncomeSummary({ calculations, formatValue }: ApfIncomeSummary
           sfmCode="SFM-APF-1005"
         />
         <MetricCard
-          title="APF FUTURE TARGET INCOME"
+          title="APF SHORTFALL TARGET INCOME"
           value={formatValue(calculations.apfTargetIncome || 0)}
           headerBgColor="bg-purple-600"
           valueTextColor="text-purple-600"

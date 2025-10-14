@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Circle } from "lucide-react";
 
 interface APFProgressIndicatorProps {
   currentStep: number;
@@ -22,52 +21,59 @@ export function APFProgressIndicator({ currentStep, completedSteps, onStepClick 
   const progressPercentage = (currentStep / 6) * 100;
 
   return (
-    <Card>
+    <Card className="border-2" style={{ borderColor: '#374151' }}>
       <CardHeader className="pb-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-[#4FF456]">Application Progress</h3>
+          <h3 className="text-lg font-semibold" style={{ color: '#4FF456' }}>APF Registration Progress</h3>
           <span className="text-sm text-gray-500">Step {currentStep} of 6</span>
         </div>
-        <Progress value={progressPercentage} className="w-full h-2" />
+        <div className="w-full h-2 rounded" style={{ backgroundColor: '#374151' }}>
+          <div
+            className="h-2 rounded"
+            style={{ width: `${progressPercentage}%`, backgroundColor: '#4FF456' }}
+          />
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-          {steps.map((step) => {
-            const isCompleted = completedSteps.includes(step.id);
-            const isCurrent = currentStep === step.id;
-            
-            return (
-              <div 
-                key={step.id} 
-                className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                  isCurrent 
-                    ? 'bg-blue-50 border-blue-300' 
-                    : isCompleted 
-                      ? 'bg-green-50 border-green-300' 
-                      : 'bg-gray-50 border-gray-200'
-                }`}
-                onClick={() => isCompleted && onStepClick(step.id)}
-              >
-                <div className="flex items-center space-x-2 mb-1">
-                  {isCompleted ? (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Circle className={`h-4 w-4 ${isCurrent ? 'text-blue-600' : 'text-gray-400'}`} />
-                  )}
-                  <span className={`text-xs font-medium ${
-                    isCurrent ? 'text-blue-900' : isCompleted ? 'text-green-900' : 'text-gray-600'
-                  }`}>
-                    {step.title}
-                  </span>
-                </div>
-                <p className={`text-xs ${
-                  isCurrent ? 'text-blue-700' : isCompleted ? 'text-green-700' : 'text-gray-500'
-                }`}>
-                  {step.description}
-                </p>
-              </div>
-            );
-          })}
+        <div className="bg-gray-700 p-2 rounded-lg">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+            {steps.map((step) => {
+              const isCompleted = completedSteps.includes(step.id);
+              const isCurrent = currentStep === step.id;
+
+              const tileStyle: React.CSSProperties = {
+                backgroundColor: isCurrent ? '#4FF546' : 'transparent',
+                color: isCurrent ? '#374151' : '#4FF456',
+              };
+
+              return (
+                <button
+                  type="button"
+                  key={step.id}
+                  className="p-2 rounded-md text-left transition-colors"
+                  style={tileStyle}
+                  onClick={() => isCompleted && onStepClick(step.id)}
+                  disabled={!isCompleted}
+                >
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`inline-flex items-center justify-center aspect-square w-6 rounded-full border-2 font-bold text-[12px] leading-none shrink-0 ${!isCurrent ? 'opacity-50' : ''}`}
+                      style={{
+                        borderColor: isCurrent ? '#374151' : '#4FF456',
+                        color: isCurrent ? '#374151' : '#4FF456',
+                        backgroundColor: 'transparent'
+                      }}
+                    >
+                      {step.id}
+                    </div>
+                    <span className={`font-medium text-[13px] leading-tight ${!isCurrent ? 'opacity-50' : ''}`}>
+                      {step.title}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </CardContent>
     </Card>

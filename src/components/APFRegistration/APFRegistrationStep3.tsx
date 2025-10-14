@@ -64,10 +64,7 @@ export function APFRegistrationStep3({ onNext, onBack, dashboardData, registrati
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Step 3: Budget Affordability Check</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Let's ensure the proposed funding plan fits your budget.
-        </p>
+        <CardTitle className="text-xl font-semibold leading-tight">Step 3: Budget Affordability Check</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -15,7 +15,7 @@ export function APFValueForMoneyCard({ isaContributions, maturityValue, showMont
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="text-xl font-semibold">
           <span style={{ color: '#4FF456' }}>BUOM Outcome</span>
         </CardTitle>
       </CardHeader>

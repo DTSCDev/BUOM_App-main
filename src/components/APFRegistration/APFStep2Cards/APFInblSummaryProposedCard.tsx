@@ -25,8 +25,8 @@ export function APFInblSummaryProposedCard({ profile, sponsorships, opacity = 'o
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          <span style={{ color: '#4FF456' }}>APF & INBL Summary - Proposed Funding</span>
+        <CardTitle className="text-xl">
+          <span style={{ color: '#4FF456' }}>Proposed APF & INBL  Key Financials</span>
         </CardTitle>
       </CardHeader>
       <CardContent>

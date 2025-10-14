@@ -86,7 +86,7 @@ export function APFNRSRFeeCard({ showMonthly, sponsorships, profile, className }
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle style={{ color: '#4FF456' }}>
+        <CardTitle className="text-xl font-semibold" style={{ color: '#4FF456' }}>
           INBL Loan Summary - Proposed Total Funding
         </CardTitle>
       </CardHeader>
@@ -127,14 +127,16 @@ export function APFNRSRFeeCard({ showMonthly, sponsorships, profile, className }
             LOAN TERMS
           </div>
           {/* Bullet list */}
-          <div className="p-4 border border-green-200 rounded-b text-sm text-gray-800 space-y-1">
-            <p>• Interest Rate: 0.00%</p>
-            <p>• Repayment Period: 20 years</p>
-            <p>• Single repayment at maturity</p>
-            <p>• Non-recourse structure</p>
-            <p>• NPG: Net Pay Guarantee covers the net pay lost from salary sacrifice each pay day</p>
-            <p>• NRSR Fee: Non Recourse, Single Repayment Fee allows you to save monthly into a Tax-Free ISA earning compound growth until a single repayment at Maturity.</p>
-            <p>• Time Tokens are awarded to BUOM members who agree to do good with their Time & Money.</p>
+          <div className="p-4 border border-green-200 rounded-b">
+            <ul className="list-disc list-outside pl-6 text-sm text-gray-800 space-y-1">
+              <li>Interest Rate: 0.00%</li>
+              <li>Repayment Period: 20 years</li>
+              <li>Single repayment at maturity</li>
+              <li>Non-recourse structure</li>
+              <li>NPG: Net Pay Guarantee covers the net pay lost from salary sacrifice each pay day</li>
+              <li>NRSR Fee: Non Recourse, Single Repayment Fee allows you to save monthly into a Tax-Free ISA earning compound growth until a single repayment at Maturity.</li>
+              <li>Time Tokens are awarded to BUOM members who agree to do good with their Time & Money.</li>
+            </ul>
           </div>
 
           {/* Blue note box */}

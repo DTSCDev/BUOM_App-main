@@ -147,15 +147,13 @@ const FreeProtectionAnalysisCard: React.FC<FreeProtectionAnalysisCardProps> = ({
         {/* Detailed Calculation Breakdown */}
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <h4 className="font-semibold text-red-600 mb-2">Calculation Breakdown (Year 1 Example)</h4>
-          <div className="space-y-2 text-sm text-red-700">
-            <p>• Target Income (2% inflation): <strong>{formatCurrency(targetIncomeYear1)}</strong></p>
-            <p>• Gross Lump Sum Cost (÷ 3.5%): <strong>{formatCurrency(lumpSumCostYear1)}</strong></p>
-            <p>• Less: Existing Fund Value (4.5% growth): <strong>-{formatCurrency(existingFundValueYear1)}</strong></p>
-            <p>• Less: New AE Contribution Fund Value: <strong>-{formatCurrency(aeContributionFundValueYear1)}</strong></p>
-            <p className="border-t border-red-300 pt-2 font-semibold">
-              • Year 1 Life Cover Need: <strong>{formatCurrency(estimatedLifeCoverNeedYear1)}</strong>
-            </p>
-          </div>
+          <ul className="list-disc list-outside pl-6 space-y-2 text-sm text-red-700">
+            <li>Target Income (2% inflation): <strong>{formatCurrency(targetIncomeYear1)}</strong></li>
+            <li>Gross Lump Sum Cost (÷ 3.5%): <strong>{formatCurrency(lumpSumCostYear1)}</strong></li>
+            <li>Less: Existing Fund Value (4.5% growth): <strong>-{formatCurrency(existingFundValueYear1)}</strong></li>
+            <li>Less: New AE Contribution Fund Value: <strong>-{formatCurrency(aeContributionFundValueYear1)}</strong></li>
+            <li className="border-t border-red-300 pt-2 font-semibold">Year 1 Life Cover Need: <strong>{formatCurrency(estimatedLifeCoverNeedYear1)}</strong></li>
+          </ul>
         </div>
 
         {/* Calculation Note */}

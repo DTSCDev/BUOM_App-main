@@ -102,8 +102,15 @@ export function ApfRetirementPlanSummary() {
   // APF-1006: Shortfall vs target
   const apfTargetIncome = Math.max(0, targetIncomeAtRetirement - existingPlanIncomeAtRetirement);
 
-  // ISA target capital from income shortfall
-  const isaSavingsTargetToday = apfTargetIncome / params.drawdownRate;
+  // APF-1007: ISA PAYDAY SAVINGS TARGET (monthly)
+  // Formula: Proposed APF Maturity Target (CAL-4121) × 0.00098, rounded down
+  const isaTargetMonthly = Math.floor((hub.cal4121_capitalShortfall || 0) * 0.00098);
+
+  // APF-1008: ISA SAVINGS VALUE TODAY defaults to £0 until provider feeds
+  const isaValueTodayOverride = 0;
+
+  // APF-1009: ISA SAVINGS TARGET TODAY = APF-1007 × 12 months
+  const isaSavingsTargetToday = isaTargetMonthly * 12;
 
   const calculations = {
     annualSalary: profile.annual_salary || 0, // APF-1001
@@ -113,9 +120,9 @@ export function ApfRetirementPlanSummary() {
     existingPlanIncomeAtRetirement, // APF-1005 (CAL-4132)
     apfTargetIncome, // APF-1006
     retirementProgressPercentage: Math.min(100, targetIncomeAtRetirement > 0 ? (existingPlanIncomeAtRetirement / targetIncomeAtRetirement) * 100 : 0),
-    // Keep ISA figures from unified for now to avoid broader ripple effects
-    isaTargetMonthly: unified.isaTargetMonthly,
-    isaValueToday: currentISAValue,
+    // APF-1007–1009 (ISA targets)
+    isaTargetMonthly,
+    isaValueToday: isaValueTodayOverride,
     isaSavingsTargetToday,
     repaymentProgressPercentage: Math.min(100, unified.repaymentProgressPercentage || 0),
   };

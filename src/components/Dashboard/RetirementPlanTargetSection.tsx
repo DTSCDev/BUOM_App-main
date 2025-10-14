@@ -21,7 +21,7 @@ export function RetirementPlanTargetSection({ calculations }: RetirementPlanTarg
   if (!calculations) {
     return (
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-purple-600">Retirement Plan Target Income</h3>
+        <h3 className="text-lg font-semibold text-purple-600">APF Retirement Target Income</h3>
         <div className="text-center text-gray-500">Loading...</div>
       </div>
     );
@@ -29,7 +29,7 @@ export function RetirementPlanTargetSection({ calculations }: RetirementPlanTarg
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-purple-600">Retirement Plan Target Income</h3>
+      <h3 className="text-lg font-semibold text-purple-600">APF Retirement Target Income</h3>
       <ProgressBanner 
         progressPercentage={calculations.retirementProgressPercentage || 0}
         className="mb-3"

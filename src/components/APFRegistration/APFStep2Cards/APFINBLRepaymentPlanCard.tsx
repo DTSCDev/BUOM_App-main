@@ -65,7 +65,7 @@ export function APFINBLRepaymentPlanCard({ showMonthly, onToggle, sponsorships, 
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>
+          <CardTitle className="text-xl font-semibold">
             <span style={{ color: '#4FF456' }}>INBL Repayment Plan by Sponsorship Years ({sponsorships.length} Year{sponsorships.length !== 1 ? 's' : ''})</span>
           </CardTitle>
           {/* Global toggle removed per requirement; card-specific toggle added inside Year 1 card. */}

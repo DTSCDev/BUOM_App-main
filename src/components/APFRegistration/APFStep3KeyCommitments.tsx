@@ -115,8 +115,7 @@ export function APFStep3KeyCommitments({ profile, applicationData, onComplete }:
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>3</div>
           <div>
-            <h2 id="step3-header" className="text-xl font-semibold" style={{ color: '#4FF456' }}>Step 3: Key Commitments</h2>
-            <p className="text-sm text-gray-600">Understand your NRSR terms and repayment obligations</p>
+            <h2 id="step3-header" className="text-2xl font-semibold" style={{ color: '#4FF456' }}>Key Commitments</h2>
           </div>
         </div>
         {/* Toggle removed per request */}

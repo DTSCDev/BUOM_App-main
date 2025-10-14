@@ -315,9 +315,33 @@ const RetirementCalculatorEmployee = () => {
 
         <div className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="calculator">Calculator</TabsTrigger>
-              <TabsTrigger value="affordability">Affordability</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-1 bg-gray-700 p-1 rounded-lg">
+              <TabsTrigger 
+                value="calculator"
+                className="text-sm px-2 py-2 data-[state=active]:font-bold data-[state=active]:text-gray-700 rounded-md"
+                style={{ 
+                  color: activeTab === 'calculator' ? '#374151' : '#4FF456',
+                  backgroundColor: activeTab === 'calculator' ? '#4FF546' : 'transparent',
+                  opacity: activeTab === 'calculator' ? 1 : 0.7
+                }}
+              >
+                Calculator
+              </TabsTrigger>
+              <TabsTrigger 
+                value="affordability"
+                className="text-sm px-2 py-2 data-[state=active]:font-bold data-[state=active]:text-gray-700 rounded-md"
+                style={{ 
+                  color: activeTab === 'affordability' ? '#374151' : '#4FF456',
+                  backgroundColor: activeTab === 'affordability' ? '#4FF546' : 'transparent',
+                  opacity: activeTab === 'affordability' ? 1 : 0.7
+                }}
+              >
+                Affordability
+              </TabsTrigger>
+              {/* Reserve space for future tabs to keep layout consistent */}
+              <div className="hidden md:block" />
+              <div className="hidden md:block" />
+              <div className="hidden md:block" />
             </TabsList>
             
             <TabsContent value="calculator" className="mt-6">

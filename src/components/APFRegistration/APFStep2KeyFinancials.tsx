@@ -68,8 +68,7 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
           2
         </div>
         <div>
-          <h2 className="text-xl font-semibold" style={{ color: '#4FF456' }}>Step 2: Key Financials for APF Funding</h2>
-          <p className="text-sm text-gray-600">Review your Advanced Pension Funding structure and INBL loan details</p>
+      <h2 className="text-2xl font-semibold leading-tight" style={{ color: '#4FF456' }}>Key Financials</h2>
         </div>
       </div>
 
@@ -81,7 +80,7 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold" style={{ color: '#4FF456' }}>Year 1 Sponsorship Funding</span>
+              <span className="text-xl font-semibold" style={{ color: '#4FF456' }}>Year 1 Sponsorship Funding</span>
             </div>
             <span className="text-sm text-gray-700">(2025/26) · Age 42</span>
           </CardTitle>
@@ -141,7 +140,7 @@ export function APFStep2KeyFinancials({ onComplete }: APFStep2KeyFinancialsProps
       {/* Plan Summary */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold" style={{ color: '#4FF456' }}>APF Sponsorship Plan Summary</CardTitle>
+          <CardTitle className="text-xl font-semibold" style={{ color: '#4FF456' }}>APF Sponsorship Plan Summary</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center items-start">

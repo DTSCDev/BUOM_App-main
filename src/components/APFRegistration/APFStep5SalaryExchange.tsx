@@ -105,11 +105,11 @@ export function APFStep5SalaryExchange({ profile, applicationData, onComplete }:
   return (
     <Card>
       <CardHeader id="step5-header">
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-2xl font-semibold leading-tight">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>
             5
           </div>
-          <span style={{ color: '#4FF456' }}>Salary Exchange Setup</span>
+          <span style={{ color: '#4FF456' }}>Salary Exchange Proposal</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

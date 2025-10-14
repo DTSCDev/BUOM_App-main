@@ -151,11 +151,11 @@ const FreeNetPayAssumption: React.FC<FreeNetPayAssumptionProps> = ({ results }) 
         {/* Additional Information */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <h4 className="font-medium text-gray-900 mb-2">Important Notes:</h4>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>• Calculations based on 1257L tax code (2024/25 rates)</li>
-            <li>• Assumes standard Auto Enrollment contribution rates</li>
-            <li>• Net pay calculation includes Income Tax and National Insurance</li>
-            <li>• Pensionable pay calculated using Set 2 & 3 method (85% of gross)</li>
+          <ul className="list-disc list-outside pl-6 text-sm text-gray-600 space-y-1">
+            <li>Calculations based on 1257L tax code (2024/25 rates)</li>
+            <li>Assumes standard Auto Enrollment contribution rates</li>
+            <li>Net pay calculation includes Income Tax and National Insurance</li>
+            <li>Pensionable pay calculated using Set 2 & 3 method (85% of gross)</li>
           </ul>
         </div>
       </CardContent>

@@ -208,7 +208,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="bg-white border-r border-gray-200">
-      <SidebarHeader className="py-2">
+      <SidebarHeader className="px-3 py-2">
         <ProfileIdentityHeader />
       </SidebarHeader>
       <SidebarContent className="text-[#030227]">
@@ -317,16 +317,16 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-        <div className="p-4 space-y-2">
-          <div className="flex items-center justify-center">
+      <SidebarFooter className="p-0">
+        <div className="px-3 py-2 space-y-1">
+          <div className="flex items-center justify-start">
             <img 
               src="/buom-logo.png" 
               alt="BUOM Logo" 
-              className="h-8 w-auto object-contain"
+              className="h-6 w-auto object-contain"
             />
           </div>
-          <p className="text-xs text-center text-[#030227]">
+          <p className="text-xs text-left text-[#030227]">
             © {new Date().getFullYear()} BUOM
           </p>
         </div>

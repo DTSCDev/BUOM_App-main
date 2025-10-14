@@ -34,8 +34,7 @@ export function APFStep4SuccessState({
       <div className="flex items-center space-x-3 mb-6">
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: '#4FF456', color: '#1f2937' }}>4</div>
         <div>
-          <h2 id="step4-header" className="text-xl font-semibold" style={{ color: '#4FF456' }}>Step 4: Value for Money Comparison</h2>
-          <p className="text-sm text-gray-600">Compare BUOM outcome vs Low-Cost DC Workplace over 240 months</p>
+          <h2 id="step4-header" className="text-2xl font-semibold" style={{ color: '#4FF456' }}>Value for Money Comparison</h2>
         </div>
       </div>
 

@@ -113,7 +113,7 @@ export function APFAEEquivalentCard({ maturityValue, showMonthly = false }: APFA
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
+        <CardTitle className="flex items-center space-x-2 text-xl font-semibold">
           <span className="text-gray-700">Low-Cost DC Workplace Outcome</span>
         </CardTitle>
         <p className="text-sm text-gray-700">
@@ -149,15 +149,15 @@ export function APFAEEquivalentCard({ maturityValue, showMonthly = false }: APFA
         </div>
 
         <div className="mt-6 p-4 bg-gray-200 border border-gray-300 rounded-lg">
-          <h4 className="font-semibold text-gray-700 mb-2">Auto Enrollment Comparison Notes</h4>
-          <ul className="text-sm space-y-1 text-gray-700">
-            <li>• Uses identical 240 month contribution timeline as BUOM's Advanced Pension Funding solution (240 months per tranche)</li>
-            <li>• Assumes 5% monthly compounding rate for growth and 0.5% product fee charge.</li>
-            <li>• Assumes 2% inflation escalation.</li>
-            <li>• Return on Capital shows investment efficiency vs contributions</li>
+          <h4 className="text-xl font-semibold text-gray-700 mb-2">Auto Enrollment Comparison Notes</h4>
+          <ul className="list-disc list-outside pl-6 text-sm space-y-1 text-gray-700">
+            <li>Uses identical 240 month contribution timeline as BUOM's Advanced Pension Funding solution (240 months per tranche)</li>
+            <li>Assumes 5% monthly compounding rate for growth and 0.5% product fee charge.</li>
+            <li>Assumes 2% inflation escalation.</li>
+            <li>Return on Capital shows investment efficiency vs contributions</li>
           </ul>
           <div className="text-sm text-gray-700 mt-3">
-            <span className="font-semibold">VALUE FOR MONEY CONCLUSION:</span>
+            <span className="text-xl font-semibold">VALUE FOR MONEY CONCLUSION:</span>
             <p className="mt-2">Significantly higher contributions are needed by Low-Cost DC Workplace Pensions to match the APF Maturity Value over a 240 month timeline.</p>
           </div>
         </div>

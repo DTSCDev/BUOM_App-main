@@ -261,7 +261,7 @@ export function ISARepaymentChart({ sponsorships = [], showMonthly, profile, cla
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex items-center justify-between text-xl font-semibold">
           <span className="text-blue-600">ISA Repayment Plan</span>
           <div className="text-sm font-normal text-gray-600">
             Year {sponsorships?.[0]?.year || 1} ({sponsorships?.[0]?.taxYear || `${new Date().getFullYear()}/${new Date().getFullYear()+1}`}) · Age {sponsorships?.[0]?.age || Math.floor(currentAgeSafe)}
