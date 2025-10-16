@@ -6,6 +6,7 @@ import { APFFundingPlanCard } from './APFFundingPlanCard';
 import { CostComparisonChart } from './CostComparisonChart';
 import { PensionChart } from '../Dashboard/PensionChart';
 import { chartDataFixer } from '@/utils/chartDataFixer';
+import { getPensionParameters } from '@/utils/pensionParameters';
 
 interface PensionChartsProps {
   projectedPensionPot: number;
@@ -54,9 +55,14 @@ const PensionCharts: React.FC<PensionChartsProps> = ({
     return fixedChartData;
   }, [annualSalary, existingPensionValue, yearsToRetirement]);
 
-  // Derive BUOM comparison costs (50% monthly discount; total = 12 × monthly)
-  const buomMonthlyCost = useMemo(() => Math.round(monthlyFundingCost * 0.5), [monthlyFundingCost]);
-  const totalBUOMCost = useMemo(() => buomMonthlyCost * 12, [buomMonthlyCost]);
+  // Derive BUOM comparison costs using correct formula: SFM-CAL-4131 = SFM-CAL-4130 × SFM-CAL-4462
+  const buomDiscountRate = useMemo(() => {
+    const params = getPensionParameters();
+    return params.buomDiscountRate <= 1 ? params.buomDiscountRate : params.buomDiscountRate / 100;
+  }, []);
+  
+  const buomMonthlyCost = useMemo(() => Math.round(monthlyFundingCost * buomDiscountRate), [monthlyFundingCost, buomDiscountRate]);
+  const totalBUOMCost = useMemo(() => Math.round(totalStandardCost * buomDiscountRate), [totalStandardCost, buomDiscountRate]);
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">

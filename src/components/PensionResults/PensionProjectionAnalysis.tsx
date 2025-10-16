@@ -45,7 +45,7 @@ const PensionProjectionAnalysis: React.FC<PensionProjectionAnalysisProps> = ({
   const capitalShortfall = Math.max(0, requiredCapital - totalProjectedValue); // SFM-CAL-4121
   const equivalentIncomeShortfall = capitalShortfall * params.drawdownRate; // SFM-CAL-4133
 
-  const topUpContributionsPaid = Math.max(0, totalStandardCost); // SFM-CAL-4122
+  const topUpContributionsPaid = totalStandardCost; // SFM-CAL-4122
   const topUpInvestmentGrowth = Math.max(0, capitalShortfall - topUpContributionsPaid); // SFM-CAL-4123
   const topUpTotalFundValue = topUpContributionsPaid + topUpInvestmentGrowth; // SFM-CAL-4124
   const effectiveGrowthRate = topUpContributionsPaid > 0

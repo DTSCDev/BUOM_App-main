@@ -157,7 +157,7 @@ export const CostComparisonChart: React.FC<CostComparisonChartProps> = ({
                   dataKey="Existing Pension Plan" 
                   fill="#7c3aed" 
                   name="Existing Plan" 
-                  label={(props) => <VerticalSFMLabel {...props} sfmCode="SFM-CAL-4122" />}
+                  label={(props) => <VerticalSFMLabel {...props} sfmCode="SFM-CAL-4130" />}
                 />
                 <Bar 
                   dataKey="Best Use Of Money" 
@@ -185,12 +185,16 @@ export const CostComparisonChart: React.FC<CostComparisonChartProps> = ({
             </div>
           </div>
           
-          <div className="text-center p-2 mt-4 rounded-md relative cursor-pointer hover:opacity-90" style={{
-          backgroundColor: '#4FF546',
-          color: '#000000'
-        }} onClick={() => onChangeTab("funding-eligibility")}>
-            <span className="font-bold">Apply for Advanced Pension Funding by clicking here</span>
-            <div className="absolute top-0 right-0 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+          <div className="text-center mt-4">
+            <div className="p-2 rounded-md cursor-pointer hover:opacity-90" style={{
+              backgroundColor: '#4FF546',
+              color: '#000000'
+            }} onClick={() => onChangeTab("funding-eligibility")}>
+              <span className="font-bold">Apply for Advanced Pension Funding by clicking here</span>
+            </div>
+            <div className="text-gray-500 bg-gray-100 px-2 py-1 rounded border mt-1 inline-block" style={{
+              fontSize: '8px'
+            }}>
               SFM-CAL-4130
             </div>
           </div>

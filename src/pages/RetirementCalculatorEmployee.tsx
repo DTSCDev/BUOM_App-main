@@ -275,7 +275,12 @@ const RetirementCalculatorEmployee = () => {
   const requiredCapital = hub.cal4120_requiredCapital || 0; // SFM-CAL-4120
   const capitalShortfall = hub.cal4121_capitalShortfall || 0; // SFM-CAL-4121
   const equivalentIncomeShortfall = Math.round((capitalShortfall || 0) * params.drawdownRate); // SFM-CAL-4133
-  const topUpContributionsPaid = Math.max(0, (monthlyFundingCost || 0) * 12); // SFM-CAL-4122
+  console.log('DEBUG CAL-4122:', {
+    hubValue: hub.cal4122_topUpContributionsPaid,
+    monthlyFundingCost,
+    capitalShortfall
+  });
+  const topUpContributionsPaid = hub.cal4122_topUpContributionsPaid || 0; // SFM-CAL-4122
   const topUpInvestmentGrowth = Math.max(0, capitalShortfall - topUpContributionsPaid); // SFM-CAL-4123
   const topUpTotalFundValue = topUpContributionsPaid + topUpInvestmentGrowth; // SFM-CAL-4124
   const effectiveGrowthRate = topUpContributionsPaid > 0 ? ((topUpInvestmentGrowth / topUpContributionsPaid) * 100) : 0; // SFM-CAL-4125
@@ -298,6 +303,20 @@ const RetirementCalculatorEmployee = () => {
           <Card>
             <CardContent className="p-8 text-center">
               <p className="text-gray-500">Loading dynamic calculations...</p>
+              
+              {/* Profile Setup Required */}
+              <div className="mt-4 p-4 bg-blue-100 border border-blue-300 rounded">
+                <h3 className="font-semibold text-blue-800">Profile Setup Required</h3>
+                <div className="text-sm text-blue-700 mt-2">
+                  <p>Date of Birth: {profile?.date_of_birth ? '✓ Set' : '✗ Missing'}</p>
+                  <p>Annual Salary: {profile?.annual_salary ? `✓ £${profile.annual_salary.toLocaleString()}` : '✗ Missing'}</p>
+                  <p>Retirement Age: {profile?.retirement_age ? `✓ ${profile.retirement_age}` : '✗ Missing'}</p>
+                  <p className="mt-2 font-medium">Complete your profile to see accurate retirement calculations including SFM-CAL-4122 (Top Up Contributions Paid).</p>
+                  <a href="/profile" className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                    Complete Profile Setup →
+                  </a>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -346,10 +365,25 @@ const RetirementCalculatorEmployee = () => {
             
             <TabsContent value="calculator" className="mt-6">
               <div className="space-y-6">
+                {/* Warning for missing profile data with fallback information */}
+                {(hub.usingFallbackSalary || hub.usingFallbackAge) && (
+                  <div className="p-4 bg-blue-100 border border-blue-300 rounded">
+                    <h3 className="font-semibold text-blue-800">Using Estimated Values</h3>
+                    <div className="text-sm text-blue-700 mt-2">
+                      <p>Annual Salary: {profile?.annual_salary ? `✓ £${profile.annual_salary.toLocaleString()}` : `⚠️ Using £35,000 (UK median)`}</p>
+                      <p>Age: {profile?.date_of_birth ? `✓ ${hub.cal4110_currentAge} years` : `⚠️ Using 35 years (estimated)`}</p>
+                      <p className="mt-2 font-medium">Calculations are using reasonable estimates where your profile data is missing. For accurate results, please complete your profile.</p>
+                      <a href="/profile" className="inline-block mt-2 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors">
+                        Complete Profile →
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Cashflow Modeller (Voyants-style) - Placeholder */}
                 <Card>
                   <CardHeader>
-                    <CardTitle style={{ color: '#4FF456' }}>Cashflow Modeller (Voyants-style)</CardTitle>
+                    <CardTitle style={{ color: '#4FF456' }}>Cashflow Modeller (Coming Soon)</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-700">
@@ -473,7 +507,7 @@ const RetirementCalculatorEmployee = () => {
                   existingPlanFutureContributions={hub.cal4127_existingPlanFutureContributions}
                   shortfall={capitalShortfall}
                   monthlyFundingCost={monthlyFundingCost}
-                  totalStandardCost={monthlyFundingCost * 12}
+                  totalStandardCost={topUpContributionsPaid}
                   annualSalary={profile?.annual_salary ?? 0}
                   yearsToRetirement={(age !== null ? retirementAge - age : 0)}
                   onChangeTab={(tab: string) => setActiveTab(tab)}
@@ -672,7 +706,12 @@ const RetirementCalculatorEmployee = () => {
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between relative pb-6">
                             <span>Top Up Contributions Paid:</span>
-                            <span className="font-medium text-gray-700">{formatCurrency(topUpContributionsPaid)}</span>
+                            <span className="font-medium text-gray-700">
+                              {formatCurrency(topUpContributionsPaid)}
+                              {(hub.usingFallbackSalary || hub.usingFallbackAge) && (
+                                <span className="ml-1 text-xs text-blue-600" title="Calculated using estimated values">*</span>
+                              )}
+                            </span>
                             <div className="absolute bottom-0 right-0">
                               <SFMCodeBadge sfmId="SFM-CAL-4122" />
                             </div>

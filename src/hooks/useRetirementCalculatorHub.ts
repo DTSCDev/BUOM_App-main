@@ -49,6 +49,10 @@ export interface RetirementCalculatorValues {
 
   // Convenience values used elsewhere
   prf2021_annualSalary: number;
+
+  // Fallback indicators
+  usingFallbackSalary: boolean;
+  usingFallbackAge: boolean;
 }
 
 export function useRetirementCalculatorHub(): RetirementCalculatorValues {
@@ -57,14 +61,16 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
   const params = getPensionParameters();
 
   return useMemo(() => {
-    // Profile inputs
-    const annualSalary = profile?.annual_salary || 0; // PRF-2021
+    // Profile inputs with fallbacks for missing data
+    // Use UK median salary (£35,000) as fallback when annual_salary is missing
+    const annualSalary = profile?.annual_salary || 35000; // PRF-2021
     const retirementAge = profile?.retirement_age || params.retirementAge;
 
-    // Age calculations
+    // Age calculations with fallbacks
+    // If date_of_birth is missing, assume age 35 as a reasonable working age
     const currentAgeYears = profile?.date_of_birth
       ? calcAgeYears(new Date(profile.date_of_birth)).years
-      : 0;
+      : 35;
     const yearsToRetirement = Math.max(0, (retirementAge || params.retirementAge) - currentAgeYears);
 
     // Timeline values
@@ -122,6 +128,7 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
     const monthlyTopUpPMTRounded = Math.round(monthlyTopUpPMTRaw);
 
     // Compute top-up totals using the 50p-precision PMT as contribution
+    // Only calculate if there's a capital shortfall and time to retirement
     const { totalContributions: totalTopUpContributions, futureValue: totalTopUpValue } =
       (capitalShortfall > 0 && yearsToRetirement > 0)
         ? compoundingCore.escalatingMonthlyContributions(monthlyTopUpPMT50p, monthsToRetirement)
@@ -157,8 +164,8 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
       cal4128_existingPlanMonthlyTopUpYear1: monthlyTopUpPMTRounded,
       // Exact PMT used for totals (rounded to 50p)
       cal4128_monthlyTopUpYear1Actual50p: monthlyTopUpPMT50p,
-      // CAL-4122: Total Future AE Contributions with Inflation until retirement
-      cal4122_topUpContributionsPaid: futureAEContributions,
+      // CAL-4122: Total Top Up Contributions Paid (without growth/charges)
+      cal4122_topUpContributionsPaid: totalTopUpContributions,
       cal4123_topUpInvestmentGrowth: topUpInvestmentGrowth,
       cal4124_topUpTotalFundValue: totalTopUpValue,
 
@@ -167,6 +174,10 @@ export function useRetirementCalculatorHub(): RetirementCalculatorValues {
 
       // Convenience
       prf2021_annualSalary: annualSalary,
+
+      // Fallback indicators
+      usingFallbackSalary: !profile?.annual_salary,
+      usingFallbackAge: !profile?.date_of_birth,
     };
   }, [profile, assets]);
 }

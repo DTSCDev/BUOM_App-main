@@ -2,7 +2,7 @@ import { ApfRetirementPlanSummary } from "@/components/Dashboard/RetirementPlanO
 import { APFSummaryCards } from "@/components/Dashboard/APFSummaryCards";
 import { CurrentYearAPFCard } from "@/components/Dashboard/CurrentYearAPFCard";
 import { CurrentYearINBLCard } from "@/components/Dashboard/CurrentYearINBLCard";
-import BUOMRetirementGraph from "@/components/BUOMRetirementGraph";
+import APFRetirementProjectionChart from "@/components/Dashboard/APFRetirementProjectionChart";
 import { useProfile } from "@/hooks/useProfile";
 import { useNetAssetValue } from "@/hooks/useNetAssetValue";
 import { calculateRetirementProjection } from "@/utils/retirementCalculations";
@@ -101,31 +101,19 @@ export default function APFDashboard() {
         <p className="text-muted-foreground mt-2">Advanced Pension Funding - Member Portal</p>
       </div>
       
-      {/* Main Dashboard Grid */}
+      {/* APF Retirement Projection Chart - Full Width First */}
+      <APFRetirementProjectionChart className="w-full" />
+      
+      {/* Main Dashboard Grid - Below Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Retirement Plan Overview */}
         <div className="space-y-6">
           <ApfRetirementPlanSummary />
-          <AIPKeyDataCard />
         </div>
         
-        {/* Right Column - Chart */}
+        {/* Right Column - AIP Key Data */}
         <div className="space-y-6">
-          {retirementData.length > 0 ? (
-            <BUOMRetirementGraph 
-              data={retirementData}
-              currentAge={currentAge}
-              retirementAge={retirementAge}
-              title="APF Retirement Projection"
-            />
-          ) : (
-            <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Complete Your Profile</h3>
-              <p className="text-gray-600 mt-2">
-                Add your salary and pension details to see your retirement projection.
-              </p>
-            </div>
-          )}
+          <AIPKeyDataCard />
         </div>
       </div>
       
