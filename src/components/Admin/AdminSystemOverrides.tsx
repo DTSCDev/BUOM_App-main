@@ -28,8 +28,8 @@ interface MemberOverride {
     user_id: string;
   };
   members: {
-    first_name: string;
-    last_name: string;
+    first_name: string | null;
+    last_name: string | null;
     email: string;
   };
 }
@@ -251,7 +251,7 @@ export function AdminSystemOverrides() {
                   <SelectContent>
                     {members.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
-                        {member.first_name} {member.last_name} - {member.email}
+                        {member.first_name || 'N/A'} {member.last_name || 'N/A'} - {member.email}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -356,7 +356,7 @@ export function AdminSystemOverrides() {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {override.members?.first_name} {override.members?.last_name}
+                            {override.members?.first_name || 'N/A'} {override.members?.last_name || 'N/A'}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {override.members?.email}
