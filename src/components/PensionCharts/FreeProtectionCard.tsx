@@ -22,8 +22,8 @@ interface CustomTooltipProps {
 interface FreeProtectionCardProps {
   targetIncomeToday: number; // SFM-013
   existingPensionValue: number; // SFM-022
-  currentAge?: number;
-  retirementAge?: number;
+  currentAge: number;
+  retirementAge: number;
 }
 
 const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
@@ -49,8 +49,8 @@ const VerticalSFMLabel: React.FC<{ sfmCode: string }> = ({ sfmCode }) => (
 export const FreeProtectionCard: React.FC<FreeProtectionCardProps> = ({ 
   targetIncomeToday,
   existingPensionValue,
-  currentAge = 42,
-  retirementAge = 67
+  currentAge,
+  retirementAge
 }) => {
   // Calculate SFM-042: Lump Sum Cost of Target Income Today (SFM-013 / 3.5%)
   const lumpSumCost = targetIncomeToday / 0.035;

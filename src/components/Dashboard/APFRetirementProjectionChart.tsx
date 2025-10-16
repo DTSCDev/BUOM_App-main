@@ -29,7 +29,7 @@ const APFRetirementProjectionChart: React.FC<APFRetirementProjectionChartProps> 
 
     const currentAge = calculateAge(new Date(profile.date_of_birth)).years;
     const retirementAge = profile.retirement_age || 67;
-    const maxAge = Math.min(68, retirementAge + 5); // Restrict to age 68 maximum
+    const maxAge = 68; // Show 10 years into retirement for better projection visibility
     const data: ChartDataPoint[] = [];
 
     // CAL-4401: Growth Rate (Accumulation Phase)
@@ -70,17 +70,32 @@ const APFRetirementProjectionChart: React.FC<APFRetirementProjectionChartProps> 
         existingFundValue = (baseExistingValue * (0.3 + 0.7 * progressRatio)) * growthFactor;
         futureAEContributions = (baseFutureContributions * progressRatio) * growthFactor;
       } else {
-        // After retirement, show drawdown with charges continuing to be deducted
+        // After retirement, apply CAL-4409 (Growth Rate Drawdown) minus CAL-4403 (Provider Charges)
         const yearsAfterRetirement = age - retirementAge;
         const baseExistingValue = hub.cal4115_estimatedExistingPensionFundValue || 0;
         const baseFutureContributions = hub.cal4117_futureAEContributions || 0;
         
-        // Apply growth to retirement, then drawdown with charges
+        // Apply growth to retirement first
         const growthToRetirement = Math.pow(1 + netGrowthRate, retirementAge - currentAge);
-        const drawdownWithCharges = Math.pow(1 - params.drawdownRate - providerCharges, yearsAfterRetirement);
+        const totalFundAtRetirement = (baseExistingValue + baseFutureContributions) * growthToRetirement;
         
-        existingFundValue = baseExistingValue * growthToRetirement * drawdownWithCharges;
-        futureAEContributions = baseFutureContributions * growthToRetirement * drawdownWithCharges;
+        // Apply CAL-4409 minus CAL-4403: 4% growth minus 0.5% charges = 3.5% net growth during drawdown
+        const netDrawdownGrowthRate = params.growthRateDrawdown - providerCharges; // 4% - 0.5% = 3.5%
+        const drawdownGrowthFactor = Math.pow(1 + netDrawdownGrowthRate, yearsAfterRetirement);
+        const totalFundAfterDrawdown = totalFundAtRetirement * drawdownGrowthFactor;
+        
+        // Split proportionally between components for display
+        const totalBaseValue = baseExistingValue + baseFutureContributions;
+        if (totalBaseValue > 0) {
+          const existingRatio = baseExistingValue / totalBaseValue;
+          const futureRatio = baseFutureContributions / totalBaseValue;
+          
+          existingFundValue = totalFundAfterDrawdown * existingRatio;
+          futureAEContributions = totalFundAfterDrawdown * futureRatio;
+        } else {
+          existingFundValue = 0;
+          futureAEContributions = 0;
+        }
       }
 
       data.push({

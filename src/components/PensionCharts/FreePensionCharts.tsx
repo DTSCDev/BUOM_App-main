@@ -13,8 +13,8 @@ interface FreePensionChartsProps {
   totalStandardCost: number;
   targetIncomeToday: number; // SFM-013
   existingPensionValue: number; // SFM-022
-  currentAge?: number;
-  retirementAge?: number;
+  currentAge: number;
+  retirementAge: number;
   onChangeTab?: (tab: string) => void;
 }
 
