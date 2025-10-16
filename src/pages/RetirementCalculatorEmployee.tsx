@@ -411,7 +411,7 @@ const RetirementCalculatorEmployee = () => {
                     {capitalShortfall > 0 && (
                       <Alert className="border-red-200 bg-red-50">
                         <AlertDescription className="text-red-700">
-                          Your estimated Top Up of {formatCurrency(monthlyFundingCost)} may not be Affordable. Check your eligibility for risk-free financial assistance.
+                          Your estimated Top Up of {formatCurrency(monthlyFundingCost)} may not be Affordable. Click the Affordability button below to see if you are eligibile for our risk-free Chartered Financial Advice program.
                         </AlertDescription>
                       </Alert>
                     )}

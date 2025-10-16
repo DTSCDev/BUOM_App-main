@@ -19,7 +19,7 @@ const SFMCodeDisplay: React.FC<{
   const sfmField = systemFields.find(field => field.sfmId === sfmId);
   
   return (
-    <div className={`text-[8px] text-gray-500 opacity-80 font-mono border border-gray-300 px-1 py-0.5 rounded mt-1 ${className}`}>
+    <div className={`text-[8px] text-gray-500 ${className}`}>
       <div>{sfmId.replace('SFM-', '')}</div>
       {sfmField && (
         <div className="text-[6px] mt-0.5">

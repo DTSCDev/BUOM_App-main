@@ -78,7 +78,7 @@ const FreePensionFundingOptionsCard: React.FC<FreePensionFundingOptionsCardProps
             <p className="text-sm text-gray-600">
               {isOnTrack ? "Congratulations! You're on track for retirement." : isReasonablyOnTrack ? "You're close to your retirement target." : "You have a pension funding gap that needs attention."}
             </p>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-008
             </div>
           </div>
@@ -91,7 +91,7 @@ const FreePensionFundingOptionsCard: React.FC<FreePensionFundingOptionsCardProps
             <p className="text-sm text-gray-600">
               Projected pension pot at retirement
             </p>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-009
             </div>
           </div>
@@ -106,7 +106,7 @@ const FreePensionFundingOptionsCard: React.FC<FreePensionFundingOptionsCardProps
             <p className="text-sm text-gray-600">
               Capital needed for target retirement income
             </p>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-010
             </div>
           </div>
@@ -121,7 +121,7 @@ const FreePensionFundingOptionsCard: React.FC<FreePensionFundingOptionsCardProps
             <p className="text-sm text-gray-600">
               {capitalShortfall > 0 ? "Additional capital needed" : "Excess above target"}
             </p>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-011
             </div>
           </div>
@@ -135,7 +135,7 @@ const FreePensionFundingOptionsCard: React.FC<FreePensionFundingOptionsCardProps
             </div>
             <p className="text-sm text-purple-600 mb-4">
               Additional monthly contribution needed to close your Estimated Shortfall
-              <span className="ml-2 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+              <span className="ml-2 text-[8px] text-gray-500 px-2 py-1 rounded">
                 SFM-012
               </span>
             </p>

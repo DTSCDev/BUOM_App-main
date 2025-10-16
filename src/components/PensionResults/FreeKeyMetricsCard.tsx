@@ -23,7 +23,7 @@ export function FreeKeyMetricsCard({ results }: FreeKeyMetricsCardProps) {
         <div className="flex justify-between relative pb-6">
           <span>Current Age</span>
           <span className="font-medium text-gray-700">{calculations.keyMetrics.currentAge} years</span>
-          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
             SFM-017
           </div>
         </div>
@@ -31,7 +31,7 @@ export function FreeKeyMetricsCard({ results }: FreeKeyMetricsCardProps) {
         <div className="flex justify-between relative pb-6">
           <span>Time to Retirement</span>
           <span className="font-medium text-gray-700">{formatYearsMonths(calculations.keyMetrics.monthsToRetirement)}</span>
-          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
             SFM-018
           </div>
         </div>
@@ -39,7 +39,7 @@ export function FreeKeyMetricsCard({ results }: FreeKeyMetricsCardProps) {
         <div className="flex justify-between relative pb-6">
           <span>Days Until Pension</span>
           <span className="font-medium text-gray-700">{calculations.keyMetrics.daysToRetirement?.toLocaleString()}</span>
-          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
             SFM-019
           </div>
         </div>
@@ -47,7 +47,7 @@ export function FreeKeyMetricsCard({ results }: FreeKeyMetricsCardProps) {
         <div className="flex justify-between relative pb-6">
           <span>Paydays Remaining</span>
           <span className="font-medium text-gray-700">{calculations.keyMetrics.paydaysRemaining?.toLocaleString()}</span>
-          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+          <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
             SFM-020
           </div>
         </div>

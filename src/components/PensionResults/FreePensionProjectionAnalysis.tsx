@@ -46,7 +46,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Estimated Historical Contributions</span>
             <span className="font-medium">{formatCurrency(historicalContributions)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-021
             </div>
           </div>
@@ -54,7 +54,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Estimated Existing Pension Fund Value</span>
             <span className="font-medium">{formatCurrency(existingPensionValue)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-022
             </div>
           </div>
@@ -62,7 +62,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Future Growth on Existing Fund Value</span>
             <span className="font-medium text-green-600">+{formatCurrency(growthFromExisting)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-023
             </div>
           </div>
@@ -70,7 +70,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Future AE Contributions</span>
             <span className="font-medium">{formatCurrency(futureAEContributions)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-024
             </div>
           </div>
@@ -78,7 +78,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Future AE Contributions Growth</span>
             <span className="font-medium text-green-600">+{formatCurrency(futureAEGrowth)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-025
             </div>
           </div>
@@ -91,7 +91,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
               <span>{formatCurrency(totalProjectedValue)}</span>
             </div>
             <div className="flex justify-end">
-              <div className="text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+              <div className="text-[8px] text-gray-500 px-2 py-1 rounded">
                 SFM-026
               </div>
             </div>
@@ -100,7 +100,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Required Capital</span>
             <span className="font-medium text-lg">{formatCurrency(requiredCapital)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-027
             </div>
           </div>
@@ -108,7 +108,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Capital Shortfall</span>
             <span className="font-medium text-lg text-[#9333EA]">{formatCurrency(capitalShortfall)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-028
             </div>
           </div>
@@ -116,7 +116,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Equivalent Income Shortfall</span>
             <span className="font-medium text-lg text-[#9333EA]">{formatCurrency(equivalentIncomeShortfall)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-045
             </div>
           </div>
@@ -130,7 +130,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
             <div className="flex justify-between relative pb-6">
               <span>Top Up Contributions Paid:</span>
               <span className="font-medium text-gray-700">{formatCurrency(calculationResults.topUpAnalysis.topUpContributionsPaid)}</span>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
                 SFM-029
               </div>
             </div>
@@ -138,7 +138,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
             <div className="flex justify-between relative pb-6">
               <span>Top Up Investment Growth:</span>
               <span className="font-medium text-gray-700">{formatCurrency(calculationResults.topUpAnalysis.topUpInvestmentGrowth)}</span>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
                 SFM-030
               </div>
             </div>
@@ -146,7 +146,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
             <div className="flex justify-between relative pb-6">
               <span>Shortfall Target:</span>
               <span className="font-medium text-[#9333EA]">{formatCurrency(calculationResults.topUpAnalysis.topUpContributionsValue)}</span>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
                 SFM-031
               </div>
             </div>
@@ -154,7 +154,7 @@ const FreePensionProjectionAnalysis: React.FC<FreePensionProjectionAnalysisProps
             <div className="flex justify-between relative pb-6">
               <span>Effective Growth Rate:</span>
               <span className="font-medium text-gray-700">{calculationResults.topUpAnalysis.effectiveGrowthRate.toFixed(1)}%</span>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
                 SFM-032
               </div>
             </div>

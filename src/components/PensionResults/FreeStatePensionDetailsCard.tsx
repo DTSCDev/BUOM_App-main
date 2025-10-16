@@ -33,7 +33,7 @@ export function FreeStatePensionDetailsCard({
           <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg relative">
             <span className="text-muted-foreground">Current State Pension (Annual)</span>
             <span className="font-medium text-blue-600">{formatCurrency(currentStatePension)}</span>
-            <div className="absolute bottom-1 right-1 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+            <div className="absolute bottom-1 right-1 text-[8px] text-gray-500 px-1 py-0.5 rounded">
               SFM-015
             </div>
           </div>
@@ -41,7 +41,7 @@ export function FreeStatePensionDetailsCard({
           <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg relative">
             <span className="text-muted-foreground">State Pension at Retirement</span>
             <span className="font-medium text-green-600">{formatCurrency(statePensionAtRetirement)}</span>
-            <div className="absolute bottom-1 right-1 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+            <div className="absolute bottom-1 right-1 text-[8px] text-gray-500 px-1 py-0.5 rounded">
               SFM-016
             </div>
           </div>

@@ -41,7 +41,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 };
 
 const VerticalSFMLabel: React.FC<{ sfmCode: string }> = ({ sfmCode }) => (
-  <div className="absolute bottom-2 right-2 text-xs text-gray-400 font-mono">
+  <div className="absolute bottom-2 right-2 text-[8px] text-gray-400 font-mono">
     {sfmCode}
   </div>
 );

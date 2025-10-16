@@ -46,7 +46,7 @@ export function FreePensionTimeline({
               <p className="text-sm text-gray-600">
                 50% of current annual salary
               </p>
-              <div className="text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+              <div className="text-[8px] text-gray-500 px-2 py-1 rounded">
                 SFM-013
               </div>
             </div>
@@ -60,7 +60,7 @@ export function FreePensionTimeline({
               <p className="text-sm text-gray-600">
                 Target income adjusted for inflation
               </p>
-              <div className="text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+              <div className="text-[8px] text-gray-500 px-2 py-1 rounded">
                 SFM-014
               </div>
             </div>
@@ -74,7 +74,7 @@ export function FreePensionTimeline({
               <p className="text-sm text-gray-600">
                 Projected income (inc. State Pension)
               </p>
-              <div className="text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+              <div className="text-[8px] text-gray-500 px-2 py-1 rounded">
                 SFM-044
               </div>
             </div>
@@ -96,7 +96,7 @@ export function FreePensionTimeline({
                 <p className="text-sm text-gray-600">
                   Current state pension value
                 </p>
-                <div className="text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+                <div className="text-[8px] text-gray-500 px-2 py-1 rounded">
                   SFM-015
                 </div>
               </div>
@@ -110,7 +110,7 @@ export function FreePensionTimeline({
                 <p className="text-sm text-gray-600">
                   State pension adjusted for inflation
                 </p>
-                <div className="text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+                <div className="text-[8px] text-gray-500 px-2 py-1 rounded">
                   SFM-016
                 </div>
               </div>
@@ -126,28 +126,28 @@ export function FreePensionTimeline({
             <div className="flex justify-between relative pb-6">
               <span>Current Age</span>
               <span className="font-medium">{calculationResults.keyMetrics.currentAge} years 0 months</span>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
                 SFM-017
               </div>
             </div>
             <div className="flex justify-between relative pb-6">
               <span>Time to Retirement</span>
               <span className="font-medium">{Math.floor(yearsUntilPension)} years {Math.round((yearsUntilPension % 1) * 12).toString().padStart(2, '0')} months</span>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
                 SFM-018
               </div>
             </div>
             <div className="flex justify-between relative pb-6">
               <span>Days Until Pension</span>
               <span className="font-medium">{daysUntilPension.toLocaleString()}</span>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
                 SFM-019
               </div>
             </div>
             <div className="flex justify-between relative pb-6">
               <span>Paydays Remaining</span>
               <span className="font-medium">{paydaysRemaining.toLocaleString()}</span>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-1 py-0.5 rounded border">
+              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-1 py-0.5 rounded">
                 SFM-020
               </div>
             </div>

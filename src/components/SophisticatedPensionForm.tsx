@@ -216,42 +216,42 @@ const SophisticatedPensionForm: React.FC<SophisticatedPensionFormProps> = ({ onC
             <div className="text-[8px] text-gray-500">SFM-001</div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="salaryValue" className="text-sm sm:text-base">Gross Salary</Label>
-              <div className="flex items-center gap-2 sm:gap-4">
-                <span className={`text-xs sm:text-sm ${!isAnnualSalary ? 'font-medium' : 'text-gray-400'}`} style={!isAnnualSalary ? { color: '#4FF456' } : {}}>Monthly</span>
-                <Switch
-                  checked={isAnnualSalary}
-                  onCheckedChange={handleSalaryToggle}
-                  className="sm:scale-100"
-                  style={{ transform: 'scale(0.75)' }} />
-                <span className={`text-xs sm:text-sm ${isAnnualSalary ? 'font-medium' : 'text-gray-400'}`} style={isAnnualSalary ? { color: '#4FF456' } : {}}>Annual</span>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <span className={`text-xs sm:text-sm ${!isAnnualSalary ? 'font-medium' : 'text-gray-400'}`} style={!isAnnualSalary ? { color: '#4FF456' } : {}}>Monthly</span>
+                  <Switch
+                    checked={isAnnualSalary}
+                    onCheckedChange={handleSalaryToggle}
+                    className="sm:scale-100"
+                    style={{ transform: 'scale(0.75)' }} />
+                  <span className={`text-xs sm:text-sm ${isAnnualSalary ? 'font-medium' : 'text-gray-400'}`} style={isAnnualSalary ? { color: '#4FF456' } : {}}>Annual</span>
+                </div>
               </div>
-            </div>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">£</span>
-              <Input
-                id="salaryValue"
-                type="number"
-                value={salaryValue === 0 ? '' : salaryValue}
-                onChange={(e) => {
-                  const value = e.target.value === '' ? 0 : Number(e.target.value);
-                  setSalaryValue(value);
-                }}
-                onBlur={(e) => {
-                  const value = Number(e.target.value);
-                  if (value === 0 || isNaN(value)) {
-                    // Set to minimum value if field is empty or 0
-                    const minValue = isAnnualSalary ? 1000 : 100;
-                    setSalaryValue(minValue);
-                  }
-                }}
-                className="pl-8"
-                min={isAnnualSalary ? "1000" : "100"}
-                placeholder={isAnnualSalary ? "60000" : "5000"} />
-              <div className="text-[8px] text-gray-500 mt-2">SFM-002</div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">£</span>
+                <Input
+                  id="salaryValue"
+                  type="number"
+                  value={salaryValue === 0 ? '' : salaryValue}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : Number(e.target.value);
+                    setSalaryValue(value);
+                  }}
+                  onBlur={(e) => {
+                    const value = Number(e.target.value);
+                    if (value === 0 || isNaN(value)) {
+                      // Set to minimum value if field is empty or 0
+                      const minValue = isAnnualSalary ? 1000 : 100;
+                      setSalaryValue(minValue);
+                    }
+                  }}
+                  className="pl-8"
+                  min={isAnnualSalary ? "1000" : "100"}
+                  placeholder={isAnnualSalary ? "60000" : "5000"} />
               </div>
+              <div className="text-[8px] text-gray-500">SFM-002</div>
             </div>
           </div>
 
@@ -287,9 +287,7 @@ const SophisticatedPensionForm: React.FC<SophisticatedPensionFormProps> = ({ onC
                       return formatNumber(contributionResult.historicalContributions);
                     })()}</strong>
                   </p>
-                  <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                    SFM-003
-                  </div>
+                  <div className="text-[8px] text-gray-500">SFM-003</div>
                 </div>
               ) : (
                 <div className="relative">
@@ -301,9 +299,7 @@ const SophisticatedPensionForm: React.FC<SophisticatedPensionFormProps> = ({ onC
                     onChange={(e) => setExistingPensionValue(e.target.value === '' ? 0 : Number(e.target.value))}
                     className="pl-8"
                     placeholder="120000" />
-                  <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                    SFM-003
-                  </div>
+                  <div className="text-[8px] text-gray-500">SFM-003</div>
                 </div>
               )}
             </div>
@@ -370,9 +366,7 @@ const SophisticatedPensionForm: React.FC<SophisticatedPensionFormProps> = ({ onC
                   <p className="text-xs text-gray-500">
                     This includes both employee and employer contributions as per Auto Enrolment regulations.
                   </p>
-                  <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                    SFM-004
-                  </div>
+                  <div className="text-[8px] text-gray-500">SFM-004</div>
                 </div>
               )}
             </div>
@@ -389,9 +383,7 @@ const SophisticatedPensionForm: React.FC<SophisticatedPensionFormProps> = ({ onC
                 max="75"
                 placeholder="67" />
               <p className="text-sm text-gray-500">Default State Pension Age</p>
-              <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
-                SFM-005
-              </div>
+              <div className="text-[8px] text-gray-500">SFM-005</div>
             </div>
 
               <div className="space-y-2 relative">

@@ -96,7 +96,7 @@ const FreeProtectionAnalysisCard: React.FC<FreeProtectionAnalysisCardProps> = ({
           <div className="flex justify-between relative pb-6">
             <span className="text-muted-foreground">Lump Sum Cost of Target Income Today</span>
             <span className="font-medium">{formatCurrency(lumpSumCostTargetIncome)}</span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-042
             </div>
           </div>
@@ -111,7 +111,7 @@ const FreeProtectionAnalysisCard: React.FC<FreeProtectionAnalysisCardProps> = ({
                 : 'Fully Covered'
               }
             </span>
-            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 bg-gray-100 px-2 py-1 rounded border">
+            <div className="absolute bottom-0 right-0 text-[8px] text-gray-500 px-2 py-1 rounded">
               SFM-043
             </div>
           </div>

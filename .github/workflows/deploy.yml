@@ -9,6 +9,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      VERCEL_DEPLOY_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
     
     steps:
       - name: Checkout code
@@ -27,9 +29,14 @@ jobs:
         run: npm run build
         
       - name: Deploy to Vercel
+        if: ${{ env.VERCEL_DEPLOY_TOKEN }}
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
           vercel-org-id: ${{ secrets.ORG_ID }}
           vercel-project-id: ${{ secrets.PROJECT_ID }}
           working-directory: ./
+
+      - name: Skip Vercel deploy (no token)
+        if: ${{ !env.VERCEL_DEPLOY_TOKEN }}
+        run: echo "VERCEL_DEPLOY_TOKEN not set; skipping Vercel deploy."

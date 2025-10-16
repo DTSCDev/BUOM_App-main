@@ -31,7 +31,7 @@ export const FreeAPFPeriodCard: React.FC<FreeAPFPeriodCardProps> = ({ shortfall 
       </div>
       
       {/* SFM code for the card */}
-      <div className="absolute bottom-0 right-0 text-[8px] text-gray-400">SFM-041</div>
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-[8px] text-gray-400">SFM-041</div>
     </div>
   );
 };
