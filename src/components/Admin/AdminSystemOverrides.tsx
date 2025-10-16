@@ -18,11 +18,11 @@ interface MemberOverride {
   id: string;
   member_id: string;
   field_name: string;
-  original_value: string;
+  original_value: string | null;
   override_value: string;
-  reason: string;
-  is_active: boolean;
-  expires_at: string;
+  reason: string | null;
+  is_active: boolean | null;
+  expires_at: string | null;
   created_at: string;
   admin_users: {
     user_id: string;
@@ -188,7 +188,9 @@ export function AdminSystemOverrides() {
     }
   };
 
-  const formatValue = (value: string, fieldName: string) => {
+  const formatValue = (value: string | null, fieldName: string) => {
+    if (value === null) return 'N/A';
+    
     const field = systemFields.find(f => f.value === fieldName);
     if (!field) return value;
 
