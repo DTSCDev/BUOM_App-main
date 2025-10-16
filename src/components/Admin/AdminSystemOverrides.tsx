@@ -193,9 +193,10 @@ export function AdminSystemOverrides() {
     if (!field) return value;
 
     switch (field.type) {
-      case 'currency':
+      case 'currency': {
         const numValue = parseFloat(value);
         return isNaN(numValue) ? value : formatCurrency(numValue);
+      }
       case 'percentage':
         return `${value}%`;
       default:

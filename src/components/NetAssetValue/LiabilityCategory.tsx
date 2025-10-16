@@ -24,12 +24,12 @@ export default function LiabilityCategory({
   formatCurrency,
   onAddNew
 }: LiabilityCategoryProps) {
+  const { displayItems, createSuggestionLiability } = useLiabilitySuggestions(category, liabilities);
+
   // Only show categories we want
   if (category.name !== 'Loans' && category.name !== 'Other Debts') {
     return null;
   }
-
-  const { displayItems, createSuggestionLiability } = useLiabilitySuggestions(category, liabilities);
 
   // Helper function to handle adding a suggested liability
   function handleAddSuggestion(item: any) {
