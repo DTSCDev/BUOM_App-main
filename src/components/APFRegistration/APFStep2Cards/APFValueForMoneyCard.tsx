@@ -10,7 +10,7 @@ interface APFValueForMoneyCardProps {
 }
 
 export function APFValueForMoneyCard({ isaContributions, maturityValue, showMonthly = false }: APFValueForMoneyCardProps) {
-  const returnOnCapital = isaContributions > 0 ? ((maturityValue / isaContributions) * 100) : 0;
+  const returnOnCapital = isaContributions > 0 ? (((maturityValue / isaContributions) - 1) * 100) : 0;
   
   return (
     <Card>
@@ -45,6 +45,8 @@ export function APFValueForMoneyCard({ isaContributions, maturityValue, showMont
             valueTextColor="text-[#4FF456]"
             style={{ backgroundColor: '#4FF456' }}
             sfmCode="SFM-APF-1262"
+            fontWeight="font-semibold"
+            valueStyle="text-stroke-gray"
           />
         </div>
       </CardContent>

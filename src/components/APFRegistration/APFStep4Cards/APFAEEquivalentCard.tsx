@@ -105,7 +105,7 @@ export function APFAEEquivalentCard({ maturityValue, showMonthly = false }: APFA
   const isaTimeline = calculateFullISATimeline();
   
   // Calculate return on capital for AE
-  const aeReturnOnCapital = aeEquivalent.totalAEContributions > 0 ? ((maturityValue / aeEquivalent.totalAEContributions) * 100) : 0;
+  const aeReturnOnCapital = aeEquivalent.totalAEContributions > 0 ? (((maturityValue / aeEquivalent.totalAEContributions) - 1) * 100) : 0;
   
   // For display purposes
   const displayAEContributions = showMonthly ? aeEquivalent.totalAEContributions / 312 : aeEquivalent.totalAEContributions;
@@ -114,7 +114,7 @@ export function APFAEEquivalentCard({ maturityValue, showMonthly = false }: APFA
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center space-x-2 text-xl font-semibold">
-          <span className="text-gray-700">Low-Cost DC Workplace Outcome</span>
+          <span className="text-gray-700">Low-Cost DC Workplace Pension Outcome</span>
         </CardTitle>
         <p className="text-sm text-gray-700">
           Contributions required to match APF maturity value over identical 240-month timeline
@@ -149,16 +149,19 @@ export function APFAEEquivalentCard({ maturityValue, showMonthly = false }: APFA
         </div>
 
         <div className="mt-6 p-4 bg-gray-200 border border-gray-300 rounded-lg">
-          <h4 className="text-xl font-semibold text-gray-700 mb-2">Auto Enrollment Comparison Notes</h4>
+          <h4 className="text-xl font-semibold text-gray-700 mb-2">Auto Enrolment Comparison Notes</h4>
           <ul className="list-disc list-outside pl-6 text-sm space-y-1 text-gray-700">
             <li>Uses identical 240 month contribution timeline as BUOM's Advanced Pension Funding solution (240 months per tranche)</li>
-            <li>Assumes 5% monthly compounding rate for growth and 0.5% product fee charge.</li>
-            <li>Assumes 2% inflation escalation.</li>
-            <li>Return on Capital shows investment efficiency vs contributions</li>
+            <li>APF Maturity Value includes all costs, fees and charges are met by Total ISA Contributions.</li>
+            <li>Assumes 5% monthly compounding rate for growth and 0.5% product fee charge for ISA and Pensions.</li>
+            <li>Assumes 2% Salary and Contribution escalation.</li>
+            <li>Return on Capital shows investment growth on contributions paid in.</li>
+            <li>Figures are not guaranteed and may vary.</li>
           </ul>
-          <div className="text-sm text-gray-700 mt-3">
+          <div className="text-sm text-gray-700 mt-6">
             <span className="text-xl font-semibold">VALUE FOR MONEY CONCLUSION:</span>
-            <p className="mt-2">Significantly higher contributions are needed by Low-Cost DC Workplace Pensions to match the APF Maturity Value over a 240 month timeline.</p>
+            <p className="mt-2">Significantly higher contributions are needed by Low-Cost DC Workplace Pensions to match a BUOM Member's Outcome over a 240 month timeline.</p>
+            <p className="mt-2">And unlike all 5 ⭐ Rated DC Workplace Pension solutions, BUOM Members will only ever pay for successful APF Outcomes.</p>
           </div>
         </div>
       </CardContent>

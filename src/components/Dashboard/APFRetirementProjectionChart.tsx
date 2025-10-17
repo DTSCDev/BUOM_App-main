@@ -70,8 +70,7 @@ const APFRetirementProjectionChart: React.FC<APFRetirementProjectionChartProps> 
         existingFundValue = (baseExistingValue * (0.3 + 0.7 * progressRatio)) * growthFactor;
         futureAEContributions = (baseFutureContributions * progressRatio) * growthFactor;
       } else {
-        // After retirement, apply CAL-4409 (Growth Rate Drawdown) minus CAL-4403 (Provider Charges)
-        const yearsAfterRetirement = age - retirementAge;
+        // After retirement, fund remains static as growth and withdrawal cancel out
         const baseExistingValue = hub.cal4115_estimatedExistingPensionFundValue || 0;
         const baseFutureContributions = hub.cal4117_futureAEContributions || 0;
         
@@ -79,10 +78,8 @@ const APFRetirementProjectionChart: React.FC<APFRetirementProjectionChartProps> 
         const growthToRetirement = Math.pow(1 + netGrowthRate, retirementAge - currentAge);
         const totalFundAtRetirement = (baseExistingValue + baseFutureContributions) * growthToRetirement;
         
-        // Apply CAL-4409 minus CAL-4403: 4% growth minus 0.5% charges = 3.5% net growth during drawdown
-        const netDrawdownGrowthRate = params.growthRateDrawdown - providerCharges; // 4% - 0.5% = 3.5%
-        const drawdownGrowthFactor = Math.pow(1 + netDrawdownGrowthRate, yearsAfterRetirement);
-        const totalFundAfterDrawdown = totalFundAtRetirement * drawdownGrowthFactor;
+        // Post-retirement: Fund remains static as CAL-4409 (4% growth) minus CAL-4403 (0.5% charges) 
+        // minus 3.5% withdrawal = 0% net change
         
         // Split proportionally between components for display
         const totalBaseValue = baseExistingValue + baseFutureContributions;
@@ -90,8 +87,8 @@ const APFRetirementProjectionChart: React.FC<APFRetirementProjectionChartProps> 
           const existingRatio = baseExistingValue / totalBaseValue;
           const futureRatio = baseFutureContributions / totalBaseValue;
           
-          existingFundValue = totalFundAfterDrawdown * existingRatio;
-          futureAEContributions = totalFundAfterDrawdown * futureRatio;
+          existingFundValue = totalFundAtRetirement * existingRatio;
+          futureAEContributions = totalFundAtRetirement * futureRatio;
         } else {
           existingFundValue = 0;
           futureAEContributions = 0;
