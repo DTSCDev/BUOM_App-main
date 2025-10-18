@@ -9,8 +9,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      VERCEL_DEPLOY_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
     
     steps:
       - name: Checkout code
@@ -28,15 +26,30 @@ jobs:
       - name: Build project
         run: npm run build
         
-      - name: Deploy to Vercel
-        if: ${{ env.VERCEL_DEPLOY_TOKEN }}
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
-          vercel-org-id: ${{ secrets.ORG_ID }}
-          vercel-project-id: ${{ secrets.PROJECT_ID }}
-          working-directory: ./
-
-      - name: Skip Vercel deploy (no token)
-        if: ${{ !env.VERCEL_DEPLOY_TOKEN }}
-        run: echo "VERCEL_DEPLOY_TOKEN not set; skipping Vercel deploy."
+      - name: Check for required secrets
+        run: |
+          if [ -z "${{ secrets.VERCEL_DEPLOY_TOKEN }}" ]; then
+            echo "❌ VERCEL_DEPLOY_TOKEN secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.ORG_ID }}" ]; then
+            echo "❌ ORG_ID secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.PROJECT_ID }}" ]; then
+            echo "❌ PROJECT_ID secret is not set"
+            exit 1
+          fi
+          echo "✅ All required secrets are configured"
+        
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+        
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
+        
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
+        
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
